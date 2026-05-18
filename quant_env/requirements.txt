@@ -1,0 +1,13 @@
+yfinance
+pandas
+numpy
+matplotlib
+requests
+flask
+flask-socketio
+eventlet
+python-dotenv
+plotly
+jinja2
+scikit-learn
+joblib
