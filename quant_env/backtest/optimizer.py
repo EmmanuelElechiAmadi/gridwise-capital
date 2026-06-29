@@ -6,6 +6,9 @@ import pandas as pd
 def optimize(data, strategy_class, param_grid, capital=10000):
     keys = list(param_grid.keys())
     results = []
+    # If param_grid is empty, return empty DataFrame immediately
+    if not keys:
+        return pd.DataFrame()
     for combo in itertools.product(*param_grid.values()):
         params = dict(zip(keys, combo))
         engine = BacktestEngine(data.copy(), strategy_class, capital, **params)

@@ -5,11 +5,9 @@ from .trade_matcher import match_trades
 def compute_metrics(fills_df, equity_df):
     if fills_df.empty or equity_df.empty:
         return _empty_metrics()
-
     trades = match_trades(fills_df)
     if trades.empty:
         return _empty_metrics()
-
     equity = pd.to_numeric(equity_df['equity'])
     returns = equity.pct_change().dropna()
     total_return = (equity.iloc[-1] / equity.iloc[0] - 1) * 100
@@ -17,7 +15,6 @@ def compute_metrics(fills_df, equity_df):
     peak = equity.cummax()
     dd = peak - equity
     max_dd_pct = (dd / peak).max() * 100
-
     wins = trades[trades['pnl'] > 0]
     losses = trades[trades['pnl'] <= 0]
     win_count = len(wins)
@@ -27,7 +24,6 @@ def compute_metrics(fills_df, equity_df):
     total_wins = wins['pnl'].sum()
     total_losses = abs(losses['pnl'].sum())
     profit_factor = total_wins / total_losses if total_losses > 0 else 0.0
-
     return {
         'total_return_pct': round(total_return, 2),
         'total_pnl': round(equity.iloc[-1] - equity.iloc[0], 2),
@@ -36,15 +32,15 @@ def compute_metrics(fills_df, equity_df):
         'num_trades': total_trades,
         'win_rate_pct': round(win_rate, 2),
         'profit_factor': round(profit_factor, 2),
-        'avg_win': round(wins['pnl'].mean(), 2) if win_count else 0.0,
-        'avg_loss': round(losses['pnl'].mean(), 2) if loss_count else 0.0,
+        'avg_win': round(wins['pnl'].mean(),2) if win_count else 0.0,
+        'avg_loss': round(losses['pnl'].mean(),2) if loss_count else 0.0,
     }
 
 def _empty_metrics():
     return {
         'total_return_pct': 0.0,
         'total_pnl': 0.0,
-        'sharpe_ratio': -999,          # <-- so optimizer avoids this
+        'sharpe_ratio': -999,          # so optimizer avoids this
         'max_drawdown_pct': 0.0,
         'num_trades': 0,
         'win_rate_pct': 0.0,

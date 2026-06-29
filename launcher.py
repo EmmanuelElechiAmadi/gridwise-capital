@@ -147,11 +147,37 @@ def run_walkforward():
                                  initial_capital=10000, lot=1.0)
     print(wf_df)
     wf_df.to_csv('walkforward_results.csv', index=False)
-    
-    
+
+
+def run_train_ml():
+    """
+    Train the regime classification ML model using historical YFinance data.
+    Saves model.pkl to quant_env/ml/ for use by RegimeAdapter in live mode.
+    """
+    from ml.regime_model import RegimeClassifier
+    from backtest.data_loader import load_yfinance
+
+    print("Downloading training data (GC=F, 3mo, 1h)...")
+    data = load_yfinance("GC=F", period="3mo", interval="1h")
+    if data is None or data.empty:
+        print("ERROR: No data downloaded. Check internet / symbol.")
+        sys.exit(1)
+
+    print(f"Loaded {len(data)} bars. Training regime classifier...")
+    clf = RegimeClassifier(lookback=20, threshold=25)
+    clf.train(data)
+
+    model_dir = os.path.join(os.path.dirname(__file__), 'quant_env', 'ml')
+    os.makedirs(model_dir, exist_ok=True)
+    model_path = os.path.join(model_dir, 'model.pkl')
+    clf.save(model_path)
+    print(f"Model saved to {model_path}")
+    print("Done. Set ML_ENABLED=True in config to use RegimeAdapter in live mode.")
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Quant Grid Bot Launcher (with Email)")
-    parser.add_argument('mode', choices=['live', 'backtest', 'optimize', 'report', 'walkforward'], help="Mode to run: live trading, backtest, optimization, report generation, or walk-forward analysis")
+    parser = argparse.ArgumentParser(description="Quant Grid Bot Launcher (with Email & ML)")
+    parser.add_argument('mode', choices=['live', 'backtest', 'optimize', 'report', 'walkforward', 'train_ml'], help="Mode to run: live trading, backtest, optimization, report generation, walk-forward analysis, or train ML regime classifier")
     args = parser.parse_args()
 
     if args.mode == 'live':
@@ -163,4 +189,6 @@ if __name__ == '__main__':
     elif args.mode == 'report':
         run_report()
     elif args.mode == 'walkforward':
-        run_walkforward()    
+        run_walkforward()
+    elif args.mode == 'train_ml':
+        run_train_ml()

@@ -15,6 +15,9 @@ class GridStrategy(BaseStrategy):
         self.last_status = 0
         self.logger = None  # set externally
 
+        # Optional regime adapter – if set, grid auto-adjusts to regime
+        self.regime_adapter = None
+
     def on_start(self):
             
         self.log.info("Waiting for market data...")
