@@ -126,12 +126,19 @@ python launcher.py walkforward
 
 # Train ML regime classifier
 python launcher.py train_ml
+
+# Launch the web dashboard (trading starts paused — click Start in the UI)
+python launcher.py dashboard
 ```
+
+Open [http://localhost:5050](http://localhost:5050) in your browser.
+
+> **Note:** The dashboard is the recommended way to run live trading. Trading starts **paused** — click the **"Start"** button in the sidebar to begin. You can stop, close positions, reset the grid, and refresh the regime all from the UI without touching the terminal.
 
 Or run individual components:
 
 ```bash
-# Launch the web dashboard
+# Launch the web dashboard directly
 python quant_env/dashboard/app.py
 
 # Run all tests

@@ -149,6 +149,13 @@ def run_walkforward():
     wf_df.to_csv('walkforward_results.csv', index=False)
 
 
+def run_dashboard():
+    """Launch the web dashboard (trading starts paused — click Start in UI)."""
+    dashboard_path = os.path.join(os.path.dirname(__file__), 'quant_env', 'dashboard', 'app.py')
+    os.chdir(os.path.dirname(__file__))  # ensure CWD is gridbots/
+    exec(open(dashboard_path).read())
+
+
 def run_train_ml():
     """
     Train the regime classification ML model using historical YFinance data.
@@ -177,7 +184,7 @@ def run_train_ml():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Quant Grid Bot Launcher (with Email & ML)")
-    parser.add_argument('mode', choices=['live', 'backtest', 'optimize', 'report', 'walkforward', 'train_ml'], help="Mode to run: live trading, backtest, optimization, report generation, walk-forward analysis, or train ML regime classifier")
+    parser.add_argument('mode', choices=['live', 'backtest', 'optimize', 'report', 'walkforward', 'train_ml', 'dashboard'], help="Mode to run: live trading, backtest, optimization, report generation, walk-forward analysis, train ML regime classifier, or launch web dashboard")
     args = parser.parse_args()
 
     if args.mode == 'live':
@@ -192,3 +199,5 @@ if __name__ == '__main__':
         run_walkforward()
     elif args.mode == 'train_ml':
         run_train_ml()
+    elif args.mode == 'dashboard':
+        run_dashboard()

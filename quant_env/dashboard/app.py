@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request, send_file
 from flask_socketio import SocketIO, emit
-import threading, time, sys, os, io, csv, math
+import threading, time, sys, os, io, csv, math, textwrap
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from quant_env.config import Config
@@ -33,8 +33,8 @@ if getattr(config, 'ML_ENABLED', False):
     regime_adapter.start()
     log.info("Dashboard: RegimeAdapter started.")
 
-# Global flag to pause/resume trading
-trading_active = True
+# Global flag to pause/resume trading — start paused so user explicitly starts via UI
+trading_active = False
 
 # Hold recent log lines (for the dashboard)
 log_lines = []
@@ -112,6 +112,7 @@ def trading_loop():
                 position_dir = get_position_direction(net)
 
                 socketio.emit('update', {
+                    'trading_active': trading_active,
                     'balance': round(acc.balance, 2),
                     'equity': round(acc.equity, 2),
                     'pnl': round(pnl, 2),
@@ -308,12 +309,70 @@ def handle_connect():
     for msg in log_lines:
         emit('log', msg)
 
+# ── API: Health & connection status ───────────────────────────────
+@app.route('/health')
+def health():
+    """Return connection health status for the dashboard indicator."""
+    status = {'dashboard': 'running', 'trading_active': trading_active}
+    # Check connector
+    try:
+        acc = connector.account_info()
+        status['broker_connected'] = acc is not None
+        if acc:
+            status['balance'] = round(acc.balance, 2)
+            status['equity'] = round(acc.equity, 2)
+    except Exception:
+        status['broker_connected'] = False
+    # Check bridge connectivity (for MODE=bridge)
+    if config.MODE == 'bridge':
+        try:
+            import requests
+            r = requests.get(f"{config.BRIDGE_URL}/status", timeout=5)
+            status['bridge_connected'] = r.status_code == 200
+        except Exception:
+            status['bridge_connected'] = False
+    else:
+        status['bridge_connected'] = None  # direct mode, N/A
+    return jsonify(status)
+
+
 if __name__ == '__main__':
+    # ── Config file check ──────────────────────────────────────────
+    config_path = os.path.join(os.path.dirname(__file__), '..', 'config.py')
+    example_path = os.path.join(os.path.dirname(__file__), '..', 'config.example.py')
+    if not os.path.exists(config_path):
+        print("=" * 60)
+        print("  ERROR: config.py not found!")
+        print("=" * 60)
+        print(f"  Copy the example config and edit it:")
+        print(f"    cp {example_path} {config_path}")
+        print(f"  Then edit {config_path} with your broker settings.")
+        print("=" * 60)
+        sys.exit(1)
+    print(f"  ✓ Using config: {config_path}")
+
+    # Quick sanity checks
+    checks = []
+    if config.SYMBOL == "":
+        checks.append("SYMBOL is empty — set a trading symbol in config.py")
+    if config.BRIDGE_URL == "":
+        checks.append("BRIDGE_URL is empty — set your MT5 bridge IP in config.py")
+    if checks:
+        print("⚠️  Configuration warnings:")
+        for c in checks:
+            print(f"    - {c}")
+        print()
+
     # Start adaptive updater (if enabled in config)
     if config.ADAPTIVE_ENABLED:
         from quant_env.adaptive.updater import AdaptiveUpdater
         adaptive = AdaptiveUpdater(config, strategy, log)
         adaptive.start()
+        print("  ✓ Adaptive updater started")
+
+    print(f"  ✓ Dashboard: http://localhost:5050")
+    print(f"  ⏸️  Trading starts PAUSED — click 'Start' in the dashboard to begin.")
+    print()
 
     threading.Thread(target=trading_loop, daemon=True).start()
     socketio.run(app, host='0.0.0.0', port=5050, debug=False)

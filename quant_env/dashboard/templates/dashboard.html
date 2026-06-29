@@ -409,8 +409,9 @@
 <header class="header">
     <div class="header-title">Quantitative Trading Dashboard</div>
     <div class="header-right">
-        <span class="live-badge"><span class="dot"></span> Live</span>
+        <span class="live-badge" id="liveBadge"><span class="dot"></span> Connected</span>
         <span class="header-time" id="headerTime">--:--:--</span>
+        <span id="tradingStatus" style="font-size:0.75rem;font-weight:600;padding:4px 10px;border-radius:20px;background:var(--orange-bg);color:var(--orange);">⏸ Paused</span>
         <button class="btn btn-outline btn-sm" onclick="window.location.reload()">↻ Refresh</button>
     </div>
 </header>
@@ -770,12 +771,64 @@
         window.open('/export_trades', '_blank');
     }
 
+    // ── Health Check (poll every 5s) ───────────────────────────────
+    async function pollHealth() {
+        try {
+            const res = await fetch('/health');
+            const h = await res.json();
+            const badge = document.getElementById('liveBadge');
+            const dot = badge.querySelector('.dot');
+            if (h.broker_connected) {
+                badge.style.background = 'var(--green-bg)';
+                badge.style.color = 'var(--green)';
+                badge.querySelector('.dot').style.background = 'var(--green)';
+                badge.innerHTML = '<span class="dot"></span> Broker OK';
+            } else {
+                badge.style.background = 'var(--red-bg)';
+                badge.style.color = 'var(--red)';
+                badge.querySelector('.dot').style.background = 'var(--red)';
+                badge.innerHTML = '<span class="dot"></span> No Broker';
+            }
+            // Update trading status indicator
+            const ts = document.getElementById('tradingStatus');
+            if (h.trading_active) {
+                ts.style.background = 'var(--green-bg)';
+                ts.style.color = 'var(--green)';
+                ts.textContent = '▶ Active';
+            } else {
+                ts.style.background = 'var(--orange-bg)';
+                ts.style.color = 'var(--orange)';
+                ts.textContent = '⏸ Paused';
+            }
+        } catch (e) { /* server not ready yet */ }
+    }
+
+    // ── Update trading_active from socket data ─────────────────────
+    // Overlay the socket-driven trading_active flag on the status indicator
+    socket.on('update', (data) => {
+        // (Keep existing logic above; just extend with trading_active)
+        const ts = document.getElementById('tradingStatus');
+        if (data.trading_active !== undefined) {
+            if (data.trading_active) {
+                ts.style.background = 'var(--green-bg)';
+                ts.style.color = 'var(--green)';
+                ts.textContent = '▶ Active';
+            } else {
+                ts.style.background = 'var(--orange-bg)';
+                ts.style.color = 'var(--orange)';
+                ts.textContent = '⏸ Paused';
+            }
+        }
+    });
+
     // ── Init Chart when DOM ready ──────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
         initChart();
         loadEquityCurve();
         loadPerformance();
         loadTrades();
+        pollHealth();
+        setInterval(pollHealth, 5000);
     });
 </script>
 </body>

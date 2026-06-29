@@ -3,6 +3,9 @@ __pycache__/
 *.pyc
 .env
 *.db
+*.db-shm
+*.db-wal
+quant_env/dashboard/quant_env/
 logs/
 .DS_Store
 .vscode/
