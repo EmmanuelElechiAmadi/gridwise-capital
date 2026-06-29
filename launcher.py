@@ -152,8 +152,8 @@ def run_walkforward():
 def run_dashboard():
     """Launch the web dashboard (trading starts paused — click Start in UI)."""
     dashboard_path = os.path.join(os.path.dirname(__file__), 'quant_env', 'dashboard', 'app.py')
-    os.chdir(os.path.dirname(__file__))  # ensure CWD is gridbots/
-    exec(open(dashboard_path).read())
+    # Use subprocess so __file__ resolves correctly inside app.py
+    subprocess.run([sys.executable, dashboard_path], cwd=os.path.dirname(__file__))
 
 
 def run_train_ml():
