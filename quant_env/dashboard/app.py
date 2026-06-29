@@ -298,24 +298,42 @@ def op_train_ml():
 # ── SocketIO (live status) ────────────────────────────────────────────
 
 def _emit_status():
-    """Periodically broadcast status to connected clients."""
+    """Periodically broadcast status to connected clients.
+    
+    Emits 'update' event with the rich data structure expected by
+    the dashboard JavaScript (dashboard.html socket.on('update', ...)).
+    """
     while not state['stop_event'].is_set():
         try:
-            grid_status = {}
+            gs = {}
             if state['bot'] is not None:
-                gs = state['bot'].get_status()
-                grid_status = {
-                    'active_orders': gs.get('active_orders', 0),
-                    'pnl': gs.get('total_pnl', 0.0),
-                    'open_positions': gs.get('open_positions', 0),
-                    'current_price': gs.get('current_price', 0.0),
-                }
+                try:
+                    gs = state['bot'].get_status()
+                except Exception:
+                    gs = {}
+            regime = gs.get('regime', 'unknown')
+            pos_dir = gs.get('position_direction', 'Neutral')
+            price = gs.get('current_price', 0.0)
+            pnl = gs.get('total_pnl', 0.0)
             broker_ok = state['bot'] is not None and getattr(state['bot'], 'connected', False)
-            socketio.emit('status', {
+
+            socketio.emit('update', {
                 'trading_active': state['trading_active'],
                 'has_bot': state['bot'] is not None,
                 'broker_connected': broker_ok,
-                'grid_status': grid_status,
+                'balance': gs.get('balance', None),
+                'equity': gs.get('equity', None),
+                'pnl': pnl,
+                'pnl_pct': gs.get('pnl_pct', 0.0),
+                'num_orders': gs.get('active_orders', 0),
+                'max_drawdown': gs.get('max_drawdown_pct', 0.0),
+                'regime': regime,
+                'regime_confidence': gs.get('regime_confidence', 0.0),
+                'position_direction': pos_dir,
+                'net_position': gs.get('net_position', 0.0),
+                'latest_price': price,
+                'grid_spacing': gs.get('grid_spacing', None),
+                'grid_levels': gs.get('grid_levels', None),
             })
         except Exception:
             pass
