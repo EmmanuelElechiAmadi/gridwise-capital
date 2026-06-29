@@ -1,0 +1,36 @@
+{
+  "lookback": 20,
+  "threshold": 25,
+  "features": [
+    "volatility",
+    "volume_ratio",
+    "high_low_ratio",
+    "returns",
+    "returns_lag1",
+    "volatility_lag1",
+    "returns_lag2",
+    "volatility_lag2",
+    "returns_lag3",
+    "volatility_lag3",
+    "returns_lag4",
+    "volatility_lag4",
+    "returns_lag5",
+    "volatility_lag5"
+  ],
+  "feature_importances": {
+    "volatility": 0.0,
+    "volume_ratio": 0.0,
+    "high_low_ratio": 0.0,
+    "returns": 0.0,
+    "returns_lag1": 0.0,
+    "volatility_lag1": 0.0,
+    "returns_lag2": 0.0,
+    "volatility_lag2": 0.0,
+    "returns_lag3": 0.0,
+    "volatility_lag3": 0.0,
+    "returns_lag4": 0.0,
+    "volatility_lag4": 0.0,
+    "returns_lag5": 0.0,
+    "volatility_lag5": 0.0
+  }
+}
