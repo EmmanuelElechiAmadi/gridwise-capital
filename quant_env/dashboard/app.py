@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request, send_file
 from flask_socketio import SocketIO, emit
-import threading, time, sys, os, io, csv
+import threading, time, sys, os, io, csv, math
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from quant_env.config import Config
@@ -10,6 +10,7 @@ from quant_env.strategies.grid_strategy import GridStrategy
 from quant_env.core.logger import setup_logger
 from quant_env.analysis.trade_logger import TradeLogger
 from quant_env.analysis.session_analyzer import session_performance
+from quant_env.analysis.performance import compute_metrics
 import pandas as pd
 
 app = Flask(__name__)
@@ -23,6 +24,14 @@ risk = RiskManager(config, log)
 logger = TradeLogger("quant_env/trades.db")
 strategy = GridStrategy(connector, config, log)
 strategy.logger = logger
+
+# ── Regime Adapter ────────────────────────────────────────────────
+regime_adapter = None
+if getattr(config, 'ML_ENABLED', False):
+    from quant_env.ml.regime_adapter import RegimeAdapter
+    regime_adapter = RegimeAdapter(config)
+    regime_adapter.start()
+    log.info("Dashboard: RegimeAdapter started.")
 
 # Global flag to pause/resume trading
 trading_active = True
@@ -44,6 +53,14 @@ class SocketLogHandler:
         pass
 
 log_handler = SocketLogHandler(socketio)
+
+def get_position_direction(net_position):
+    """Return 'Long', 'Short', or 'Neutral' based on net position."""
+    if net_position > 0.001:
+        return "Long"
+    elif net_position < -0.001:
+        return "Short"
+    return "Neutral"
 
 def check_risk():
     """Check risk and emit alert if triggered."""
@@ -74,24 +91,58 @@ def trading_loop():
             if acc:
                 logger.log_equity(acc.equity, acc.balance, net, len(strategy.active_orders))
                 pnl = acc.equity - acc.balance
+                pnl_pct = (pnl / acc.balance) * 100 if acc.balance > 0 else 0
+
+                # Get regime info
+                regime_name = "unknown"
+                regime_confidence = 0.0
+                if regime_adapter:
+                    regime_name = regime_adapter.regime_name
+                    regime_confidence = round(regime_adapter.confidence * 100, 1)
+
+                # Compute drawdown
+                equity_df = pd.DataFrame(logger.get_equity_curve(), columns=['timestamp', 'equity'])
+                max_dd_pct = 0.0
+                if not equity_df.empty:
+                    equity_series = pd.to_numeric(equity_df['equity'])
+                    peak = equity_series.cummax()
+                    dd = (peak - equity_series) / peak * 100
+                    max_dd_pct = round(dd.max(), 2)
+
+                position_dir = get_position_direction(net)
+
                 socketio.emit('update', {
-                    'balance':acc.balance,'equity':acc.equity,
-                    'pnl':pnl,'net_position':net,
-                    'num_orders':len(strategy.active_orders)
+                    'balance': round(acc.balance, 2),
+                    'equity': round(acc.equity, 2),
+                    'pnl': round(pnl, 2),
+                    'pnl_pct': round(pnl_pct, 2),
+                    'net_position': round(net, 4),
+                    'position_direction': position_dir,
+                    'num_orders': len(strategy.active_orders),
+                    'regime': regime_name,
+                    'regime_confidence': regime_confidence,
+                    'max_drawdown': max_dd_pct,
+                    'grid_spacing': strategy.spacing,
+                    'grid_levels': strategy.levels,
+                    'latest_price': round(tick['bid'], 2) if tick else 0,
                 })
                 check_risk()
         time.sleep(1)
 
-# ---------- Existing routes ----------
+# ── Main page ─────────────────────────────────────────────────────
 @app.route('/')
 def index():
     return render_template('dashboard.html')
 
+# ── API: Equity curve data ────────────────────────────────────────
 @app.route('/equity_chart')
 def equity_chart():
     rows = logger.get_equity_curve()
-    return jsonify([{'x':t,'y':e} for t,e in rows])
+    if not rows:
+        return jsonify([])
+    return jsonify([{'x': t, 'y': e} for t, e in rows])
 
+# ── API: Session stats (per-session performance) ──────────────────
 @app.route('/session_stats')
 def session_stats():
     fills = logger.get_fills()
@@ -102,7 +153,97 @@ def session_stats():
     stats = session_performance(fills_df, equity_df)
     return jsonify(stats.to_dict(orient='records'))
 
-# ---------- NEW Control Routes ----------
+# ── API: Overall performance metrics ──────────────────────────────
+@app.route('/performance')
+def performance():
+    fills = logger.get_fills()
+    if not fills:
+        return jsonify({'status': 'no_trades'})
+    fills_df = pd.DataFrame(fills, columns=['id','timestamp','symbol','side','price','volume','pnl'])
+    equity_df = pd.DataFrame(logger.get_equity_curve(), columns=['timestamp','equity'])
+    metrics = compute_metrics(fills_df, equity_df)
+    return jsonify(metrics)
+
+# ── API: Current regime ───────────────────────────────────────────
+@app.route('/regime')
+def regime():
+    if regime_adapter:
+        return jsonify({
+            'regime': regime_adapter.regime_name,
+            'confidence': round(regime_adapter.confidence * 100, 1),
+            'spacing': regime_adapter.spacing,
+            'levels': regime_adapter.levels,
+            'enabled': True,
+        })
+    return jsonify({
+        'regime': 'unknown',
+        'confidence': 0.0,
+        'spacing': strategy.spacing,
+        'levels': strategy.levels,
+        'enabled': False,
+    })
+
+# ── API: Current position ─────────────────────────────────────────
+@app.route('/position')
+def position():
+    pos = connector.get_positions()
+    net = sum(p['volume'] if p['type']=='buy' else -p['volume'] for p in pos)
+    return jsonify({
+        'direction': get_position_direction(net),
+        'net_exposure': round(net, 4),
+        'num_positions': len(pos),
+    })
+
+# ── API: Grid status ──────────────────────────────────────────────
+@app.route('/grid_status')
+def grid_status():
+    return jsonify({
+        'active_orders': len(strategy.active_orders),
+        'spacing': strategy.spacing,
+        'levels': strategy.levels,
+        'buy_levels': [round(p, 2) for p in sorted(strategy.buy_levels)],
+        'sell_levels': [round(p, 2) for p in sorted(strategy.sell_levels)],
+    })
+
+# ── API: Recent trades ────────────────────────────────────────────
+@app.route('/recent_trades')
+def recent_trades():
+    fills = logger.get_fills()
+    if not fills:
+        return jsonify([])
+    trades = []
+    for f in fills[-50:]:  # last 50 trades
+        trades.append({
+            'timestamp': f[1],
+            'symbol': f[2],
+            'side': f[3].upper(),
+            'price': round(f[4], 2),
+            'volume': round(f[5], 4),
+            'pnl': round(f[6], 2),
+        })
+    return jsonify(list(reversed(trades)))
+
+# ── API: Account summary ──────────────────────────────────────────
+@app.route('/account_summary')
+def account_summary():
+    acc = connector.account_info()
+    if not acc:
+        return jsonify({'status': 'error'})
+    pos = connector.get_positions()
+    net = sum(p['volume'] if p['type']=='buy' else -p['volume'] for p in pos)
+    pnl = acc.equity - acc.balance
+    pnl_pct = (pnl / acc.balance) * 100 if acc.balance > 0 else 0
+    return jsonify({
+        'balance': round(acc.balance, 2),
+        'equity': round(acc.equity, 2),
+        'pnl': round(pnl, 2),
+        'pnl_pct': round(pnl_pct, 2),
+        'net_position': round(net, 4),
+        'position_direction': get_position_direction(net),
+        'num_orders': len(strategy.active_orders),
+    })
+
+# ── Control Routes ────────────────────────────────────────────────
 @app.route('/start_strategy', methods=['POST'])
 def start_strategy():
     global trading_active
@@ -138,6 +279,13 @@ def reset_grid():
     strategy.reset_grid()
     return jsonify({'status': 'grid reset'})
 
+@app.route('/regime_refresh', methods=['POST'])
+def regime_refresh():
+    if regime_adapter:
+        regime_adapter.refresh_now()
+        return jsonify({'status': 'refreshed', 'regime': regime_adapter.regime_name})
+    return jsonify({'status': 'ml_disabled'})
+
 @app.route('/export_trades')
 def export_trades():
     fills = logger.get_fills()
@@ -154,10 +302,9 @@ def export_trades():
         download_name='trades.csv'
     )
 
-# ---------- Socket Events ----------
+# ── Socket Events ─────────────────────────────────────────────────
 @socketio.on('connect')
 def handle_connect():
-    # Send existing log lines on connect
     for msg in log_lines:
         emit('log', msg)
 
