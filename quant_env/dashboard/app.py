@@ -83,11 +83,86 @@ def _format_result(raw_text: str) -> str:
     return html
 
 
+# ── Stub helpers for dashboard data ────────────────────────────────────
+
+def _get_recent_trades(limit=50):
+    """Return recent trades from DB as list of dicts."""
+    from quant_env.analysis.trade_logger import TradeLogger
+    try:
+        logger = TradeLogger()
+        return logger.get_recent(limit)
+    except Exception:
+        return []
+
+
+def _get_performance_metrics():
+    """Return aggregated performance metrics."""
+    from quant_env.analysis.performance import PerformanceAnalyzer
+    try:
+        pa = PerformanceAnalyzer()
+        return pa.get_summary()
+    except Exception:
+        return None
+
+
+def _get_equity_curve():
+    """Return equity curve data points."""
+    from quant_env.analysis.trade_logger import TradeLogger
+    try:
+        logger = TradeLogger()
+        return logger.get_equity_curve()
+    except Exception:
+        return []
+
+
 # ── Routes ────────────────────────────────────────────────────────────
 
 @app.route('/')
 def index():
     return render_template('dashboard.html')
+
+
+@app.route('/equity_chart')
+def equity_chart():
+    data = _get_equity_curve()
+    return jsonify(data)
+
+
+@app.route('/performance')
+def performance():
+    metrics = _get_performance_metrics()
+    if metrics is None:
+        return jsonify({'status': 'no_trades'})
+    return jsonify({
+        'status': 'ok',
+        'win_rate_pct': metrics.get('win_rate', 0) * 100,
+        'profit_factor': metrics.get('profit_factor', 0),
+        'sharpe_ratio': metrics.get('sharpe_ratio', 0),
+        'num_trades': metrics.get('num_trades', 0),
+        'total_return_pct': metrics.get('total_return_pct', 0),
+        'avg_win': metrics.get('avg_win', 0),
+        'avg_loss': metrics.get('avg_loss', 0),
+        'max_drawdown_pct': metrics.get('max_drawdown_pct', 0),
+    })
+
+
+@app.route('/recent_trades')
+def recent_trades():
+    trades = _get_recent_trades(50)
+    return jsonify(trades)
+
+
+@app.route('/export_trades')
+def export_trades():
+    trades = _get_recent_trades(500)
+    csv_rows = ["timestamp,symbol,side,price,volume,pnl"]
+    for t in trades:
+        csv_rows.append(
+            f"{t.get('timestamp','')},{t.get('symbol','')},{t.get('side','')},"
+            f"{t.get('price',0)},{t.get('volume',0)},{t.get('pnl',0)}"
+        )
+    csv_content = "\n".join(csv_rows)
+    return csv_content, 200, {'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename=trades.csv'}
 
 
 @app.route('/api/status')
