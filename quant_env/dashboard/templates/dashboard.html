@@ -175,8 +175,8 @@
         .form-grid input:focus, .form-grid select:focus { outline: none; border-color: var(--blue); }
         .op-result {
             margin-top: 12px; padding: 12px; border-radius: 8px;
-            background: var(--bg-secondary); font-size: 0.75rem; font-family: 'SF Mono', monospace;
-            white-space: pre-wrap; display: none; max-height: 300px; overflow-y: auto;
+            background: var(--bg-secondary); font-size: 0.75rem;
+            display: none; max-height: 300px; overflow-y: auto;
         }
         .op-result.show { display: block; }
         .op-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--text-muted); border-top-color: var(--green); border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; vertical-align: middle; }
@@ -536,103 +536,163 @@
     });
 
     // ── Operations ─────────────────────────────────────────────────
+    // ── Format task results as human-readable HTML ────────────────
+    function formatResult(taskType, result) {
+        if (!result || result.error) {
+            return '<div class="empty-state" style="color:var(--red);"><span class="icon">❌</span><div class="text">' + (result?.error || 'Unknown error') + '</div></div>';
+        }
+        if (taskType === 'backtest') {
+            const m = result.metrics || {};
+            return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">'
+                + card('Trades', m.num_trades ?? result.num_trades ?? '--')
+                + card('Win Rate', m.win_rate_pct ? m.win_rate_pct.toFixed(1) + '%' : '--')
+                + card('Profit Factor', m.profit_factor ? m.profit_factor.toFixed(2) + 'x' : '--')
+                + card('Sharpe', m.sharpe_ratio ? m.sharpe_ratio.toFixed(3) : '--')
+                + card('Return', m.total_return_pct ? m.total_return_pct.toFixed(2) + '%' : '--')
+                + card('Avg Win', m.avg_win ? '$' + m.avg_win.toFixed(2) : '--')
+                + card('Avg Loss', m.avg_loss ? '$' + Math.abs(m.avg_loss).toFixed(2) : '--')
+                + (result.report_file ? '<div style="grid-column:1/-1;padding:10px;background:var(--green-bg);border-radius:8px;text-align:center;font-size:0.8rem;">📄 Report saved: <code style="color:var(--green);">' + result.report_file + '</code></div>' : '')
+                + '</div>';
+        }
+        if (taskType === 'optimize') {
+            let html = '<div style="margin-bottom:10px;font-size:0.8rem;color:var(--text-secondary);">🏆 Top 5 parameter combinations (by Sharpe):</div>'
+                + '<table style="width:100%;font-size:0.75rem;"><thead><tr><th>Rank</th><th>Spacing</th><th>Levels</th><th>Sharpe</th><th>Return</th><th>Win Rate</th><th>Trades</th></tr></thead><tbody>';
+            (result.top_results || []).forEach((r, i) => {
+                html += '<tr><td><strong>#' + (i + 1) + '</strong></td><td>' + r.spacing + '</td><td>' + r.levels + '</td><td style="color:var(--green);">' + (r.sharpe_ratio || '--').toFixed(3) + '</td><td>' + (r.total_return_pct || 0).toFixed(1) + '%</td><td>' + (r.win_rate_pct || 0).toFixed(1) + '%</td><td>' + (r.num_trades || 0) + '</td></tr>';
+            });
+            html += '</tbody></table>';
+            if (result.result_file) html += '<div style="margin-top:10px;padding:10px;background:var(--blue-bg);border-radius:8px;text-align:center;font-size:0.8rem;">📁 Full results saved: <code style="color:var(--blue);">' + result.result_file + '</code></div>';
+            return html;
+        }
+        if (taskType === 'report') {
+            return '<div style="text-align:center;padding:20px;">'
+                + '<div style="font-size:2rem;margin-bottom:10px;">📋</div>'
+                + '<div style="font-size:1rem;font-weight:600;margin-bottom:6px;">Report generated!</div>'
+                + '<div style="font-size:0.8rem;color:var(--text-secondary);">Open the file in your browser:</div>'
+                + '<div style="margin-top:12px;padding:10px;background:var(--bg-card);border-radius:8px;font-family:monospace;font-size:0.75rem;word-break:break-all;">' + (result.report_file || '') + '</div>'
+                + '</div>';
+        }
+        if (taskType === 'walkforward') {
+            return '<div style="text-align:center;padding:20px;">'
+                + '<div style="font-size:2rem;margin-bottom:10px;">🔄</div>'
+                + '<div style="font-size:1rem;font-weight:600;margin-bottom:6px;">Walkforward complete</div>'
+                + '<div style="font-size:0.8rem;color:var(--text-secondary);">' + (result.rows || 0) + ' analysis rows generated</div>'
+                + (result.result_file ? '<div style="margin-top:12px;padding:10px;background:var(--blue-bg);border-radius:8px;font-size:0.8rem;">📁 Saved: <code style="color:var(--blue);">' + result.result_file + '</code></div>' : '')
+                + '</div>';
+        }
+        if (taskType === 'train_ml') {
+            return '<div style="text-align:center;padding:20px;">'
+                + '<div style="font-size:2rem;margin-bottom:10px;">🧠</div>'
+                + '<div style="font-size:1rem;font-weight:600;margin-bottom:6px;">ML Model Trained!</div>'
+                + '<div style="font-size:0.8rem;color:var(--green);font-weight:600;">✅ The new model is now active and being used for regime detection.</div>'
+                + '<div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted);">Model stored on server (loaded automatically)</div>'
+                + '</div>';
+        }
+        return '<pre style="margin:0;font-size:0.75rem;color:var(--text-secondary);">' + JSON.stringify(result, null, 2) + '</pre>';
+    }
+
+    function card(label, value) {
+        return '<div style="background:var(--bg-card);border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border-color);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;margin-bottom:4px;">' + label + '</div><div style="font-size:1.1rem;font-weight:700;font-family:monospace;">' + value + '</div></div>';
+    }
+
+    // ── Operations ─────────────────────────────────────────────────
     async function runBacktest() {
-        const btn = document.querySelector('#tabBacktest button');
+        const btn = document.querySelector('#tabBacktest .btn-primary');
         const resultDiv = document.getElementById('btResult');
         btn.disabled = true; btn.innerHTML = '<span class="op-spinner"></span> Running...';
-        resultDiv.className = 'op-result show'; resultDiv.textContent = 'Starting backtest...';
+        resultDiv.className = 'op-result show'; resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">⏳ Backtest running... <span class="op-spinner" style="display:inline-block;margin-top:10px;"></span></div>';
         try {
             const r = await fetch('/backtest', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({
                 symbol: document.getElementById('btSymbol').value, period: document.getElementById('btPeriod').value,
                 interval: document.getElementById('btInterval').value, capital: document.getElementById('btCapital').value,
                 spacing: document.getElementById('btSpacing').value, levels: document.getElementById('btLevels').value,
                 lot: document.getElementById('btLot').value }) });
-            const d = await r.json(); resultDiv.textContent = JSON.stringify(d, null, 2);
-            pollTask(d.task_id, resultDiv);
-        } catch(e) { resultDiv.textContent = 'Error: ' + e.message; }
+            const d = await r.json();
+            pollTask(d.task_id, resultDiv, 'backtest');
+        } catch(e) { resultDiv.innerHTML = '<div style="color:var(--red);padding:12px;">❌ Error: ' + e.message + '</div>'; }
         finally { btn.disabled = false; btn.innerHTML = '▶ Run Backtest'; }
     }
 
     async function runOptimize() {
-        const btn = document.querySelector('#tabOptimize button');
+        const btn = document.querySelector('#tabOptimize .btn-warning');
         const resultDiv = document.getElementById('optResult');
         btn.disabled = true; btn.innerHTML = '<span class="op-spinner"></span> Running...';
-        resultDiv.className = 'op-result show'; resultDiv.textContent = 'Starting optimization...';
+        resultDiv.className = 'op-result show'; resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">⏳ Optimizing... <span class="op-spinner" style="display:inline-block;margin-top:10px;"></span></div>';
         try {
             const r = await fetch('/optimize', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({
                 symbol: document.getElementById('optSymbol').value, period: document.getElementById('optPeriod').value,
                 interval: document.getElementById('optInterval').value, capital: document.getElementById('optCapital').value,
                 lot: document.getElementById('optLot').value }) });
-            const d = await r.json(); resultDiv.textContent = JSON.stringify(d, null, 2);
-            pollTask(d.task_id, resultDiv);
-        } catch(e) { resultDiv.textContent = 'Error: ' + e.message; }
+            const d = await r.json();
+            pollTask(d.task_id, resultDiv, 'optimize');
+        } catch(e) { resultDiv.innerHTML = '<div style="color:var(--red);padding:12px;">❌ Error: ' + e.message + '</div>'; }
         finally { btn.disabled = false; btn.innerHTML = '▶ Run'; }
     }
 
     async function runReport() {
-        const btn = document.querySelector('#tabReport button');
+        const btn = document.querySelector('#tabReport .btn-primary');
         const resultDiv = document.getElementById('reportResult');
         btn.disabled = true; btn.innerHTML = '<span class="op-spinner"></span> Generating...';
-        resultDiv.className = 'op-result show'; resultDiv.textContent = 'Generating report...';
+        resultDiv.className = 'op-result show'; resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">⏳ Generating report... <span class="op-spinner" style="display:inline-block;margin-top:10px;"></span></div>';
         try {
             const r = await fetch('/report', { method: 'POST' });
-            const d = await r.json(); resultDiv.textContent = JSON.stringify(d, null, 2);
-            pollTask(d.task_id, resultDiv);
-        } catch(e) { resultDiv.textContent = 'Error: ' + e.message; }
+            const d = await r.json();
+            pollTask(d.task_id, resultDiv, 'report');
+        } catch(e) { resultDiv.innerHTML = '<div style="color:var(--red);padding:12px;">❌ Error: ' + e.message + '</div>'; }
         finally { btn.disabled = false; btn.innerHTML = '▶ Generate Report'; }
     }
 
     async function runWalkforward() {
-        const btn = document.querySelector('#tabWF button');
+        const btn = document.querySelector('#tabWF .btn-outline');
         const resultDiv = document.getElementById('wfResult');
         btn.disabled = true; btn.innerHTML = '<span class="op-spinner"></span> Running...';
-        resultDiv.className = 'op-result show'; resultDiv.textContent = 'Starting walkforward...';
+        resultDiv.className = 'op-result show'; resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">⏳ Walkforward running... <span class="op-spinner" style="display:inline-block;margin-top:10px;"></span></div>';
         try {
             const r = await fetch('/walkforward', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({
                 symbol: document.getElementById('wfSymbol').value, period: document.getElementById('wfPeriod').value,
                 interval: document.getElementById('wfInterval').value, capital: document.getElementById('wfCapital').value,
                 window: document.getElementById('wfWindow').value, step: document.getElementById('wfStep').value }) });
-            const d = await r.json(); resultDiv.textContent = JSON.stringify(d, null, 2);
-            pollTask(d.task_id, resultDiv);
-        } catch(e) { resultDiv.textContent = 'Error: ' + e.message; }
+            const d = await r.json();
+            pollTask(d.task_id, resultDiv, 'walkforward');
+        } catch(e) { resultDiv.innerHTML = '<div style="color:var(--red);padding:12px;">❌ Error: ' + e.message + '</div>'; }
         finally { btn.disabled = false; btn.innerHTML = '▶ Run'; }
     }
 
     async function runTrainML() {
-        const btn = document.querySelector('#tabML button');
+        const btn = document.querySelector('#tabML .btn-warning');
         const resultDiv = document.getElementById('mlResult');
         btn.disabled = true; btn.innerHTML = '<span class="op-spinner"></span> Training...';
-        resultDiv.className = 'op-result show'; resultDiv.textContent = 'Starting ML training...';
+        resultDiv.className = 'op-result show'; resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">⏳ Training ML model... <span class="op-spinner" style="display:inline-block;margin-top:10px;"></span></div>';
         try {
             const r = await fetch('/train_ml', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({
                 symbol: document.getElementById('mlSymbol').value, period: document.getElementById('mlPeriod').value,
                 interval: document.getElementById('mlInterval').value, lookback: document.getElementById('mlLookback').value,
                 threshold: document.getElementById('mlThreshold').value }) });
-            const d = await r.json(); resultDiv.textContent = JSON.stringify(d, null, 2);
-            pollTask(d.task_id, resultDiv);
-        } catch(e) { resultDiv.textContent = 'Error: ' + e.message; }
+            const d = await r.json();
+            pollTask(d.task_id, resultDiv, 'train_ml');
+        } catch(e) { resultDiv.innerHTML = '<div style="color:var(--red);padding:12px;">❌ Error: ' + e.message + '</div>'; }
         finally { btn.disabled = false; btn.innerHTML = '▶ Train'; }
     }
 
-    async function pollTask(taskId, resultDiv) {
-        const maxAttempts = 120; // 2 min
+    async function pollTask(taskId, resultDiv, taskType) {
+        const maxAttempts = 180; // 3 min
         for (let i = 0; i < maxAttempts; i++) {
             await new Promise(r => setTimeout(r, 1000));
             try {
                 const r = await fetch('/task_status/' + taskId);
                 const d = await r.json();
                 if (d.status === 'done') {
-                    resultDiv.textContent = JSON.stringify(d.result, null, 2);
+                    resultDiv.innerHTML = formatResult(taskType, d.result);
                     return;
                 } else if (d.status === 'error') {
-                    resultDiv.textContent = 'ERROR:\n' + JSON.stringify(d.result, null, 2);
+                    resultDiv.innerHTML = '<div style="color:var(--red);padding:12px;">❌ ERROR: ' + (d.result?.error || JSON.stringify(d.result)) + '</div>';
                     return;
                 } else if (d.status === 'running') {
-                    resultDiv.textContent = '⏳ Running... (polling)';
+                    resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">⏳ Running... <span class="op-spinner" style="display:inline-block;margin-top:10px;"></span></div>';
                 }
             } catch(e) { /* keep polling */ }
         }
-        resultDiv.textContent = '⏰ Timeout — task is still running. Check the log feed for progress.';
+        resultDiv.innerHTML = '<div style="color:var(--orange);padding:12px;">⏰ Timeout — task is still running. Check the Event Log below for progress.</div>';
     }
 
     // ── Helpers ──────────────────────────────────────────────────
