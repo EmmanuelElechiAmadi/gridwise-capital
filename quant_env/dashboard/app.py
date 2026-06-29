@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request, send_file
 from flask_socketio import SocketIO, emit
-import threading, time, sys, os, io, csv, math, textwrap
+import threading, time, sys, os, io, csv, math, textwrap, traceback
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from quant_env.config import Config
@@ -38,6 +38,10 @@ trading_active = False
 
 # Hold recent log lines (for the dashboard)
 log_lines = []
+
+# ── Background task statuses ──────────────────────────────────────
+task_status = {}
+task_results = {}
 
 class SocketLogHandler:
     """Redirects log messages to the WebSocket."""
@@ -81,24 +85,24 @@ def check_risk():
 def trading_loop():
     strategy.on_start()
     while True:
+        tick = connector.symbol_tick()
+        acc = connector.account_info()
+        pos = connector.get_positions()
+        net = sum(p['volume'] if p['type']=='buy' else -p['volume'] for p in pos)
+
+        regime_name = "unknown"
+        regime_confidence = 0.0
+        if regime_adapter:
+            regime_name = regime_adapter.regime_name
+            regime_confidence = round(regime_adapter.confidence * 100, 1)
+
         if trading_active:
-            tick = connector.symbol_tick()
             if tick:
                 strategy.on_tick(tick)
-            acc = connector.account_info()
-            pos = connector.get_positions()
-            net = sum(p['volume'] if p['type']=='buy' else -p['volume'] for p in pos)
             if acc:
                 logger.log_equity(acc.equity, acc.balance, net, len(strategy.active_orders))
                 pnl = acc.equity - acc.balance
                 pnl_pct = (pnl / acc.balance) * 100 if acc.balance > 0 else 0
-
-                # Get regime info
-                regime_name = "unknown"
-                regime_confidence = 0.0
-                if regime_adapter:
-                    regime_name = regime_adapter.regime_name
-                    regime_confidence = round(regime_adapter.confidence * 100, 1)
 
                 # Compute drawdown
                 equity_df = pd.DataFrame(logger.get_equity_curve(), columns=['timestamp', 'equity'])
@@ -128,6 +132,45 @@ def trading_loop():
                     'latest_price': round(tick['bid'], 2) if tick else 0,
                 })
                 check_risk()
+            else:
+                # No broker connection — emit status update anyway
+                socketio.emit('update', {
+                    'trading_active': trading_active,
+                    'balance': 0,
+                    'equity': 0,
+                    'pnl': 0,
+                    'pnl_pct': 0,
+                    'net_position': 0,
+                    'position_direction': 'Neutral',
+                    'num_orders': len(strategy.active_orders),
+                    'regime': regime_name,
+                    'regime_confidence': regime_confidence,
+                    'max_drawdown': 0,
+                    'grid_spacing': strategy.spacing,
+                    'grid_levels': strategy.levels,
+                    'latest_price': 0,
+                    'broker_connected': False,
+                })
+        else:
+            # Paused — still emit status so the UI shows live data
+            position_dir = get_position_direction(net)
+            socketio.emit('update', {
+                'trading_active': trading_active,
+                'balance': round(acc.balance, 2) if acc else 0,
+                'equity': round(acc.equity, 2) if acc else 0,
+                'pnl': round((acc.equity - acc.balance), 2) if acc else 0,
+                'pnl_pct': round(((acc.equity - acc.balance) / acc.balance) * 100, 2) if acc and acc.balance > 0 else 0,
+                'net_position': round(net, 4),
+                'position_direction': position_dir,
+                'num_orders': len(strategy.active_orders),
+                'regime': regime_name,
+                'regime_confidence': regime_confidence,
+                'max_drawdown': 0,
+                'grid_spacing': strategy.spacing,
+                'grid_levels': strategy.levels,
+                'latest_price': round(tick['bid'], 2) if tick else 0,
+                'broker_connected': acc is not None,
+            })
         time.sleep(1)
 
 # ── Main page ─────────────────────────────────────────────────────
@@ -229,7 +272,7 @@ def recent_trades():
 def account_summary():
     acc = connector.account_info()
     if not acc:
-        return jsonify({'status': 'error'})
+        return jsonify({'status': 'error', 'broker_connected': False})
     pos = connector.get_positions()
     net = sum(p['volume'] if p['type']=='buy' else -p['volume'] for p in pos)
     pnl = acc.equity - acc.balance
@@ -242,6 +285,7 @@ def account_summary():
         'net_position': round(net, 4),
         'position_direction': get_position_direction(net),
         'num_orders': len(strategy.active_orders),
+        'broker_connected': True,
     })
 
 # ── Control Routes ────────────────────────────────────────────────
@@ -303,6 +347,240 @@ def export_trades():
         download_name='trades.csv'
     )
 
+# ═══════════════════════════════════════════════════════════════════
+#  DASHBOARD TABS — Backtest / Optimize / Report / Walkforward / ML
+# ═══════════════════════════════════════════════════════════════════
+
+def _run_task(task_id, fn, *args, **kwargs):
+    """Run a task in a background thread, tracking status & results."""
+    def wrapper():
+        global task_status, task_results
+        try:
+            task_status[task_id] = 'running'
+            result = fn(*args, **kwargs)
+            task_results[task_id] = result
+            task_status[task_id] = 'done'
+        except Exception as e:
+            task_results[task_id] = {'error': str(e), 'traceback': traceback.format_exc()}
+            task_status[task_id] = 'error'
+            socketio.emit('log', f"ERROR [{task_id}]: {e}")
+    thread = threading.Thread(target=wrapper, daemon=True)
+    thread.start()
+
+def _run_backtest_task(symbol="GC=F", period="5d", interval="1m",
+                        initial_capital=10000, spacing=0.1, levels=5, lot=1.0):
+    from quant_env.backtest.data_loader import load_yfinance
+    from quant_env.backtest.engine import BacktestEngine
+    from quant_env.strategies.grid_strategy import GridStrategy
+    from quant_env.analysis.performance import compute_metrics
+    from quant_env.analysis.report_generator import generate_report
+
+    socketio.emit('log', f"Backtest: downloading {symbol} ({period}, {interval})...")
+    data = load_yfinance(symbol, period=period, interval=interval)
+    if data is None or data.empty:
+        return {'error': 'No data downloaded — check symbol/internet'}
+
+    socketio.emit('log', f"Backtest: running engine (spacing={spacing}, levels={levels})...")
+    engine = BacktestEngine(data, GridStrategy, initial_capital,
+                            spacing=spacing, levels=levels, lot=lot)
+    result = engine.run()
+    metrics = compute_metrics(result.fills_df, result.equity_df)
+
+    report_file = f"backtest_report_{int(time.time())}.html"
+    from quant_env.analysis.session_analyzer import session_performance
+    session = session_performance(result.fills_df, result.equity_df)
+    generate_report(result.equity_df, result.fills_df, metrics, session, output_file=report_file)
+
+    socketio.emit('log', f"Backtest: report saved → {report_file}")
+    return {
+        'status': 'done',
+        'report_file': report_file,
+        'metrics': metrics,
+        'num_trades': len(result.fills_df) if result.fills_df is not None else 0,
+    }
+
+@app.route('/backtest', methods=['POST'])
+def backtest_route():
+    data = request.get_json() or {}
+    task_id = f"backtest_{int(time.time())}"
+    _run_task(task_id, _run_backtest_task,
+              symbol=data.get('symbol', 'GC=F'),
+              period=data.get('period', '5d'),
+              interval=data.get('interval', '1m'),
+              initial_capital=float(data.get('capital', 10000)),
+              spacing=float(data.get('spacing', 0.1)),
+              levels=int(data.get('levels', 5)),
+              lot=float(data.get('lot', 1.0)))
+    return jsonify({'task_id': task_id, 'status': 'started'})
+
+# ────────────────────────────────────────────────────────────────
+# Optimize
+# ────────────────────────────────────────────────────────────────
+def _run_optimize_task(symbol="GC=F", period="5d", interval="1m",
+                         initial_capital=10000, lot=1.0):
+    from quant_env.backtest.data_loader import load_yfinance
+    from quant_env.backtest.engine import BacktestEngine
+    from quant_env.analysis.performance import compute_metrics
+    from quant_env.strategies.grid_strategy import GridStrategy
+
+    socketio.emit('log', f"Optimize: downloading {symbol}...")
+    data = load_yfinance(symbol, period=period, interval=interval)
+    if data is None or data.empty:
+        return {'error': 'No data downloaded'}
+
+    spacings = [0.05, 0.1, 0.15, 0.2, 0.25]
+    levels_list = [3, 5, 7, 9]
+    results = []
+    total = len(spacings) * len(levels_list)
+    done = 0
+
+    for sp in spacings:
+        for lv in levels_list:
+            engine = BacktestEngine(data.copy(), GridStrategy, initial_capital,
+                                    spacing=sp, levels=lv, lot=lot)
+            res = engine.run()
+            m = compute_metrics(res.fills_df, res.equity_df)
+            m['spacing'] = sp
+            m['levels'] = lv
+            results.append(m)
+            done += 1
+            socketio.emit('log', f"Optimize: {done}/{total} — spacing={sp}, levels={lv}")
+
+    df = pd.DataFrame(results).sort_values('sharpe_ratio', ascending=False)
+    csv_file = f"optimization_results_{int(time.time())}.csv"
+    df.to_csv(csv_file, index=False)
+    socketio.emit('log', f"Optimize: results saved → {csv_file}")
+
+    top5 = df.head(5).to_dict(orient='records')
+    return {'status': 'done', 'result_file': csv_file, 'top_results': top5}
+
+@app.route('/optimize', methods=['POST'])
+def optimize_route():
+    data = request.get_json() or {}
+    task_id = f"optimize_{int(time.time())}"
+    _run_task(task_id, _run_optimize_task,
+              symbol=data.get('symbol', 'GC=F'),
+              period=data.get('period', '5d'),
+              interval=data.get('interval', '1m'),
+              initial_capital=float(data.get('capital', 10000)),
+              lot=float(data.get('lot', 1.0)))
+    return jsonify({'task_id': task_id, 'status': 'started'})
+
+# ────────────────────────────────────────────────────────────────
+# Report (live)
+# ────────────────────────────────────────────────────────────────
+def _run_report_task():
+    from quant_env.analysis.trade_logger import TradeLogger
+    from quant_env.analysis.performance import compute_metrics
+    from quant_env.analysis.session_analyzer import session_performance
+    from quant_env.analysis.report_generator import generate_report
+
+    db_path = "quant_env/trades.db"
+    tlog = TradeLogger(db_path)
+    fills_rows = tlog.get_fills()
+    if not fills_rows:
+        tlog.close()
+        return {'error': 'No trades yet — live report empty.'}
+
+    fills_df = pd.DataFrame(fills_rows, columns=['id','timestamp','symbol','side','price','volume','pnl'])
+    equity_rows = tlog.get_equity_curve()
+    equity_df = pd.DataFrame(equity_rows, columns=['timestamp','equity'])
+    metrics = compute_metrics(fills_df, equity_df)
+    session = session_performance(fills_df, equity_df)
+    report_file = f"live_report_{int(time.time())}.html"
+    generate_report(equity_df, fills_df, metrics, session, output_file=report_file)
+    tlog.close()
+    socketio.emit('log', f"Report: saved → {report_file}")
+    return {'status': 'done', 'report_file': report_file}
+
+@app.route('/report', methods=['POST'])
+def report_route():
+    task_id = f"report_{int(time.time())}"
+    _run_task(task_id, _run_report_task)
+    return jsonify({'task_id': task_id, 'status': 'started'})
+
+# ────────────────────────────────────────────────────────────────
+# Walkforward
+# ────────────────────────────────────────────────────────────────
+def _run_walkforward_task(symbol="GC=F", period="1mo", interval="1h",
+                          window_size=500, step_size=500,
+                          initial_capital=10000, lot=1.0):
+    from quant_env.backtest.data_loader import load_yfinance
+    from quant_env.strategies.grid_strategy import GridStrategy
+    from quant_env.analysis.walkforward import walkforward_analysis
+
+    socketio.emit('log', f"Walkforward: downloading {symbol}...")
+    data = load_yfinance(symbol, period=period, interval=interval)
+    if data is None or data.empty:
+        return {'error': 'No data downloaded'}
+
+    param_grid = {'spacing': [0.1, 0.2], 'levels': [3, 5]}
+    socketio.emit('log', "Walkforward: running analysis...")
+    wf_df = walkforward_analysis(data, GridStrategy, param_grid,
+                                 window_size=window_size, step_size=step_size,
+                                 initial_capital=initial_capital, lot=lot)
+    csv_file = f"walkforward_results_{int(time.time())}.csv"
+    wf_df.to_csv(csv_file, index=False)
+    socketio.emit('log', f"Walkforward: saved → {csv_file}")
+    return {'status': 'done', 'result_file': csv_file, 'rows': len(wf_df)}
+
+@app.route('/walkforward', methods=['POST'])
+def walkforward_route():
+    data = request.get_json() or {}
+    task_id = f"walkforward_{int(time.time())}"
+    _run_task(task_id, _run_walkforward_task,
+              symbol=data.get('symbol', 'GC=F'),
+              period=data.get('period', '1mo'),
+              interval=data.get('interval', '1h'),
+              window_size=int(data.get('window', 500)),
+              step_size=int(data.get('step', 500)),
+              initial_capital=float(data.get('capital', 10000)),
+              lot=float(data.get('lot', 1.0)))
+    return jsonify({'task_id': task_id, 'status': 'started'})
+
+# ────────────────────────────────────────────────────────────────
+# Train ML
+# ────────────────────────────────────────────────────────────────
+def _run_train_ml_task(symbol="GC=F", period="3mo", interval="1h", lookback=20, threshold=25):
+    from quant_env.ml.regime_model import RegimeClassifier
+    from quant_env.backtest.data_loader import load_yfinance
+
+    socketio.emit('log', f"Train ML: downloading {symbol} ({period}, {interval})...")
+    data = load_yfinance(symbol, period=period, interval=interval)
+    if data is None or data.empty:
+        return {'error': 'No data downloaded'}
+
+    socketio.emit('log', f"Train ML: {len(data)} bars. Training classifier...")
+    clf = RegimeClassifier(lookback=lookback, threshold=threshold)
+    clf.train(data)
+
+    model_dir = os.path.join(os.path.dirname(__file__), '..', 'ml')
+    os.makedirs(model_dir, exist_ok=True)
+    model_path = os.path.join(model_dir, 'model.pkl')
+    clf.save(model_path)
+    socketio.emit('log', f"Train ML: model saved → {model_path}")
+    return {'status': 'done', 'model_path': model_path}
+
+@app.route('/train_ml', methods=['POST'])
+def train_ml_route():
+    data = request.get_json() or {}
+    task_id = f"train_ml_{int(time.time())}"
+    _run_task(task_id, _run_train_ml_task,
+              symbol=data.get('symbol', 'GC=F'),
+              period=data.get('period', '3mo'),
+              interval=data.get('interval', '1h'),
+              lookback=int(data.get('lookback', 20)),
+              threshold=int(data.get('threshold', 25)))
+    return jsonify({'task_id': task_id, 'status': 'started'})
+
+# ── Task status polling ─────────────────────────────────────────
+@app.route('/task_status/<task_id>')
+def task_status_route(task_id):
+    return jsonify({
+        'status': task_status.get(task_id, 'not_found'),
+        'result': task_results.get(task_id),
+    })
+
 # ── Socket Events ─────────────────────────────────────────────────
 @socketio.on('connect')
 def handle_connect():
@@ -355,7 +633,7 @@ if __name__ == '__main__':
     checks = []
     if config.SYMBOL == "":
         checks.append("SYMBOL is empty — set a trading symbol in config.py")
-    if config.BRIDGE_URL == "":
+    if config.BRIDGE_URL == "" and config.MODE == 'bridge':
         checks.append("BRIDGE_URL is empty — set your MT5 bridge IP in config.py")
     if checks:
         print("⚠️  Configuration warnings:")
