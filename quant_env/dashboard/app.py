@@ -38,7 +38,7 @@ print(f"  Using config: {CONFIG_PATH}")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'seek-quant-dashboard-secret'
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # ── Shared state ──────────────────────────────────────────────────────
 state = {
@@ -99,10 +99,17 @@ def _get_recent_trades(limit=50):
 
 def _get_performance_metrics():
     """Return aggregated performance metrics."""
-    from quant_env.analysis.performance import PerformanceAnalyzer
+    from quant_env.analysis.trade_logger import TradeLogger
+    from quant_env.analysis.performance import compute_metrics
     try:
-        pa = PerformanceAnalyzer()
-        return pa.get_summary()
+        logger = TradeLogger()
+        trades = logger.get_recent(500)
+        if trades:
+            import pandas as pd
+            fills = pd.DataFrame(trades)
+            equity = pd.DataFrame({'equity': fills['equity'] if 'equity' in fills.columns else [10000] * len(fills)})
+            return compute_metrics(fills, equity)
+        return None
     except Exception:
         return None
 
@@ -137,7 +144,7 @@ def performance():
         return jsonify({'status': 'no_trades'})
     return jsonify({
         'status': 'ok',
-        'win_rate_pct': metrics.get('win_rate', 0) * 100,
+        'win_rate_pct': metrics.get('win_rate_pct', 0),
         'profit_factor': metrics.get('profit_factor', 0),
         'sharpe_ratio': metrics.get('sharpe_ratio', 0),
         'num_trades': metrics.get('num_trades', 0),
