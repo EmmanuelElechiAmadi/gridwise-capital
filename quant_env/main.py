@@ -2,6 +2,7 @@ import time
 import signal
 import sys
 import os
+import threading
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -143,6 +144,124 @@ class App:
         except Exception as e:
             self.log.warning(f"logger.close() error: {e}")
         self.log.info("QuantBot shut down.")
+
+
+# ── GridBot — dashboard-friendly wrapper around App ──────────────────
+
+class GridBot:
+    """
+    Wraps App with the pause/resume/get_status API that the web dashboard
+    expects.  The dashboard imports this class via::
+
+        from quant_env.main import GridBot
+    """
+
+    def __init__(self):
+        self._app = App()
+        self._paused = True                     # start paused
+        self._thread = None
+        self._lock = threading.Lock()
+        self.connected = False                  # updated on first account info
+
+        # Check MT5 bridge connectivity at construction time
+        try:
+            acc = self._app.connector.account_info()
+            self.connected = acc is not None
+        except Exception:
+            self.connected = False
+
+    # ── Lifecycle ──────────────────────────────────────────────────────
+
+    def run(self):
+        """Called by dashboard in a background thread.  Loops until paused."""
+        self._app.log.info("GridBot: background thread started (paused).")
+        self._app.regime_adapter.start()
+        self._app.adaptive_updater.start()
+        self._app.strategy.on_start()
+
+        try:
+            while True:
+                if not self._paused:
+                    self._app._sync_regime_params()
+                    self._app._process_tick()
+                    self._app._process_account()
+                    # Update connected flag
+                    acc = self._app.connector.account_info()
+                    self.connected = acc is not None
+                time.sleep(0.5)
+        except Exception as exc:
+            self._app.log.error(f"GridBot: thread crashed: {exc}")
+        finally:
+            self._app._shutdown_cleanly()
+
+    def pause(self):
+        """Pause trading (orders stay on the books)."""
+        self._paused = True
+        self._app.log.info("GridBot: paused.")
+
+    def resume(self):
+        """Resume paused trading."""
+        self._paused = False
+        self._app.log.info("GridBot: resumed.")
+
+    # ── Dashboard API methods ──────────────────────────────────────────
+
+    def get_status(self) -> dict:
+        """Return a snapshot dict consumed by the dashboard socket."""
+        acc = self._app.connector.account_info()
+        tick = self._app.connector.symbol_tick()
+        pos = self._app.connector.get_positions()
+
+        balance = float(acc.balance) if acc else 0.0
+        equity = float(acc.equity) if acc else 0.0
+        price = float(tick.bid) if tick else 0.0
+        net_pos = sum(
+            p['volume'] if p['type'] == 'buy' else -p['volume']
+            for p in pos
+        ) if pos else 0.0
+        num_pos = len(pos) if pos else 0
+
+        regime = self._app.regime_adapter.regime_name if self._app.regime_adapter.enabled else "ml_disabled"
+        regime_conf = self._app.regime_adapter.confidence
+        spacing = self._app.regime_adapter.spacing
+        levels = self._app.regime_adapter.levels
+
+        return {
+            'active_orders': len(self._app.strategy.active_orders),
+            'open_positions': num_pos,
+            'net_position': net_pos,
+            'total_pnl': equity - balance,
+            'pnl_pct': ((equity - balance) / balance * 100) if balance else 0.0,
+            'current_price': price,
+            'balance': balance,
+            'equity': equity,
+            'regime': regime,
+            'regime_confidence': regime_conf,
+            'position_direction': 'Long' if net_pos > 0 else 'Short' if net_pos < 0 else 'Neutral',
+            'max_drawdown_pct': 0.0,       # not tracked real-time in simple mode
+            'grid_spacing': spacing,
+            'grid_levels': levels,
+        }
+
+    def detect_regime(self) -> str:
+        """Force an immediate regime classification and return the name."""
+        if not self._app.regime_adapter.enabled:
+            return "ml_disabled"
+        try:
+            self._app.regime_adapter.refresh_now()
+            return self._app.regime_adapter.regime_name
+        except Exception as exc:
+            self._app.log.warning(f"GridBot.detect_regime() error: {exc}")
+            return "error"
+
+    def close_all_positions(self):
+        """Close all open positions and cancel pending orders."""
+        self._app.connector.close_all_positions()
+        self._app.strategy.reset_grid()
+
+    def reset_grid(self):
+        """Recreate the grid based on the latest price."""
+        self._app.strategy.reset_grid()
 
 
 if __name__ == "__main__":

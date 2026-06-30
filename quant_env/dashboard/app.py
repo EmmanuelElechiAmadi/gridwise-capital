@@ -17,7 +17,9 @@ from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 
 # ── Ensure we can import from quant_env ──────────────────────────────
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# app.py is at  gridbots/quant_env/dashboard/app.py
+# project root is gridbots/ (3 levels up)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # ── Config check ─────────────────────────────────────────────────────
@@ -196,6 +198,9 @@ def _start_bot_in_thread():
     from quant_env.main import GridBot
     bot = GridBot()
     state['bot'] = bot
+    # Auto-resume if the user already requested trading to be active
+    if state['trading_active']:
+        bot.resume()
     bot.run()
 
 
