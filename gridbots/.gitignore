@@ -12,4 +12,8 @@ logs/
 .idea/
 *.csv
 *.html
+!quant_env/dashboard/templates/*.html
+!analytics_snapshot.json
 quant_env/config.py
+live_output.log
+ml/model.pkl

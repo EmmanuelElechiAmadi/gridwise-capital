@@ -26,6 +26,14 @@ from typing import Optional
 
 from .base_strategy import BaseStrategy
 
+# Conditionally import Kronos – it's an optional enhancement.
+try:
+    from ml.kronos import KronosBreakoutEnhancer
+
+    _HAVE_KRONOS = True
+except ImportError:
+    _HAVE_KRONOS = False
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # Candle helpers
@@ -174,7 +182,8 @@ class BreakoutStrategy(BaseStrategy):
     STRATEGY_DESC = (
         "Trades breakouts from recent high/low ranges. "
         "Uses 4H candles for range, 1H for confirmation, 5M for entry. "
-        "Partial TP at $3/$5/$10, SL at $3."
+        "Partial TP at $3/$5/$10, SL at $3. "
+        "Optional Kronos ML enhancement for trade filtering and dynamic TP/SL."
     )
 
     PARAMS = {
@@ -226,6 +235,11 @@ class BreakoutStrategy(BaseStrategy):
             'step': 0.5,
             'min': 0.5,
         },
+        'kronos_enabled': {
+            'label': 'Kronos ML Enhancement',
+            'type': 'boolean',
+            'default': False,
+        },
     }
 
     # ── lifecycle ─────────────────────────────────────────────────────
@@ -266,6 +280,20 @@ class BreakoutStrategy(BaseStrategy):
         # ---- position state ----
         self.position: Optional[dict] = None
         self.logger: object = None  # set externally by the runner
+
+        # ---- Kronos ML enhancement ----
+        self._kronos_enabled = getattr(config, 'KRONOS_BREAKOUT_ENABLED', False)
+        if not self._kronos_enabled:
+            # Allow per‑strategy override via the 'kronos_enabled' PARAM value
+            self._kronos_enabled = getattr(config, 'kronos_enabled', False)
+        self._kronos: Optional[KronosBreakoutEnhancer] = None
+        if _HAVE_KRONOS and self._kronos_enabled:
+            try:
+                self._kronos = KronosBreakoutEnhancer(config, logger=self.log)
+                self.log.info("KronosBreakoutEnhancer initialised for BreakoutStrategy.")
+            except Exception as exc:
+                self.log.warning(f"Failed to initialise KronosBreakoutEnhancer: {exc}")
+                self._kronos = None
 
         self._last_status = 0.0
         self._trade_count = 0
@@ -326,10 +354,14 @@ class BreakoutStrategy(BaseStrategy):
             "BreakoutStrategy ready — building 5M candles from ticks, "
             "aggregating to 1H / 4H."
         )
+        if self._kronos:
+            self._kronos.start()
         self._reset_state()
 
     def on_stop(self):
         self._close_position("STOP")
+        if self._kronos:
+            self._kronos.stop()
 
     def on_fill(self, price, side):
         if self.logger:
@@ -410,19 +442,28 @@ class BreakoutStrategy(BaseStrategy):
 
     def _on_5m_candle(self, candle: dict):
         """Trigger entry if price breaks the 4H range on a confirmed 5M
-        close."""
+        close.  Kronos filters/adjusts the trade when enabled."""
         if self.position is not None:
             return
         if self._recent_high is None or self._recent_low is None:
             return
 
+        # Kronos-adjusted threshold
+        threshold = self.breakout_threshold
+        if self._kronos:
+            threshold = self._kronos.adjust_breakout_threshold(threshold)
+
         close = candle['close']
-        threshold_buy = self._recent_high * (1 + self.breakout_threshold)
-        threshold_sell = self._recent_low * (1 - self.breakout_threshold)
+        threshold_buy = self._recent_high * (1 + threshold)
+        threshold_sell = self._recent_low * (1 - threshold)
 
         if self._bullish_confirmed and close >= threshold_buy:
+            if self._kronos and not self._kronos.should_filter('buy'):
+                return
             self._enter_position('buy', close)
         elif self._bearish_confirmed and close <= threshold_sell:
+            if self._kronos and not self._kronos.should_filter('sell'):
+                return
             self._enter_position('sell', close)
 
     # ── confirmation helpers ──────────────────────────────────────────
@@ -448,10 +489,16 @@ class BreakoutStrategy(BaseStrategy):
         if self._trade_count >= self.max_positions:
             return
 
+        # Kronos-adjusted TP/SL
+        tp_dollars = list(self.tp_dollars)
+        sl_dollars = self.sl_dollars
+        if self._kronos:
+            tp_dollars, sl_dollars = self._kronos.adjust_tp_sl(tp_dollars, sl_dollars)
+
         direction = 1 if side == 'buy' else -1
         tp_levels = [round(price + direction * tp, 2)
-                     for tp in self.tp_dollars]
-        sl_price = round(price - direction * self.sl_dollars, 2)
+                     for tp in tp_dollars]
+        sl_price = round(price - direction * sl_dollars, 2)
 
         self.position = {
             'entry_price': price,
@@ -616,19 +663,29 @@ class BreakoutStrategy(BaseStrategy):
         This is the backtest path — since we only see OHLC bars, not 5M
         ticks, we check whether the bar's close confirms the breakout and
         meets the threshold, then enter at the close price.
+        Kronos filters/adjusts the trade when enabled.
         """
         if self.position is not None:
             return
         if self._recent_high is None or self._recent_low is None:
             return
 
+        # Kronos-adjusted threshold
+        threshold = self.breakout_threshold
+        if self._kronos:
+            threshold = self._kronos.adjust_breakout_threshold(threshold)
+
         close = bar['close']
-        threshold_buy = self._recent_high * (1 + self.breakout_threshold)
-        threshold_sell = self._recent_low * (1 - self.breakout_threshold)
+        threshold_buy = self._recent_high * (1 + threshold)
+        threshold_sell = self._recent_low * (1 - threshold)
 
         if self._bullish_confirmed and close >= threshold_buy:
+            if self._kronos and not self._kronos.should_filter('buy'):
+                return
             self._enter_position('buy', close)
         elif self._bearish_confirmed and close <= threshold_sell:
+            if self._kronos and not self._kronos.should_filter('sell'):
+                return
             self._enter_position('sell', close)
 
     # ── helpers ───────────────────────────────────────────────────────
@@ -644,12 +701,42 @@ class BreakoutStrategy(BaseStrategy):
         balance = acc.balance if acc else 0
         equity = acc.equity if acc else 0
         pos_str = f" pos={self.position['side'][:1].upper()}" if self.position else ""
+        kronos_str = f"  {self._kronos.status_str()}" if self._kronos else ""
         self.log.info(
             f"Balance={balance:.2f} Equity={equity:.2f}{pos_str}  "
             f"4H range=[{self._recent_low or 0:.2f}–{self._recent_high or 0:.2f}]  "
-            f"5M candles={len(self._c5.completed)}"
+            f"5M candles={len(self._c5.completed)}{kronos_str}"
         )
         self._last_status = now
+
+    def get_kronos_breakout_status(self) -> dict:
+        """Return a snapshot of the Kronos breakout enhancer state for the dashboard.
+
+        Returns a dict with direction, confidence, volatility mode, and which
+        adjustment features are active.  Returns an empty dict if Kronos is
+        disabled or the enhancer is not initialised.
+        """
+        if self._kronos is None or not self._kronos.enabled:
+            return {}
+
+        try:
+            summary = self._kronos.get_forecast_summary()
+            return {
+                'enabled': summary.get('enabled', False),
+                'direction': summary.get('direction', 'NEUTRAL'),
+                'confidence': summary.get('confidence', 0.0),
+                'volatility_mode': summary.get('volatility_mode', 'MEDIUM'),
+                'volatility': summary.get('volatility', 0.0),
+                'trend': summary.get('trend', 0.0),
+                'trend_strength': summary.get('trend_strength', 0.0),
+                'last_refresh': summary.get('last_refresh', 0.0),
+                'threshold_adjustment': self._kronos._vol_adjust_threshold,
+                'tp_sl_adjustment': self._kronos._dynamic_tp_sl,
+                'filter_active': self._kronos._filter_direction,
+                'status_str': self._kronos.status_str(),
+            }
+        except Exception:
+            return {}
 
     def _reset_state(self):
         self.position = None
@@ -660,3 +747,6 @@ class BreakoutStrategy(BaseStrategy):
         self._recent_low = None
         self._reset_confirmation()
         self._trade_count = 0
+        if self._kronos:
+            # Refresh the forecast immediately on reset
+            self._kronos.refresh()

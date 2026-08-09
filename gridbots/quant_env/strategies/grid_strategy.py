@@ -10,6 +10,7 @@ levels in BEAR).
 from .base_strategy import BaseStrategy
 from data_feeds.economic_news import get_forexfactory_events, is_high_impact_near
 from ml.regime_model import REGIME_BEAR, REGIME_RANGING, REGIME_BULL, REGIME_UNKNOWN
+from collections import deque
 import time
 
 
@@ -25,6 +26,9 @@ class GridStrategy(BaseStrategy):
         self.last_status = 0
         self.logger = None  # set externally
 
+        # FIFO entry-price queue for realized-PnL attribution on fills
+        self._open_buys = deque(maxlen=2000)
+
         # Optional regime adapter – if set, grid auto-adjusts to regime
         self.regime_adapter = None
         self._last_regime = REGIME_UNKNOWN
@@ -35,13 +39,24 @@ class GridStrategy(BaseStrategy):
         for attempt in range(1, max_retries + 1):
             tick = self.connector.symbol_tick()
             if tick and tick.get('bid') and tick.get('ask'):
+                self.log.info(f"Tick received: bid={tick.get('bid')} ask={tick.get('ask')} — placing grid.")
                 self._place_grid(tick)
                 return
+            debug_info = tick if tick else "None"
+            self.log.warning(
+                f"Tick fetch attempt {attempt}/{max_retries}: got {debug_info}. "
+                f"Check that: (1) MT5 terminal is open, (2) mt5_bridge_ea.mq5 is attached to a chart, "
+                f"(3) mt5_bridge_server.py is running on port 8080, (4) Algo Trading is enabled in MT5."
+            )
             if attempt < max_retries:
-                self.log.info(f"Tick not available (attempt {attempt}/{max_retries}), retrying in 10s...")
+                self.log.info(f"Retrying in 10s...")
                 time.sleep(10)
             else:
-                self.log.warning(f"Bridge unreachable after {max_retries} attempts — starting in idle mode.")
+                self.log.error(
+                    f"Bridge unreachable after {max_retries} attempts — starting in IDLE mode. "
+                    f"NO trades will be placed until a tick is received. "
+                    f"Verify MT5 is running and the EA is attached to a chart."
+                )
                 return  # continue without grid; orders will fail gracefully
 
     def _place_grid(self, tick):
@@ -50,7 +65,10 @@ class GridStrategy(BaseStrategy):
         if self.active_orders:
             self.log.info(f"Cancelling {len(self.active_orders)} existing orders...")
             for price, side in list(self.active_orders.items()):
-                self.connector.cancel_order(price)
+                try:
+                    self.connector.cancel_order(price)
+                except Exception as e:
+                    self.log.warning(f"Failed to cancel order at {price}: {e}")
             self.active_orders.clear()
 
         mid = round((tick['bid'] + tick['ask']) / 2, 2)
@@ -68,13 +86,30 @@ class GridStrategy(BaseStrategy):
             f"regime={self._regime_name()}"
         )
 
+        # Place orders one at a time with delay between each.
+        # The EA processes commands on a 1-second timer, and Wine filesystem
+        # sync adds additional latency — serializing prevents command overwrites.
         for p in self.buy_levels:
-            if self.connector.place_limit_order('buy_limit', p, self.lot):
+            result = self.connector.place_limit_order('buy_limit', p, self.lot)
+            if result:
                 self.active_orders[p] = 'buy'
+                time.sleep(0.8)
+            else:
+                self.log.warning(f"Failed to place buy_limit at {p} — check bridge connection")
         for p in self.sell_levels:
-            if self.connector.place_limit_order('sell_limit', p, self.lot):
+            result = self.connector.place_limit_order('sell_limit', p, self.lot)
+            if result:
                 self.active_orders[p] = 'sell'
-        self.log.info(f"Placed {len(self.active_orders)} orders")
+                time.sleep(0.8)
+            else:
+                self.log.warning(f"Failed to place sell_limit at {p} — check bridge connection")
+        if len(self.active_orders) == 0:
+            self.log.warning(
+                "ZERO orders placed! Bridge may be unreachable or MT5 not accepting orders. "
+                "The bot will auto-retry on the next tick."
+            )
+        else:
+            self.log.info(f"Placed {len(self.active_orders)} orders")
 
     def _get_spacing(self):
         """Get the effective grid spacing, using regime adapter if available."""
@@ -152,10 +187,10 @@ class GridStrategy(BaseStrategy):
         for price in filled:
             side = self.active_orders.pop(price)
             self.log.info(f"Fill: {side} at {price}")
-            self.on_fill(price, side)
+            realized_pnl = self.on_fill(price, side)
             if self.logger:
-                self.logger.log_fill(self.symbol, side, price, self.lot)
-            actions['filled'].append((price, side))
+                self.logger.log_fill(self.symbol, side, price, self.lot, realized_pnl)
+            actions['filled'].append((price, side, realized_pnl))
 
         # Place new orders only if allowed
         if allow_new_orders:
@@ -175,6 +210,25 @@ class GridStrategy(BaseStrategy):
         return actions
 
     def on_fill(self, price, side):
+        """Replace a filled order with its opposite side one grid spacing away.
+
+        Instead of requiring an exact match on a pre-computed level list
+        (which fails in a moving market), computes the replacement price
+        dynamically and validates it against the grid's range.
+
+        Also tracks FIFO open buys so each sell fill can report the *realized*
+        PnL for the grid round-trip.  Returns the realized PnL (0.0 if no
+        matching entry is available yet).
+        """
+        # ── Realized PnL (FIFO) ──────────────────────────────────────
+        realized_pnl = 0.0
+        if side == 'buy':
+            self._open_buys.append(price)
+        else:
+            if self._open_buys:
+                entry_price = self._open_buys.popleft()
+                realized_pnl = round((price - entry_price) * self.lot, 2)
+
         # Only place opposite order if news filter allows new orders
         allow_new = True
         if getattr(self.config, 'NEWS_FILTER_ENABLED', False):
@@ -184,17 +238,26 @@ class GridStrategy(BaseStrategy):
                                    self.config.NEWS_FILTER_MINUTES_AFTER):
                 allow_new = False
 
+        if not allow_new:
+            return realized_pnl
+
         spacing = self._get_spacing()
 
         if side == 'buy':
+            # A buy was filled → place a sell one grid spacing above
             new = round(price + spacing, 2)
-            if new in self.sell_levels:
-                if allow_new:
-                    if self.connector.place_limit_order('sell_limit', new, self.lot):
-                        self.active_orders[new] = 'sell'
+            if self.connector.place_limit_order('sell_limit', new, self.lot):
+                self.active_orders[new] = 'sell'
+                self.log.info(f"Replacement sell_limit placed at {new}")
+            else:
+                self.log.warning(f"Failed to place replacement sell_limit at {new}")
         else:
+            # A sell was filled → place a buy one grid spacing below
             new = round(price - spacing, 2)
-            if new in self.buy_levels:
-                if allow_new:
-                    if self.connector.place_limit_order('buy_limit', new, self.lot):
-                        self.active_orders[new] = 'buy'
+            if self.connector.place_limit_order('buy_limit', new, self.lot):
+                self.active_orders[new] = 'buy'
+                self.log.info(f"Replacement buy_limit placed at {new}")
+            else:
+                self.log.warning(f"Failed to place replacement buy_limit at {new}")
+
+        return realized_pnl

@@ -34,7 +34,9 @@ class BridgeClient:
                 "volume": volume,
                 "comment": comment
             }
-            r = requests.post(f"{self.base_url}/place_limit_order", json=payload, timeout=_BRIDGE_TIMEOUT)
+            # Order placement through Wine/EA needs longer timeout to account
+            # for MT5's execution + filesystem sync delay.
+            r = requests.post(f"{self.base_url}/place_limit_order", json=payload, timeout=20.0)
             if r.status_code == 200:
                 result = r.json()
                 print(f"✅ Placed {order_type} at {price}, ticket {result.get('ticket')}")
@@ -58,6 +60,18 @@ class BridgeClient:
             return r.json() if r.status_code == 200 else []
         except requests.RequestException:
             return []
+
+    def cancel_order(self, symbol, price_or_ticket):
+        """Cancel a pending order by price level or ticket number."""
+        try:
+            payload = {
+                "symbol": symbol,
+                "price_or_ticket": price_or_ticket
+            }
+            r = requests.post(f"{self.base_url}/cancel_order", json=payload, timeout=_BRIDGE_TIMEOUT)
+            return r.json() if r.status_code == 200 else None
+        except requests.RequestException:
+            return None
 
     def close_positions(self, symbol):
         try:

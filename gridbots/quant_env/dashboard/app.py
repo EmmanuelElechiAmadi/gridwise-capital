@@ -222,26 +222,60 @@ def _format_result(raw_text: str) -> str:
 # ── Stub helpers for dashboard data ────────────────────────────────────
 
 def _get_recent_trades(account_id=None, limit=50):
-    """Return recent trades from DB as list of dicts."""
+    """Return recent trades from DB as list of dicts.
+
+    Reads the per-account trade DB first, then falls back to the legacy
+    engine DB (gridbots/quant_env/trades.db) which holds historical fills
+    written before multi-account split.
+    """
     from quant_env.analysis.trade_logger import TradeLogger
     try:
         logger = TradeLogger(account_id=account_id or "default")
-        return logger.get_recent(limit)
+        rows = logger.get_recent(limit)
+        logger.close()
+        if rows:
+            return rows
     except Exception:
-        return []
+        pass
+
+    # Legacy single-file DB fallback
+    legacy = PROJECT_ROOT / "quant_env" / "trades.db"
+    if legacy.exists():
+        try:
+            import sqlite3 as _sql
+            conn = _sql.connect(str(legacy), timeout=5.0)
+            rows = conn.execute(
+                "SELECT timestamp, symbol, side, price, volume, pnl FROM fills ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+            conn.close()
+            return [
+                {"timestamp": ts, "symbol": sym, "side": side, "price": float(price or 0),
+                 "volume": float(vol or 0), "pnl": float(pnl or 0)}
+                for ts, sym, side, price, vol, pnl in rows
+            ]
+        except Exception:
+            pass
+    return []
 
 
 def _get_performance_metrics(account_id=None):
-    """Return aggregated performance metrics."""
+    """Return aggregated performance metrics (per-account DB, then legacy)."""
     from quant_env.analysis.trade_logger import TradeLogger
     from quant_env.analysis.performance import compute_metrics
     try:
         logger = TradeLogger(account_id=account_id or "default")
         trades = logger.get_recent(500)
+        logger.close()
+        if not trades:
+            trades = _get_recent_trades(account_id, 500)
         if trades:
             import pandas as pd
             fills = pd.DataFrame(trades)
-            equity = pd.DataFrame({'equity': fills['equity'] if 'equity' in fills.columns else [10000] * len(fills)})
+            if 'equity' not in fills.columns:
+                equity = pd.DataFrame({'equity': [10000] * len(fills)})
+            else:
+                equity = pd.DataFrame({'equity': fills['equity']})
             return compute_metrics(fills, equity)
         return None
     except Exception:
@@ -249,13 +283,30 @@ def _get_performance_metrics(account_id=None):
 
 
 def _get_equity_curve(account_id=None):
-    """Return equity curve data points."""
+    """Return equity curve data points (per-account DB, then legacy)."""
     from quant_env.analysis.trade_logger import TradeLogger
     try:
         logger = TradeLogger(account_id=account_id or "default")
-        return logger.get_equity_curve()
+        rows = logger.get_equity_curve()
+        logger.close()
+        if rows:
+            return rows
     except Exception:
-        return []
+        pass
+
+    legacy = PROJECT_ROOT / "quant_env" / "trades.db"
+    if legacy.exists():
+        try:
+            import sqlite3 as _sql
+            conn = _sql.connect(str(legacy), timeout=5.0)
+            rows = conn.execute(
+                "SELECT timestamp, equity FROM equity_snapshots ORDER BY timestamp"
+            ).fetchall()
+            conn.close()
+            return rows
+        except Exception:
+            pass
+    return []
 
 
 # ── Simulation helpers (demo mode when no broker connected) ──────────
@@ -1137,6 +1188,255 @@ def op_benchmark_all():
     return jsonify({'status': 'done', 'comparison': comparison})
 
 
+# ═══════════════════════════════════════════════════════════════════════
+#  ANALYTICS API — structured JSON for the Next.js Intelligence page
+#  Serves the real artifacts produced by the engine:
+#    strategy_results.json · optimization_results.csv · walkforward_*.csv
+#    ml/model_metrics.json · gold_data.csv · live trade DBs
+# ═══════════════════════════════════════════════════════════════════════
+
+import csv as _csv
+
+
+def _read_csv_rows(path, limit=20000):
+    """Read a CSV into a list of dicts (string values preserved)."""
+    if not os.path.exists(str(path)):
+        return []
+    try:
+        with open(str(path), newline='', encoding='utf-8') as f:
+            rows = list(_csv.DictReader(f))
+        return rows[:limit]
+    except Exception as e:
+        print(f"[Analytics] CSV read failed {path}: {e}")
+        return []
+
+
+def _num(value, default=0.0):
+    """Best-effort numeric cast (handles None / empty / weird strings)."""
+    try:
+        if value is None:
+            return default
+        s = str(value).strip()
+        if not s:
+            return default
+        return float(s)
+    except (ValueError, TypeError):
+        return default
+
+
+def _load_live_engine_data():
+    """
+    Load the legacy engine trade DB (the one with real fills) plus the
+    per-account DBs, deduplicated.  Returns { fills, equity, trades, metrics }.
+    Realized PnL is computed on the fly with the FIFO trade matcher because
+    fills are logged without a pnl value.
+    """
+    import pandas as pd
+    import sqlite3
+    from quant_env.analysis.trade_matcher import match_trades
+    from quant_env.analysis.performance import compute_metrics
+
+    candidates = [
+        PROJECT_ROOT / "quant_env" / "trades.db",   # legacy single-file DB
+        PROJECT_ROOT / "trades.db",                 # root-level copy
+    ]
+    fill_rows = []
+    seen = set()
+    for db_path in candidates:
+        if not db_path.exists():
+            continue
+        try:
+            conn = sqlite3.connect(str(db_path), timeout=5.0)
+            rows = conn.execute(
+                "SELECT timestamp, symbol, side, price, volume, pnl FROM fills ORDER BY timestamp"
+            ).fetchall()
+            conn.close()
+            for ts, sym, side, price, vol, pnl in rows:
+                key = (ts, sym, side, float(price or 0), float(vol or 0))
+                if key in seen:
+                    continue
+                seen.add(key)
+                fill_rows.append({
+                    "timestamp": ts, "symbol": sym, "side": side,
+                    "price": float(price or 0), "volume": float(vol or 0),
+                    "pnl": float(pnl or 0),
+                })
+        except Exception as e:
+            print(f"[Analytics] Could not read {db_path}: {e}")
+
+    equity_rows = []
+    for db_path in candidates:
+        if not db_path.exists():
+            continue
+        try:
+            conn = sqlite3.connect(str(db_path), timeout=5.0)
+            rows = conn.execute(
+                "SELECT timestamp, equity, balance FROM equity_snapshots ORDER BY timestamp"
+            ).fetchall()
+            conn.close()
+            for ts, eq, bal in rows:
+                equity_rows.append({"timestamp": ts, "equity": float(eq or 0), "balance": float(bal or 0)})
+            if equity_rows:
+                break  # first DB that has equity wins
+        except Exception:
+            continue
+
+    result = {"fills": fill_rows, "equity": equity_rows, "trades": [], "metrics": None}
+    if fill_rows:
+        try:
+            fills_df = pd.DataFrame(fill_rows)
+            trades_df = match_trades(fills_df)
+            if not trades_df.empty:
+                result["trades"] = trades_df.to_dict(orient="records")
+                eq_series = [e["equity"] for e in equity_rows] if equity_rows else []
+                if len(eq_series) > 1:
+                    import numpy as np
+                    eq_idx = pd.date_range("2026-05-11", periods=len(eq_series), freq="h")
+                    eq_df = pd.DataFrame({"timestamp": eq_idx, "equity": eq_series})
+                else:
+                    eq_df = pd.DataFrame({"timestamp": [], "equity": []})
+                result["metrics"] = compute_metrics(fills_df, eq_df)
+        except Exception as e:
+            print(f"[Analytics] PnL matching failed: {e}")
+    return result
+
+
+
+@app.route('/api/analytics/overview')
+def api_analytics_overview():
+    """Top-level dashboard: strategy results, ML summary, live stats, flags."""
+    strategy_results = _load_strategy_results()
+    live = _load_live_engine_data()
+
+    strategies = {}
+    for key, ops in strategy_results.items():
+        strategies[key] = {
+            "name": key.replace("_", " ").title(),
+            "backtest": (ops.get("backtest") or {}).get("metrics"),
+            "optimize": (ops.get("optimize") or {}).get("metrics"),
+            "walkforward": (ops.get("walkforward") or {}).get("metrics"),
+            "train_ml": (ops.get("train_ml") or {}).get("metrics"),
+        }
+
+    return jsonify({
+        "status": "ok",
+        "strategies": strategies,
+        "live": {
+            "fill_count": len(live["fills"]),
+            "trade_count": len(live["trades"]),
+            "equity_points": len(live["equity"]),
+            "first_fill": live["fills"][0]["timestamp"] if live["fills"] else None,
+            "last_fill": live["fills"][-1]["timestamp"] if live["fills"] else None,
+            "metrics": live["metrics"],
+            "side_split": {
+                "buy": sum(1 for f in live["fills"] if f["side"] == "buy"),
+                "sell": sum(1 for f in live["fills"] if f["side"] == "sell"),
+            },
+        },
+        "config": {
+            "symbol": getattr(Config, "SYMBOL", "XAUUSD.r"),
+            "yahoo_symbol": getattr(Config, "YAHOO_SYMBOL", "GC=F"),
+            "ml_enabled": getattr(Config, "ML_ENABLED", False),
+            "kronos_enabled": getattr(Config, "KRONOS_ENABLED", False),
+            "kronos_blend_enabled": getattr(Config, "KRONOS_BLEND_ENABLED", False),
+            "kronos_risk_metrics": getattr(Config, "KRONOS_RISK_METRICS_ENABLED", False),
+            "kronos_symbols": getattr(Config, "KRONOS_SYMBOLS", ""),
+            "kronos_model": getattr(Config, "KRONOS_MODEL", "NeoQuasar/Kronos-small"),
+            "adaptive_enabled": getattr(Config, "ADAPTIVE_ENABLED", False),
+        },
+    })
+
+
+@app.route('/api/analytics/optimization')
+def api_analytics_optimization():
+    """Grid-search optimization results + derived best params."""
+    rows = _read_csv_rows(PROJECT_ROOT / "optimization_results.csv")
+    parsed = []
+    for r in rows:
+        parsed.append({
+            "spacing": _num(r.get("spacing")),
+            "levels": _num(r.get("levels")),
+            "total_return_pct": _num(r.get("total_return_pct")),
+            "total_pnl": _num(r.get("total_pnl")),
+            "sharpe_ratio": _num(r.get("sharpe_ratio")),
+            "max_drawdown_pct": _num(r.get("max_drawdown_pct")),
+            "num_trades": _num(r.get("num_trades")),
+            "win_rate_pct": _num(r.get("win_rate_pct")),
+            "profit_factor": _num(r.get("profit_factor")),
+        })
+    best = None
+    if parsed:
+        best = max(parsed, key=lambda p: p["sharpe_ratio"])
+    return jsonify({"status": "ok", "rows": parsed, "best": best})
+
+
+@app.route('/api/analytics/walkforward')
+def api_analytics_walkforward():
+    """Walk-forward analysis: per-window OOS results (both result files)."""
+    primary = _read_csv_rows(PROJECT_ROOT / "walkforward_report.csv")
+    secondary = _read_csv_rows(PROJECT_ROOT / "walkforward_results.csv")
+    return jsonify({"status": "ok", "windows": primary, "raw": secondary})
+
+
+
+@app.route('/api/analytics/ml')
+def api_analytics_ml():
+    """ML model metrics + feature importances."""
+    path = PROJECT_ROOT / "quant_env" / "ml" / "model_metrics.json"
+    model_metrics = {}
+    if path.exists():
+        try:
+            with open(str(path)) as f:
+                model_metrics = json.load(f)
+        except Exception:
+            pass
+    return jsonify({
+        "status": "ok",
+        "model": model_metrics,
+        "trained": model_metrics is not None and bool(model_metrics),
+    })
+
+
+@app.route('/api/analytics/equity')
+def api_analytics_equity():
+    """Price series (gold_data.csv, sampled) + live equity curve."""
+    gold_rows = _read_csv_rows(PROJECT_ROOT / "gold_data.csv", limit=200000)
+    sampled = []
+    step = max(1, len(gold_rows) // 480)  # ~480 points max for the chart
+    for i in range(0, len(gold_rows), step):
+        r = gold_rows[i]
+        sampled.append({
+            "t": r.get("Datetime", ""),
+            "close": _num(r.get("Close")),
+            "high": _num(r.get("High")),
+            "low": _num(r.get("Low")),
+        })
+    live = _load_live_engine_data()
+    equity = []
+    step_e = max(1, len(live["equity"]) // 480)
+    for i in range(0, len(live["equity"]), step_e):
+        equity.append(live["equity"][i])
+    return jsonify({
+        "status": "ok",
+        "price": sampled,
+        "live_equity": equity,
+        "fills": live["fills"][-200:],
+    })
+
+
+@app.route('/api/analytics/live')
+def api_analytics_live():
+    """Realized PnL trades (FIFO) + fill activity series."""
+    live = _load_live_engine_data()
+    return jsonify({
+        "status": "ok",
+        "trades": live["trades"],
+        "fills": live["fills"],
+        "metrics": live["metrics"],
+    })
+
+
+# ── Entry point ────────────────────────────────────────────────────────
 # ── Entry point ────────────────────────────────────────────────────────
 
 def find_available_port(start=5050, max_attempts=100):

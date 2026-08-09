@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
-import { LayoutDashboard, LineChart, BarChart3, Settings, LogOut, Wallet, TrendingUp, Activity, Shield, RefreshCw } from "lucide-react";
+import { LayoutDashboard, LineChart, BarChart3, Settings, LogOut, Wallet, TrendingUp, Activity, Shield, RefreshCw, BrainCircuit } from "lucide-react";
 import { getStatus, getPerformance, getRecentTrades, getEquityCurve, startBot, stopBot, type BotStatus, type PerformanceMetrics, type Trade, type EquityPoint } from "@/lib/api";
 
 // Real MT5 broker account id used for all logged-in demo users until
@@ -98,9 +98,9 @@ function DashboardContent() {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Portfolio", href: "/dashboard", active: true },
-    { icon: LineChart, label: "Trades", href: "/dashboard", active: false },
-    { icon: BarChart3, label: "Analytics", href: "/dashboard", active: false },
-    { icon: Settings, label: "Settings", href: "/dashboard", active: false },
+    { icon: BrainCircuit, label: "Intelligence", href: "/intelligence", active: false },
+    { icon: BarChart3, label: "Analytics", href: "/intelligence", active: false },
+    { icon: Settings, label: "Settings", href: "/billing", active: false },
   ];
 
   // Compute stats from API data

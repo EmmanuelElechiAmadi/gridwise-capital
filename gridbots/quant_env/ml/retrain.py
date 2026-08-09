@@ -122,5 +122,38 @@ def main():
     log.info(f"Retraining complete. Model saved to {MODEL_PATH}")
 
 
+# ═══════════════════════════════════════════════════════════════════════
+#  Kronos Fine-Tuning (Item 11 — Future Work)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Kronos is a generalist foundation model (VQ-VAE tokenizer + autoregressive
+# transformer). Fine-tuning it to specific symbols (e.g. GC=F gold futures)
+# requires two stages:
+#
+#   Stage 1 – Tokenizer fine-tuning:
+#       The VQ-VAE tokenizer maps OHLCV bars to discrete tokens. Fine-tuning
+#       on target-symbol data improves reconstruction accuracy. This is similar
+#       to training a small autoencoder on ~50k bars of new data.
+#
+#   Stage 2 – Autoregressive fine-tuning:
+#       The transformer predicts the next token. Fine-tuning on target-symbol
+#       sequences adapts the prior distribution to the instrument's dynamics.
+#       Uses cross-entropy loss on the next-token prediction task.
+#
+# Setup:
+#   1. Collect 6-12 months of hourly OHLCV for the target symbol
+#   2. Pre-tokenize with Kronos-Tokenizer-base
+#   3. Fine-tune VQ-VAE tokenizer (optional, ~1h on a GPU)
+#   4. Fine-tune autoregressive model (~2h on a GPU)
+#   5. Export the fine-tuned model and update KRONOS_MODEL_NAME in config
+#
+# See the Kronos paper (https://arxiv.org/abs/2501.06488) and Hugging Face
+# model card for training hyperparameters:
+#   https://huggingface.co/NeoQuasar/Kronos-small
+#
+# This stub is a placeholder for future implementation when a training
+# pipeline is needed. For now, the out-of-box Kronos model performs
+# adequately for regime classification without fine-tuning.
+
 if __name__ == "__main__":
     main()

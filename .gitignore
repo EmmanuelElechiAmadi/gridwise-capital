@@ -11,9 +11,11 @@ logs/
 .idea/
 *.csv
 *.html
+!gridbots/quant_env/dashboard/templates/*.html
 strategy_results.json
 accounts_store.json
-ml/model.pkl
-ml/model_metrics.json
+**/ml/model.pkl
 node_modules/
 .next/
+# Stray nested folder (older layout) — do not track
+gridbots/quant_env/quant_env/

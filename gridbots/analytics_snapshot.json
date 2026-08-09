@@ -1,0 +1,5319 @@
+{
+  "exported_at": "2026-08-09T22:51:01.509601",
+  "overview": {
+    "fills": {
+      "count": 550,
+      "first": "2026-05-11T11:17:32.213655",
+      "last": "2026-06-29T15:52:38.585023",
+      "buy": 309,
+      "sell": 241
+    },
+    "trades": {
+      "count": 241
+    },
+    "equity_points": 28436
+  },
+  "optimization": [
+    {
+      "total_return_pct": "-3.08",
+      "total_pnl": "-301.88",
+      "sharpe_ratio": "-0.22",
+      "max_drawdown_pct": "3.08",
+      "num_trades": "5",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.62",
+      "spacing": "0.05",
+      "levels": "5"
+    },
+    {
+      "total_return_pct": "-1.53",
+      "total_pnl": "-150.77",
+      "sharpe_ratio": "-0.22",
+      "max_drawdown_pct": "1.53",
+      "num_trades": "3",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.52",
+      "spacing": "0.1",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-3.64",
+      "total_pnl": "-351.54",
+      "sharpe_ratio": "-0.26",
+      "max_drawdown_pct": "3.64",
+      "num_trades": "7",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.48",
+      "spacing": "0.05",
+      "levels": "7"
+    },
+    {
+      "total_return_pct": "-2.03",
+      "total_pnl": "-201.17",
+      "sharpe_ratio": "-0.28",
+      "max_drawdown_pct": "2.03",
+      "num_trades": "3",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.63",
+      "spacing": "0.05",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-1.52",
+      "total_pnl": "-150.17",
+      "sharpe_ratio": "-0.3",
+      "max_drawdown_pct": "1.52",
+      "num_trades": "3",
+      "win_rate_pct": "33.33",
+      "profit_factor": "0.44",
+      "avg_win": "0.28",
+      "avg_loss": "-0.32",
+      "spacing": "0.2",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-3.07",
+      "total_pnl": "-300.57",
+      "sharpe_ratio": "-0.31",
+      "max_drawdown_pct": "3.07",
+      "num_trades": "5",
+      "win_rate_pct": "20.0",
+      "profit_factor": "0.16",
+      "avg_win": "0.25",
+      "avg_loss": "-0.39",
+      "spacing": "0.1",
+      "levels": "5"
+    },
+    {
+      "total_return_pct": "-3.53",
+      "total_pnl": "-347.78",
+      "sharpe_ratio": "-0.33",
+      "max_drawdown_pct": "3.53",
+      "num_trades": "5",
+      "win_rate_pct": "60.0",
+      "profit_factor": "4.16",
+      "avg_win": "0.89",
+      "avg_loss": "-0.32",
+      "spacing": "0.2",
+      "levels": "5"
+    },
+    {
+      "total_return_pct": "-4.61",
+      "total_pnl": "-449.21",
+      "sharpe_ratio": "-0.4",
+      "max_drawdown_pct": "4.61",
+      "num_trades": "7",
+      "win_rate_pct": "57.14",
+      "profit_factor": "0.97",
+      "avg_win": "0.23",
+      "avg_loss": "-0.32",
+      "spacing": "0.1",
+      "levels": "7"
+    },
+    {
+      "total_return_pct": "-5.52",
+      "total_pnl": "-543.85",
+      "sharpe_ratio": "-0.48",
+      "max_drawdown_pct": "5.52",
+      "num_trades": "7",
+      "win_rate_pct": "71.43",
+      "profit_factor": "10.28",
+      "avg_win": "1.32",
+      "avg_loss": "-0.32",
+      "spacing": "0.2",
+      "levels": "7"
+    }
+  ],
+  "walkforward": [
+    {
+      "start_date": "2025-12-24",
+      "end_date": "2026-01-08",
+      "total_return_pct": "0.0",
+      "sharpe_ratio": "0.0",
+      "max_drawdown_pct": "0.0",
+      "win_rate_pct": "100.0",
+      "profit_factor": "0.0",
+      "spacing": "0.5",
+      "levels": "3"
+    },
+    {
+      "start_date": "2026-01-09",
+      "end_date": "2026-01-23",
+      "total_return_pct": "14.57",
+      "sharpe_ratio": "11.82",
+      "max_drawdown_pct": "1.09",
+      "win_rate_pct": "100.0",
+      "profit_factor": "0.0",
+      "spacing": "0.5",
+      "levels": "3"
+    },
+    {
+      "start_date": "2026-01-26",
+      "end_date": "2026-02-06",
+      "total_return_pct": "0.0",
+      "sharpe_ratio": "0.0",
+      "max_drawdown_pct": "0.0",
+      "win_rate_pct": "100.0",
+      "profit_factor": "0.0",
+      "spacing": "0.5",
+      "levels": "3"
+    },
+    {
+      "start_date": "2026-02-09",
+      "end_date": "2026-02-23",
+      "total_return_pct": "0.0",
+      "sharpe_ratio": "0.0",
+      "max_drawdown_pct": "0.0",
+      "win_rate_pct": "100.0",
+      "profit_factor": "0.0",
+      "spacing": "2.0",
+      "levels": "5"
+    },
+    {
+      "start_date": "2026-02-24",
+      "end_date": "2026-03-09",
+      "total_return_pct": "0.0",
+      "sharpe_ratio": "0.0",
+      "max_drawdown_pct": "0.0",
+      "win_rate_pct": "100.0",
+      "profit_factor": "0.0",
+      "spacing": "0.5",
+      "levels": "3"
+    },
+    {
+      "start_date": "2026-03-10",
+      "end_date": "2026-03-23",
+      "total_return_pct": "-24.77",
+      "sharpe_ratio": "-14.44",
+      "max_drawdown_pct": "24.77",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "spacing": "0.5",
+      "levels": "3"
+    },
+    {
+      "start_date": "2026-03-24",
+      "end_date": "2026-04-07",
+      "total_return_pct": "0.29",
+      "sharpe_ratio": "0.39",
+      "max_drawdown_pct": "6.71",
+      "win_rate_pct": "100.0",
+      "profit_factor": "0.0",
+      "spacing": "2.0",
+      "levels": "5"
+    },
+    {
+      "start_date": "2026-04-08",
+      "end_date": "2026-04-21",
+      "total_return_pct": "0.0",
+      "sharpe_ratio": "0.0",
+      "max_drawdown_pct": "0.0",
+      "win_rate_pct": "100.0",
+      "profit_factor": "0.0",
+      "spacing": "0.5",
+      "levels": "5"
+    },
+    {
+      "start_date": "2026-04-22",
+      "end_date": "2026-05-05",
+      "total_return_pct": "0.29",
+      "sharpe_ratio": "5.29",
+      "max_drawdown_pct": "0.0",
+      "win_rate_pct": "100.0",
+      "profit_factor": "0.0",
+      "spacing": "2.0",
+      "levels": "5"
+    },
+    {
+      "start_date": "2026-05-06",
+      "end_date": "2026-05-19",
+      "total_return_pct": "0.0",
+      "sharpe_ratio": "0.0",
+      "max_drawdown_pct": "0.0",
+      "win_rate_pct": "100.0",
+      "profit_factor": "0.0",
+      "spacing": "0.5",
+      "levels": "3"
+    }
+  ],
+  "walkforward_raw": [
+    {
+      "total_return_pct": "0.0",
+      "total_pnl": "0.0",
+      "sharpe_ratio": "0.0",
+      "max_drawdown_pct": "0.0",
+      "num_trades": "3",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.6",
+      "start_date": "2026-05-04 12:20:00+00:00",
+      "end_date": "2026-05-04 20:39:00+00:00",
+      "spacing": "0.1",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-2.01",
+      "total_pnl": "-199.37",
+      "sharpe_ratio": "-0.87",
+      "max_drawdown_pct": "2.01",
+      "num_trades": "3",
+      "win_rate_pct": "66.67",
+      "profit_factor": "1.64",
+      "avg_win": "0.27",
+      "avg_loss": "-0.33",
+      "start_date": "2026-05-04 20:40:00+00:00",
+      "end_date": "2026-05-05 06:04:00+00:00",
+      "spacing": "0.2",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-2.57",
+      "total_pnl": "-251.0",
+      "sharpe_ratio": "-0.71",
+      "max_drawdown_pct": "2.57",
+      "num_trades": "5",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.4",
+      "start_date": "2026-05-05 06:05:00+00:00",
+      "end_date": "2026-05-05 14:24:00+00:00",
+      "spacing": "0.1",
+      "levels": "5"
+    },
+    {
+      "total_return_pct": "-0.53",
+      "total_pnl": "-50.21",
+      "sharpe_ratio": "-0.71",
+      "max_drawdown_pct": "0.53",
+      "num_trades": "5",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.42",
+      "start_date": "2026-05-05 14:25:00+00:00",
+      "end_date": "2026-05-05 23:45:00+00:00",
+      "spacing": "0.1",
+      "levels": "5"
+    },
+    {
+      "total_return_pct": "-4.37",
+      "total_pnl": "-430.64",
+      "sharpe_ratio": "-1.71",
+      "max_drawdown_pct": "4.37",
+      "num_trades": "3",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-93.86",
+      "start_date": "2026-05-05 23:46:00+00:00",
+      "end_date": "2026-05-06 08:06:00+00:00",
+      "spacing": "0.1",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-0.52",
+      "total_pnl": "-50.22",
+      "sharpe_ratio": "-0.71",
+      "max_drawdown_pct": "0.52",
+      "num_trades": "3",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.64",
+      "start_date": "2026-05-06 08:07:00+00:00",
+      "end_date": "2026-05-06 16:26:00+00:00",
+      "spacing": "0.1",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-2.03",
+      "total_pnl": "-201.17",
+      "sharpe_ratio": "-0.9",
+      "max_drawdown_pct": "2.03",
+      "num_trades": "3",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.64",
+      "start_date": "2026-05-06 16:27:00+00:00",
+      "end_date": "2026-05-07 01:46:00+00:00",
+      "spacing": "0.1",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-0.51",
+      "total_pnl": "-50.12",
+      "sharpe_ratio": "-0.71",
+      "max_drawdown_pct": "0.51",
+      "num_trades": "3",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.24",
+      "start_date": "2026-05-07 01:47:00+00:00",
+      "end_date": "2026-05-07 10:07:00+00:00",
+      "spacing": "0.2",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-0.51",
+      "total_pnl": "-49.92",
+      "sharpe_ratio": "-0.74",
+      "max_drawdown_pct": "0.51",
+      "num_trades": "3",
+      "win_rate_pct": "33.33",
+      "profit_factor": "0.18",
+      "avg_win": "0.16",
+      "avg_loss": "-0.44",
+      "start_date": "2026-05-07 10:08:00+00:00",
+      "end_date": "2026-05-07 18:36:00+00:00",
+      "spacing": "0.2",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-0.51",
+      "total_pnl": "-50.12",
+      "sharpe_ratio": "-0.71",
+      "max_drawdown_pct": "0.51",
+      "num_trades": "3",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.24",
+      "start_date": "2026-05-07 18:37:00+00:00",
+      "end_date": "2026-05-08 03:56:00+00:00",
+      "spacing": "0.2",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-1.53",
+      "total_pnl": "-150.96",
+      "sharpe_ratio": "-1.22",
+      "max_drawdown_pct": "1.53",
+      "num_trades": "3",
+      "win_rate_pct": "0.0",
+      "profit_factor": "0.0",
+      "avg_win": "0.0",
+      "avg_loss": "-0.64",
+      "start_date": "2026-05-08 03:57:00+00:00",
+      "end_date": "2026-05-08 12:17:00+00:00",
+      "spacing": "0.1",
+      "levels": "3"
+    },
+    {
+      "total_return_pct": "-0.51",
+      "total_pnl": "-49.92",
+      "sharpe_ratio": "-0.71",
+      "max_drawdown_pct": "0.51",
+      "num_trades": "3",
+      "win_rate_pct": "33.33",
+      "profit_factor": "0.18",
+      "avg_win": "0.16",
+      "avg_loss": "-0.44",
+      "start_date": "2026-05-08 12:18:00+00:00",
+      "end_date": "2026-05-08 20:37:00+00:00",
+      "spacing": "0.2",
+      "levels": "3"
+    }
+  ],
+  "model_metrics": {
+    "lookback": 20,
+    "threshold": 25,
+    "confidence_threshold": 0.4,
+    "regime_threshold": 1.0,
+    "features": [
+      "volatility",
+      "atr_ratio",
+      "bb_width",
+      "rsi",
+      "macd",
+      "macd_signal",
+      "macd_hist",
+      "price_to_sma_20",
+      "price_to_sma_50",
+      "price_to_sma_200",
+      "sma_20_slope",
+      "sma_50_slope",
+      "bb_pct_b",
+      "volume_ratio",
+      "high_low_ratio",
+      "adx_current",
+      "returns",
+      "returns_lag1",
+      "volatility_lag1",
+      "rsi_lag1",
+      "macd_hist_lag1",
+      "returns_lag2",
+      "volatility_lag2",
+      "rsi_lag2",
+      "macd_hist_lag2",
+      "returns_lag3",
+      "volatility_lag3",
+      "rsi_lag3",
+      "macd_hist_lag3",
+      "returns_lag4",
+      "volatility_lag4",
+      "rsi_lag4",
+      "macd_hist_lag4",
+      "returns_lag5",
+      "volatility_lag5",
+      "rsi_lag5",
+      "macd_hist_lag5"
+    ],
+    "feature_importances": {
+      "volatility": 0.0293,
+      "atr_ratio": 0.0471,
+      "bb_width": 0.0339,
+      "rsi": 0.0222,
+      "macd": 0.0609,
+      "macd_signal": 0.0852,
+      "macd_hist": 0.0274,
+      "price_to_sma_20": 0.0347,
+      "price_to_sma_50": 0.0341,
+      "price_to_sma_200": 0.0604,
+      "sma_20_slope": 0.0489,
+      "sma_50_slope": 0.0664,
+      "bb_pct_b": 0.0261,
+      "volume_ratio": 0.0075,
+      "high_low_ratio": 0.0077,
+      "adx_current": 0.0537,
+      "returns": 0.0034,
+      "returns_lag1": 0.0031,
+      "volatility_lag1": 0.0262,
+      "rsi_lag1": 0.0189,
+      "macd_hist_lag1": 0.0189,
+      "returns_lag2": 0.0032,
+      "volatility_lag2": 0.0277,
+      "rsi_lag2": 0.0122,
+      "macd_hist_lag2": 0.0152,
+      "returns_lag3": 0.0043,
+      "volatility_lag3": 0.0306,
+      "rsi_lag3": 0.0217,
+      "macd_hist_lag3": 0.0142,
+      "returns_lag4": 0.004,
+      "volatility_lag4": 0.0398,
+      "rsi_lag4": 0.0158,
+      "macd_hist_lag4": 0.0128,
+      "returns_lag5": 0.0028,
+      "volatility_lag5": 0.0425,
+      "rsi_lag5": 0.0196,
+      "macd_hist_lag5": 0.0179
+    }
+  },
+  "fills_tail": [
+    {
+      "timestamp": "2026-05-11T12:57:21.909757",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4673.53,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:00:00.784907",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4674.81,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:01:33.326420",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4675.31,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:01:42.051562",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4675.81,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:12:32.827950",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4669.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:13:50.054360",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4668.01,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:15:38.672775",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4669.51,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:15:39.737573",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4670.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:16:06.123754",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4669.34,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:16:49.434687",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4668.34,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:17:52.095955",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4669.84,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:17:59.838895",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4670.34,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:18:02.081403",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4667.84,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:18:48.154545",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4672.1,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:18:48.156586",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4671.1,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:18:48.157710",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4671.6,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:18:49.245334",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4673.1,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:18:49.246504",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4673.6,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:18:50.328264",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4674.1,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:50:00.633437",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4689.56,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:50:04.218037",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4690.56,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:50:27.598606",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4691.05,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:51:36.445308",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4692.05,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T13:53:29.986130",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4693.05,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:02:50.738304",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4706.28,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:04:53.312647",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4708.28,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:04:53.868730",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4709.28,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:05:01.548184",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4710.28,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:09:05.786117",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4712.65,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:09:05.788600",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4713.65,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:09:05.797234",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4714.65,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:09:05.801765",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4716.65,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:09:05.803428",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4717.65,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:09:05.804940",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4718.65,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:11:09.673404",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4711.24,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:11:09.676604",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4712.24,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:11:09.678000",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4713.24,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:11:09.679565",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4715.24,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:11:09.680678",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4716.24,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:11:09.684688",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4717.24,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:18:09.097959",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4722.81,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:18:09.099125",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4723.81,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:18:09.100092",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4724.81,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:18:09.100945",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4726.81,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:18:09.101824",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4727.81,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:18:09.102765",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4728.81,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:28:17.449819",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4726.48,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:28:17.453535",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4727.48,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:28:17.454608",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4728.48,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:28:17.455962",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4730.48,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:28:17.457603",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4731.48,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:28:17.460618",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4732.48,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:40:40.807152",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4736.18,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:40:40.810932",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4738.18,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:40:40.813884",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4739.18,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:40:40.816473",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4740.18,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:40:40.817581",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4734.18,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:40:40.818583",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4735.18,
+      "volume": 0.0,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:42:49.703814",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4742.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:42:49.706630",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4743.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:42:51.946110",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4745.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:42:51.947600",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4746.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:42:51.948928",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4747.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:42:51.951978",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4741.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:10.053215",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4744.58,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:10.054443",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4744.48,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:10.055502",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4744.38,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:11.652664",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4745.18,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:11.654170",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4744.88,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:11.655017",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4744.98,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:11.655901",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4744.28,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:11.657016",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4745.08,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:11.658192",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4744.18,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:44.567837",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4744.08,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:44.570107",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4743.78,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:44.572005",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4743.88,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:44.572963",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4743.98,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:46.615019",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4744.48,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:46.616111",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4744.58,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:46.617735",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4744.68,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:43:46.619916",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4743.68,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:46:58.084198",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4744.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:46:58.086557",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4745.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:46:58.087691",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4746.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:46:58.088978",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4748.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:46:58.096395",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4749.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:46:58.100102",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4750.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:01.129980",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4734.91,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:01.132977",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4734.81,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:01.134540",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4735.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:03.223285",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4735.21,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:03.224806",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4735.51,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:03.225751",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4735.61,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:03.226682",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4735.31,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:03.227879",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4734.61,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:03.229784",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4734.71,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:03.230968",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4735.41,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:19.046513",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4736.28,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:19.048235",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4736.38,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:19.049139",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4735.38,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:19.052201",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4735.48,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:19.054999",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4735.78,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:19.056317",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4735.68,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:19.057423",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4735.58,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:22.438471",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4736.7,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:22.439965",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4736.3,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:22.440830",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4736.6,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:22.441707",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4736.5,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T14:51:22.442849",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4736.4,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:01:34.243070",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4736.26,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:01:34.246285",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4730.26,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:01:34.247318",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4731.26,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:01:34.249017",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4732.26,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:01:34.250366",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4734.26,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:01:34.251788",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4735.26,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:08:49.516156",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4721.24,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:08:49.518633",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4722.24,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:08:49.519677",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4723.24,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:08:49.521144",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4725.24,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:08:49.524373",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4726.24,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:08:49.525507",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4727.24,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:13:57.355520",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4731.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:15:06.839596",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4731.49,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:15:58.640886",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4729.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:15:59.555001",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4729.49,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:16:07.028444",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4728.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:16:07.150717",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4728.49,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:16:15.219236",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4727.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:16:17.021582",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4727.49,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:21:43.694992",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4732.49,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:22:15.163011",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4732.59,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:23:18.503979",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4731.12,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:24:32.981312",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4733.34,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:24:34.573868",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4733.49,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:25:20.850208",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4730.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:25:29.786708",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4729.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:25:56.922495",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4728.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:32:54.162514",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4732.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:32:54.165541",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4733.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:32:54.166748",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4734.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:34:51.197571",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4718.06,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:34:52.275136",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4719.06,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T15:34:54.398979",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4720.06,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:05:37.643770",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4729.3,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:05:40.153307",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4727.3,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:05:42.623718",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4728.3,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:05:45.103065",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4723.3,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:05:45.932762",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4724.3,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:05:48.784307",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4725.3,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:08:59.692864",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4728.56,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:10:04.190636",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4729.56,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:10:40.345822",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4730.56,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:14:56.851130",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4728.77,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:15:45.399939",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4729.77,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:15:48.989602",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4730.77,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:41:46.358293",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4728.43,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:41:54.545226",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4729.43,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:42:41.764522",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4730.43,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:45:09.194705",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4726.77,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:45:25.940865",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4726.43,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:45:54.992720",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4725.77,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:49:00.145759",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4729.53,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:52:53.228007",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4730.53,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T16:54:00.365667",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4731.53,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T17:05:38.717743",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4732.51,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T17:09:29.160275",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4730.51,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T17:10:01.509325",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4729.51,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T17:13:10.391236",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4728.51,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T18:23:03.726321",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4720.18,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-11T18:23:04.091521",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4720.2,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T13:35:54.022433",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4565.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T13:36:25.922933",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4567.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T13:37:45.469054",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4569.01,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T13:42:03.061299",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4566.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T13:42:04.954597",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4562.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T13:42:05.680802",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4564.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T13:42:07.610812",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4570.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T13:42:08.220452",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4572.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T13:42:10.177752",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4574.9,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T13:46:26.770420",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4567.4,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T14:01:10.773647",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4563.24,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T14:04:18.997165",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4566.48,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T14:07:31.268834",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4568.48,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T14:08:00.280925",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4570.48,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T14:12:07.234917",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4565.78,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T14:12:59.306304",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4563.78,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T14:17:11.518690",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4561.78,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T14:27:58.825779",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4561.32,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T14:53:00.595154",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4563.36,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T15:03:14.426436",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4565.36,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-05-25T15:05:07.750303",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4567.36,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-06-29T15:14:07.120634",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4016.05,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-06-29T15:14:08.030621",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4010.05,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-06-29T15:14:08.816390",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4014.05,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-06-29T15:15:06.081561",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4008.05,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-06-29T15:15:09.268401",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4006.05,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-06-29T15:18:53.512101",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4018.05,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-06-29T15:52:37.019900",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4024.85,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-06-29T15:52:37.840175",
+      "symbol": "XAUUSD.r",
+      "side": "buy",
+      "price": 4018.85,
+      "volume": 0.01,
+      "pnl": 0.0
+    },
+    {
+      "timestamp": "2026-06-29T15:52:38.585023",
+      "symbol": "XAUUSD.r",
+      "side": "sell",
+      "price": 4022.85,
+      "volume": 0.01,
+      "pnl": 0.0
+    }
+  ],
+  "equity_tail": [
+    {
+      "timestamp": "2026-05-25T17:12:44.942714",
+      "equity": 40.34,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:12:46.577153",
+      "equity": 40.31,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:12:48.190068",
+      "equity": 40.31,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:12:50.071357",
+      "equity": 40.34,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:12:52.344887",
+      "equity": 41.3,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:12:54.141477",
+      "equity": 41.24,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:12:56.164184",
+      "equity": 41.27,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:02.449550",
+      "equity": 41.12,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:05.172910",
+      "equity": 40.67,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:07.096244",
+      "equity": 41.0,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:08.938270",
+      "equity": 40.73,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:10.685872",
+      "equity": 40.73,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:12.213504",
+      "equity": 40.73,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:14.459224",
+      "equity": 40.58,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:16.203061",
+      "equity": 41.45,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:17.856442",
+      "equity": 41.63,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:19.745527",
+      "equity": 41.63,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:21.152072",
+      "equity": 41.63,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:22.918397",
+      "equity": 41.57,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:24.706528",
+      "equity": 40.67,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:26.128954",
+      "equity": 40.64,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:28.331413",
+      "equity": 40.61,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:29.849778",
+      "equity": 40.61,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:31.429790",
+      "equity": 40.46,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:32.948585",
+      "equity": 40.37,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:36.387738",
+      "equity": 40.01,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:37.876167",
+      "equity": 40.01,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:39.687447",
+      "equity": 40.01,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:41.583185",
+      "equity": 38.9,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:43.329767",
+      "equity": 38.96,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:44.809307",
+      "equity": 39.02,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:46.239969",
+      "equity": 38.78,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:47.929366",
+      "equity": 39.17,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:52.006588",
+      "equity": 38.81,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:53.326677",
+      "equity": 38.81,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:55.406829",
+      "equity": 38.69,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:56.895840",
+      "equity": 38.3,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:58.241224",
+      "equity": 38.33,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:13:59.481213",
+      "equity": 38.33,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:00.737634",
+      "equity": 38.33,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:02.225798",
+      "equity": 38.42,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:03.565085",
+      "equity": 38.42,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:05.226351",
+      "equity": 38.45,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:06.746057",
+      "equity": 38.51,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:08.160495",
+      "equity": 38.45,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:09.580704",
+      "equity": 38.42,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:11.089903",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:12.723541",
+      "equity": 38.42,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:14.190475",
+      "equity": 38.3,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:15.784793",
+      "equity": 38.45,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:17.201785",
+      "equity": 38.45,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:18.760565",
+      "equity": 38.36,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:20.385239",
+      "equity": 38.6,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:21.794759",
+      "equity": 38.48,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:23.815414",
+      "equity": 38.33,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:25.746651",
+      "equity": 37.61,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:27.964112",
+      "equity": 38.0,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:31.943184",
+      "equity": 37.94,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:35.495087",
+      "equity": 38.06,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:45.877310",
+      "equity": 37.52,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:48.319349",
+      "equity": 37.91,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:49.841108",
+      "equity": 38.0,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:53.617327",
+      "equity": 38.09,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:14:58.808135",
+      "equity": 38.0,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:03.455871",
+      "equity": 38.27,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:05.187960",
+      "equity": 38.03,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:06.725384",
+      "equity": 38.42,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:09.021025",
+      "equity": 38.18,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:10.525931",
+      "equity": 38.15,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:12.636959",
+      "equity": 38.15,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:14.719864",
+      "equity": 38.18,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:17.102798",
+      "equity": 38.09,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:22.489178",
+      "equity": 38.51,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:23.702017",
+      "equity": 38.48,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:27.015745",
+      "equity": 38.48,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:28.595803",
+      "equity": 38.48,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:30.357982",
+      "equity": 38.33,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:32.238552",
+      "equity": 38.33,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:33.586792",
+      "equity": 38.57,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:35.404269",
+      "equity": 38.51,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:37.337664",
+      "equity": 38.24,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:38.888255",
+      "equity": 38.27,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:40.757732",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:43.427491",
+      "equity": 38.03,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:44.926435",
+      "equity": 37.97,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:46.331491",
+      "equity": 37.97,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:47.574695",
+      "equity": 38.06,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:48.748515",
+      "equity": 38.06,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:50.033305",
+      "equity": 38.15,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:51.368966",
+      "equity": 38.15,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:52.666214",
+      "equity": 38.69,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:53.964054",
+      "equity": 38.87,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:55.421043",
+      "equity": 38.57,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:56.691379",
+      "equity": 38.54,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:57.829383",
+      "equity": 38.45,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:15:59.129152",
+      "equity": 38.45,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:00.246133",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:01.639257",
+      "equity": 38.36,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:04.920364",
+      "equity": 38.03,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:06.499900",
+      "equity": 38.75,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:10.053164",
+      "equity": 38.93,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:16.351425",
+      "equity": 38.63,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:20.410367",
+      "equity": 38.81,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:24.841693",
+      "equity": 39.17,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:26.069385",
+      "equity": 38.99,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:29.410945",
+      "equity": 39.14,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:31.071445",
+      "equity": 38.87,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:33.438112",
+      "equity": 39.14,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:35.622147",
+      "equity": 39.08,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:37.772642",
+      "equity": 38.6,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:39.144934",
+      "equity": 38.63,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:41.231933",
+      "equity": 38.66,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:44.166561",
+      "equity": 38.75,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:45.540197",
+      "equity": 38.75,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:46.870823",
+      "equity": 38.81,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:52.852859",
+      "equity": 39.08,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:54.212009",
+      "equity": 39.08,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:56.119869",
+      "equity": 39.02,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:57.653162",
+      "equity": 38.84,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:16:59.071065",
+      "equity": 38.84,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:00.879470",
+      "equity": 38.84,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:02.560369",
+      "equity": 38.84,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:04.866631",
+      "equity": 38.75,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:06.399577",
+      "equity": 38.75,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:08.018387",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:09.361381",
+      "equity": 38.21,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:10.873777",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:12.609614",
+      "equity": 38.45,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:14.004848",
+      "equity": 38.66,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:15.472351",
+      "equity": 38.78,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:16.754415",
+      "equity": 38.33,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:20.750924",
+      "equity": 38.36,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:22.390794",
+      "equity": 38.36,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:23.623787",
+      "equity": 38.36,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:24.956794",
+      "equity": 38.36,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:26.407212",
+      "equity": 38.36,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:27.916660",
+      "equity": 38.48,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:29.446657",
+      "equity": 38.48,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:30.791076",
+      "equity": 38.45,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:32.168085",
+      "equity": 38.78,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:33.396002",
+      "equity": 38.42,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:34.572253",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:35.864937",
+      "equity": 38.51,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:37.168773",
+      "equity": 38.63,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:38.479288",
+      "equity": 38.42,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:39.720785",
+      "equity": 38.54,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:40.968737",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:43.256074",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:44.397152",
+      "equity": 38.57,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:45.624742",
+      "equity": 38.57,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:46.892191",
+      "equity": 38.66,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:48.315731",
+      "equity": 38.66,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:49.743883",
+      "equity": 38.6,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:51.100544",
+      "equity": 38.6,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:52.481912",
+      "equity": 38.6,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:53.710709",
+      "equity": 38.54,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:54.854410",
+      "equity": 38.54,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:56.213591",
+      "equity": 38.54,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:57.520588",
+      "equity": 38.54,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:17:58.816691",
+      "equity": 38.48,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:00.274508",
+      "equity": 38.48,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:02.421835",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:03.645138",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:05.967829",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:07.410314",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:08.704063",
+      "equity": 38.37,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:09.960189",
+      "equity": 38.45,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:11.312941",
+      "equity": 38.42,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:13.483417",
+      "equity": 38.3,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:14.745127",
+      "equity": 38.24,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:16.143492",
+      "equity": 38.15,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:19.194736",
+      "equity": 38.09,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:20.598690",
+      "equity": 38.09,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:22.184420",
+      "equity": 38.09,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:23.349033",
+      "equity": 38.09,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:24.711317",
+      "equity": 38.0,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:26.007048",
+      "equity": 38.0,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:28.168462",
+      "equity": 38.09,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:29.730795",
+      "equity": 38.09,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:31.052837",
+      "equity": 38.24,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:32.212088",
+      "equity": 38.39,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:33.505784",
+      "equity": 38.1,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:34.659494",
+      "equity": 38.1,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:35.924059",
+      "equity": 38.72,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:38.797974",
+      "equity": 38.81,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:40.160581",
+      "equity": 38.87,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:42.340724",
+      "equity": 39.26,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:43.643440",
+      "equity": 39.23,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:44.786875",
+      "equity": 40.04,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:45.968526",
+      "equity": 40.79,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:47.259326",
+      "equity": 40.82,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:48.606256",
+      "equity": 40.97,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-05-25T17:18:50.171827",
+      "equity": 40.79,
+      "balance": 52.48
+    },
+    {
+      "timestamp": "2026-06-29T15:14:08.967031",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:11.041096",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:13.101408",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:14.935255",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:16.853109",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:18.737330",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:20.659640",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:22.486277",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:24.352145",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:26.172004",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:28.010185",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:29.893639",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:31.901034",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:34.215855",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:36.011556",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:37.875621",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:39.702208",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:42.250524",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:44.162410",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:46.122714",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:47.927123",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:49.749885",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:51.551228",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:53.464633",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:55.300234",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:57.133577",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:14:58.957050",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:00.765985",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:03.318983",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:06.203165",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:09.305676",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:11.259041",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:13.218731",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:15.400259",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:18.265516",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:20.365163",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:22.536951",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:26.477228",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:29.249411",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:31.563551",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:34.073832",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:36.151488",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:38.121399",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:40.131274",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:42.283061",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:44.965568",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:47.018401",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:49.270157",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:52.133672",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:54.320283",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:56.326656",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:15:58.249232",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:00.907970",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:06.641402",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:09.436725",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:11.460722",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:14.597873",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:18.022972",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:21.819451",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:23.770010",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:25.763812",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:28.290387",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:30.393237",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:32.323805",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:34.305298",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:36.753985",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:38.689506",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:40.998000",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:42.937963",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:45.470657",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:47.506764",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:49.834152",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:52.227975",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:54.430160",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:57.179358",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:16:59.209908",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:01.124510",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:03.174622",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:05.416795",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:07.672537",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:09.813009",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:11.860181",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:14.429685",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:17.191373",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:19.621179",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:21.751613",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:25.299910",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:27.378055",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:29.316479",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:31.336580",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:33.325117",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:35.481693",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:37.664672",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:39.845963",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:42.292943",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:44.792251",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:47.440019",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:49.510853",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:51.759959",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:54.560669",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:57.544574",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:17:59.957419",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:01.875237",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:05.282453",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:07.685905",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:11.113309",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:13.415157",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:15.401150",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:17.324812",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:19.555456",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:21.634004",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:23.672188",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:25.776703",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:27.706379",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:29.932170",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:32.001158",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:33.975216",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:36.085113",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:38.171862",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:40.088379",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:42.414336",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:44.398645",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:46.564549",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:48.561869",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:50.758425",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:53.669733",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:18:57.981979",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:00.759016",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:02.768696",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:04.708827",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:06.568992",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:08.562626",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:11.030619",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:13.831921",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:16.840829",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:20.297733",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:23.932049",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:28.767736",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:31.372157",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:34.466901",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:37.309269",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:41.662220",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:44.907346",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:47.396196",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:50.898251",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:54.118322",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:56.772834",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:19:58.699459",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:00.946400",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:03.313316",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:07.700189",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:10.185582",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:12.461455",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:16.229859",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:18.558463",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:21.861138",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:24.014269",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:26.437192",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:28.573109",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:30.693179",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:32.730817",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:34.949667",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:40.802513",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:45.155362",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:48.043148",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:51.147042",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:53.863795",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:56.495887",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:20:59.110267",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:05.717962",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:08.343195",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:10.765631",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:12.915250",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:16.194460",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:19.126273",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:21.989034",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:24.292845",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:27.121081",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:29.705607",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:31.996539",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:34.272740",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:36.384258",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:38.800883",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:41.205815",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:45.664739",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:48.309284",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:52.965214",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:21:55.940828",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:04.015232",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:08.051764",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:10.806617",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:13.760663",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:16.798846",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:20.748397",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:23.844100",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:26.212172",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:28.559675",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:31.064103",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:33.488413",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:36.612655",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:39.499104",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:42.807932",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:45.701886",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:51.660090",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:22:58.817118",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:08.246822",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:16.759765",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:22.177218",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:29.534627",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:34.730348",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:38.866915",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:42.131981",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:44.863610",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:47.657236",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:50.411865",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:53.824772",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:23:57.274492",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:00.490339",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:03.225313",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:07.026532",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:10.335469",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:15.398272",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:18.776346",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:22.685406",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:25.635332",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:29.000408",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:31.713409",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:34.350631",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:36.354132",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:38.590488",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:41.000891",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:43.231971",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:45.324268",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:47.616629",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:49.752791",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:53.743354",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:56.304120",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:24:58.545366",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:01.003320",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:03.519599",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:09.205713",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:15.436775",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:28.033933",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:34.343348",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:39.008279",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:43.010110",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:47.649994",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:51.410976",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:54.696917",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:25:59.570161",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:03.311670",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:07.090753",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:10.619703",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:14.569311",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:17.344339",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:22.419352",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:28.970812",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:45.910960",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:49.314762",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:52.022441",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:54.419797",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:26:58.395119",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:07.200792",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:12.941475",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:18.142859",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:21.960782",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:24.682154",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:27.201987",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:29.635268",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:32.025771",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:34.428295",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:37.367268",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:39.800922",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:43.165621",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:27:46.375114",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:52:39.088078",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:52:41.696135",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:52:45.308093",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:52:47.657413",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:52:50.352426",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:52:53.258120",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:52:56.535820",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:52:58.966174",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:53:02.735023",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:53:08.383231",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:53:13.503937",
+      "equity": 5.1,
+      "balance": 5.1
+    },
+    {
+      "timestamp": "2026-06-29T15:53:27.639607",
+      "equity": 5.1,
+      "balance": 5.1
+    }
+  ],
+  "trades_tail": [
+    {
+      "entry_time": "2026-05-11T11:38:25.778757",
+      "exit_time": "2026-05-11T13:18:49.245334",
+      "entry_price": 4664.74,
+      "exit_price": 4673.1,
+      "volume": 0.01,
+      "pnl": 0.0836
+    },
+    {
+      "entry_time": "2026-05-11T11:38:39.214538",
+      "exit_time": "2026-05-11T13:18:49.246504",
+      "entry_price": 4664.67,
+      "exit_price": 4673.6,
+      "volume": 0.01,
+      "pnl": 0.0893
+    },
+    {
+      "entry_time": "2026-05-11T11:38:39.216279",
+      "exit_time": "2026-05-11T13:18:50.328264",
+      "entry_price": 4664.37,
+      "exit_price": 4674.1,
+      "volume": 0.01,
+      "pnl": 0.0973
+    },
+    {
+      "entry_time": "2026-05-11T11:38:39.217419",
+      "exit_time": "2026-05-11T13:50:00.633437",
+      "entry_price": 4664.47,
+      "exit_price": 4689.56,
+      "volume": 0.01,
+      "pnl": 0.2509
+    },
+    {
+      "entry_time": "2026-05-11T11:38:39.218737",
+      "exit_time": "2026-05-11T13:50:04.218037",
+      "entry_price": 4664.27,
+      "exit_price": 4690.56,
+      "volume": 0.01,
+      "pnl": 0.2629
+    },
+    {
+      "entry_time": "2026-05-11T11:38:39.219912",
+      "exit_time": "2026-05-11T13:50:27.598606",
+      "entry_price": 4664.57,
+      "exit_price": 4691.05,
+      "volume": 0.01,
+      "pnl": 0.2648
+    },
+    {
+      "entry_time": "2026-05-11T11:38:49.281886",
+      "exit_time": "2026-05-11T13:51:36.445308",
+      "entry_price": 4663.47,
+      "exit_price": 4692.05,
+      "volume": 0.01,
+      "pnl": 0.2858
+    },
+    {
+      "entry_time": "2026-05-11T11:38:49.283013",
+      "exit_time": "2026-05-11T13:53:29.986130",
+      "entry_price": 4663.37,
+      "exit_price": 4693.05,
+      "volume": 0.01,
+      "pnl": 0.2968
+    },
+    {
+      "entry_time": "2026-05-11T11:38:49.284339",
+      "exit_time": "2026-05-11T14:04:53.312647",
+      "entry_price": 4663.27,
+      "exit_price": 4708.28,
+      "volume": 0.01,
+      "pnl": 0.4501
+    },
+    {
+      "entry_time": "2026-05-11T11:38:49.285771",
+      "exit_time": "2026-05-11T14:04:53.868730",
+      "entry_price": 4663.07,
+      "exit_price": 4709.28,
+      "volume": 0.01,
+      "pnl": 0.4621
+    },
+    {
+      "entry_time": "2026-05-11T11:38:49.286821",
+      "exit_time": "2026-05-11T14:05:01.548184",
+      "entry_price": 4663.17,
+      "exit_price": 4710.28,
+      "volume": 0.01,
+      "pnl": 0.4711
+    },
+    {
+      "entry_time": "2026-05-11T11:38:57.579958",
+      "exit_time": "2026-05-11T14:09:05.801765",
+      "entry_price": 4662.57,
+      "exit_price": 4716.65,
+      "volume": 0.01,
+      "pnl": 0.5408
+    },
+    {
+      "entry_time": "2026-05-11T11:38:57.581718",
+      "exit_time": "2026-05-11T14:09:05.803428",
+      "entry_price": 4662.87,
+      "exit_price": 4717.65,
+      "volume": 0.01,
+      "pnl": 0.5478
+    },
+    {
+      "entry_time": "2026-05-11T11:38:57.582576",
+      "exit_time": "2026-05-11T14:09:05.804940",
+      "entry_price": 4662.67,
+      "exit_price": 4718.65,
+      "volume": 0.01,
+      "pnl": 0.5598
+    },
+    {
+      "entry_time": "2026-05-11T11:38:57.583825",
+      "exit_time": "2026-05-11T14:11:09.679565",
+      "entry_price": 4662.77,
+      "exit_price": 4715.24,
+      "volume": 0.01,
+      "pnl": 0.5247
+    },
+    {
+      "entry_time": "2026-05-11T11:38:58.818785",
+      "exit_time": "2026-05-11T14:11:09.680678",
+      "entry_price": 4662.67,
+      "exit_price": 4716.24,
+      "volume": 0.01,
+      "pnl": 0.5357
+    },
+    {
+      "entry_time": "2026-05-11T11:38:58.820396",
+      "exit_time": "2026-05-11T14:11:09.684688",
+      "entry_price": 4662.97,
+      "exit_price": 4717.24,
+      "volume": 0.01,
+      "pnl": 0.5427
+    },
+    {
+      "entry_time": "2026-05-11T11:38:58.821585",
+      "exit_time": "2026-05-11T14:18:09.100945",
+      "entry_price": 4662.77,
+      "exit_price": 4726.81,
+      "volume": 0.01,
+      "pnl": 0.6404
+    },
+    {
+      "entry_time": "2026-05-11T11:38:58.822500",
+      "exit_time": "2026-05-11T14:18:09.101824",
+      "entry_price": 4662.57,
+      "exit_price": 4727.81,
+      "volume": 0.01,
+      "pnl": 0.6524
+    },
+    {
+      "entry_time": "2026-05-11T11:38:58.823459",
+      "exit_time": "2026-05-11T14:18:09.102765",
+      "entry_price": 4662.87,
+      "exit_price": 4728.81,
+      "volume": 0.01,
+      "pnl": 0.6594
+    },
+    {
+      "entry_time": "2026-05-11T11:39:23.515149",
+      "exit_time": "2026-05-11T14:28:17.455962",
+      "entry_price": 4662.41,
+      "exit_price": 4730.48,
+      "volume": 0.01,
+      "pnl": 0.6807
+    },
+    {
+      "entry_time": "2026-05-11T11:39:26.947711",
+      "exit_time": "2026-05-11T14:28:17.457603",
+      "entry_price": 4661.82,
+      "exit_price": 4731.48,
+      "volume": 0.01,
+      "pnl": 0.6966
+    },
+    {
+      "entry_time": "2026-05-11T11:39:26.949089",
+      "exit_time": "2026-05-11T14:28:17.460618",
+      "entry_price": 4662.02,
+      "exit_price": 4732.48,
+      "volume": 0.01,
+      "pnl": 0.7046
+    },
+    {
+      "entry_time": "2026-05-11T11:39:26.950294",
+      "exit_time": "2026-05-11T14:40:40.810932",
+      "entry_price": 4662.22,
+      "exit_price": 4738.18,
+      "volume": 0.01,
+      "pnl": 0.7596
+    },
+    {
+      "entry_time": "2026-05-11T11:39:26.951314",
+      "exit_time": "2026-05-11T14:40:40.813884",
+      "entry_price": 4661.92,
+      "exit_price": 4739.18,
+      "volume": 0.01,
+      "pnl": 0.7726
+    },
+    {
+      "entry_time": "2026-05-11T11:39:26.952400",
+      "exit_time": "2026-05-11T14:40:40.816473",
+      "entry_price": 4662.12,
+      "exit_price": 4740.18,
+      "volume": 0.01,
+      "pnl": 0.7806
+    },
+    {
+      "entry_time": "2026-05-11T11:39:33.355892",
+      "exit_time": "2026-05-11T14:42:51.946110",
+      "entry_price": 4661.1,
+      "exit_price": 4745.59,
+      "volume": 0.01,
+      "pnl": 0.8449
+    },
+    {
+      "entry_time": "2026-05-11T11:39:33.356781",
+      "exit_time": "2026-05-11T14:42:51.947600",
+      "entry_price": 4661.3,
+      "exit_price": 4746.59,
+      "volume": 0.01,
+      "pnl": 0.8529
+    },
+    {
+      "entry_time": "2026-05-11T11:39:33.357618",
+      "exit_time": "2026-05-11T14:42:51.948928",
+      "entry_price": 4661.2,
+      "exit_price": 4747.59,
+      "volume": 0.01,
+      "pnl": 0.8639
+    },
+    {
+      "entry_time": "2026-05-11T11:59:19.466417",
+      "exit_time": "2026-05-11T14:43:11.652664",
+      "entry_price": 4664.64,
+      "exit_price": 4745.18,
+      "volume": 0.01,
+      "pnl": 0.8054
+    },
+    {
+      "entry_time": "2026-05-11T11:59:19.769905",
+      "exit_time": "2026-05-11T14:43:11.654170",
+      "entry_price": 4664.74,
+      "exit_price": 4744.88,
+      "volume": 0.01,
+      "pnl": 0.8014
+    },
+    {
+      "entry_time": "2026-05-11T11:59:59.718378",
+      "exit_time": "2026-05-11T14:43:11.655017",
+      "entry_price": 4664.14,
+      "exit_price": 4744.98,
+      "volume": 0.01,
+      "pnl": 0.8084
+    },
+    {
+      "entry_time": "2026-05-11T11:59:59.933140",
+      "exit_time": "2026-05-11T14:43:11.657016",
+      "entry_price": 4664.24,
+      "exit_price": 4745.08,
+      "volume": 0.01,
+      "pnl": 0.8084
+    },
+    {
+      "entry_time": "2026-05-11T12:04:45.720079",
+      "exit_time": "2026-05-11T14:43:46.615019",
+      "entry_price": 4670.3,
+      "exit_price": 4744.48,
+      "volume": 0.01,
+      "pnl": 0.7418
+    },
+    {
+      "entry_time": "2026-05-11T12:04:45.721644",
+      "exit_time": "2026-05-11T14:43:46.616111",
+      "entry_price": 4670.8,
+      "exit_price": 4744.58,
+      "volume": 0.01,
+      "pnl": 0.7378
+    },
+    {
+      "entry_time": "2026-05-11T12:04:45.722532",
+      "exit_time": "2026-05-11T14:43:46.617735",
+      "entry_price": 4671.3,
+      "exit_price": 4744.68,
+      "volume": 0.01,
+      "pnl": 0.7338
+    },
+    {
+      "entry_time": "2026-05-11T12:04:46.594032",
+      "exit_time": "2026-05-11T14:46:58.088978",
+      "entry_price": 4670.16,
+      "exit_price": 4748.01,
+      "volume": 0.01,
+      "pnl": 0.7785
+    },
+    {
+      "entry_time": "2026-05-11T12:04:46.597210",
+      "exit_time": "2026-05-11T14:46:58.096395",
+      "entry_price": 4670.66,
+      "exit_price": 4749.01,
+      "volume": 0.01,
+      "pnl": 0.7835
+    },
+    {
+      "entry_time": "2026-05-11T12:04:46.599031",
+      "exit_time": "2026-05-11T14:46:58.100102",
+      "entry_price": 4671.16,
+      "exit_price": 4750.01,
+      "volume": 0.01,
+      "pnl": 0.7885
+    },
+    {
+      "entry_time": "2026-05-11T12:05:14.952011",
+      "exit_time": "2026-05-11T14:51:03.223285",
+      "entry_price": 4670.26,
+      "exit_price": 4735.21,
+      "volume": 0.01,
+      "pnl": 0.6495
+    },
+    {
+      "entry_time": "2026-05-11T12:05:14.954288",
+      "exit_time": "2026-05-11T14:51:03.224806",
+      "entry_price": 4670.76,
+      "exit_price": 4735.51,
+      "volume": 0.01,
+      "pnl": 0.6475
+    },
+    {
+      "entry_time": "2026-05-11T12:07:24.520580",
+      "exit_time": "2026-05-11T14:51:03.225751",
+      "entry_price": 4670.74,
+      "exit_price": 4735.61,
+      "volume": 0.01,
+      "pnl": 0.6487
+    },
+    {
+      "entry_time": "2026-05-11T12:07:30.129155",
+      "exit_time": "2026-05-11T14:51:03.226682",
+      "entry_price": 4670.4,
+      "exit_price": 4735.31,
+      "volume": 0.01,
+      "pnl": 0.6491
+    },
+    {
+      "entry_time": "2026-05-11T12:07:31.771648",
+      "exit_time": "2026-05-11T14:51:03.230968",
+      "entry_price": 4670.34,
+      "exit_price": 4735.41,
+      "volume": 0.01,
+      "pnl": 0.6507
+    },
+    {
+      "entry_time": "2026-05-11T12:08:25.476557",
+      "exit_time": "2026-05-11T14:51:19.046513",
+      "entry_price": 4669.49,
+      "exit_price": 4736.28,
+      "volume": 0.01,
+      "pnl": 0.6679
+    },
+    {
+      "entry_time": "2026-05-11T12:08:27.137501",
+      "exit_time": "2026-05-11T14:51:19.048235",
+      "entry_price": 4669.03,
+      "exit_price": 4736.38,
+      "volume": 0.01,
+      "pnl": 0.6735
+    },
+    {
+      "entry_time": "2026-05-11T12:08:48.733854",
+      "exit_time": "2026-05-11T15:01:34.243070",
+      "entry_price": 4667.57,
+      "exit_price": 4736.26,
+      "volume": 0.01,
+      "pnl": 0.6869
+    },
+    {
+      "entry_time": "2026-05-11T12:08:49.833585",
+      "exit_time": "2026-05-11T15:01:34.250366",
+      "entry_price": 4667.45,
+      "exit_price": 4734.26,
+      "volume": 0.01,
+      "pnl": 0.6681
+    },
+    {
+      "entry_time": "2026-05-11T12:09:45.017188",
+      "exit_time": "2026-05-11T15:01:34.251788",
+      "entry_price": 4668.65,
+      "exit_price": 4735.26,
+      "volume": 0.01,
+      "pnl": 0.6661
+    },
+    {
+      "entry_time": "2026-05-11T12:10:47.057674",
+      "exit_time": "2026-05-11T15:08:49.521144",
+      "entry_price": 4669.24,
+      "exit_price": 4725.24,
+      "volume": 0.01,
+      "pnl": 0.56
+    },
+    {
+      "entry_time": "2026-05-11T12:11:26.051358",
+      "exit_time": "2026-05-11T15:08:49.524373",
+      "entry_price": 4668.18,
+      "exit_price": 4726.24,
+      "volume": 0.01,
+      "pnl": 0.5806
+    },
+    {
+      "entry_time": "2026-05-11T12:11:26.053576",
+      "exit_time": "2026-05-11T15:08:49.525507",
+      "entry_price": 4669.18,
+      "exit_price": 4727.24,
+      "volume": 0.01,
+      "pnl": 0.5806
+    },
+    {
+      "entry_time": "2026-05-11T12:11:26.054666",
+      "exit_time": "2026-05-11T15:13:57.355520",
+      "entry_price": 4668.68,
+      "exit_price": 4731.59,
+      "volume": 0.01,
+      "pnl": 0.6291
+    },
+    {
+      "entry_time": "2026-05-11T12:11:28.256701",
+      "exit_time": "2026-05-11T15:15:06.839596",
+      "entry_price": 4668.65,
+      "exit_price": 4731.49,
+      "volume": 0.01,
+      "pnl": 0.6284
+    },
+    {
+      "entry_time": "2026-05-11T12:11:38.209736",
+      "exit_time": "2026-05-11T15:21:43.694992",
+      "entry_price": 4668.1,
+      "exit_price": 4732.49,
+      "volume": 0.01,
+      "pnl": 0.6439
+    },
+    {
+      "entry_time": "2026-05-11T12:15:13.203630",
+      "exit_time": "2026-05-11T15:22:15.163011",
+      "entry_price": 4668.69,
+      "exit_price": 4732.59,
+      "volume": 0.01,
+      "pnl": 0.639
+    },
+    {
+      "entry_time": "2026-05-11T12:21:12.865262",
+      "exit_time": "2026-05-11T15:24:32.981312",
+      "entry_price": 4669.36,
+      "exit_price": 4733.34,
+      "volume": 0.01,
+      "pnl": 0.6398
+    },
+    {
+      "entry_time": "2026-05-11T12:21:37.926296",
+      "exit_time": "2026-05-11T15:24:34.573868",
+      "entry_price": 4669.99,
+      "exit_price": 4733.49,
+      "volume": 0.01,
+      "pnl": 0.635
+    },
+    {
+      "entry_time": "2026-05-11T12:30:36.500375",
+      "exit_time": "2026-05-11T15:32:54.162514",
+      "entry_price": 4670.77,
+      "exit_price": 4732.9,
+      "volume": 0.01,
+      "pnl": 0.6213
+    },
+    {
+      "entry_time": "2026-05-11T12:30:38.246037",
+      "exit_time": "2026-05-11T15:32:54.165541",
+      "entry_price": 4670.51,
+      "exit_price": 4733.9,
+      "volume": 0.01,
+      "pnl": 0.6339
+    },
+    {
+      "entry_time": "2026-05-11T12:30:38.248109",
+      "exit_time": "2026-05-11T15:32:54.166748",
+      "entry_price": 4671.01,
+      "exit_price": 4734.9,
+      "volume": 0.01,
+      "pnl": 0.6389
+    },
+    {
+      "entry_time": "2026-05-11T12:36:49.391049",
+      "exit_time": "2026-05-11T15:34:51.197571",
+      "entry_price": 4672.48,
+      "exit_price": 4718.06,
+      "volume": 0.01,
+      "pnl": 0.4558
+    },
+    {
+      "entry_time": "2026-05-11T12:37:54.280057",
+      "exit_time": "2026-05-11T15:34:52.275136",
+      "entry_price": 4673.6,
+      "exit_price": 4719.06,
+      "volume": 0.01,
+      "pnl": 0.4546
+    },
+    {
+      "entry_time": "2026-05-11T12:38:01.885185",
+      "exit_time": "2026-05-11T15:34:54.398979",
+      "entry_price": 4673.1,
+      "exit_price": 4720.06,
+      "volume": 0.01,
+      "pnl": 0.4696
+    },
+    {
+      "entry_time": "2026-05-11T12:42:03.858368",
+      "exit_time": "2026-05-11T16:05:37.643770",
+      "entry_price": 4676.85,
+      "exit_price": 4729.3,
+      "volume": 0.01,
+      "pnl": 0.5245
+    },
+    {
+      "entry_time": "2026-05-11T12:44:15.531985",
+      "exit_time": "2026-05-11T16:05:40.153307",
+      "entry_price": 4675.81,
+      "exit_price": 4727.3,
+      "volume": 0.01,
+      "pnl": 0.5149
+    },
+    {
+      "entry_time": "2026-05-11T12:44:15.533960",
+      "exit_time": "2026-05-11T16:05:42.623718",
+      "entry_price": 4676.31,
+      "exit_price": 4728.3,
+      "volume": 0.01,
+      "pnl": 0.5199
+    },
+    {
+      "entry_time": "2026-05-11T12:44:16.233218",
+      "exit_time": "2026-05-11T16:08:59.692864",
+      "entry_price": 4675.35,
+      "exit_price": 4728.56,
+      "volume": 0.01,
+      "pnl": 0.5321
+    },
+    {
+      "entry_time": "2026-05-11T12:48:04.894130",
+      "exit_time": "2026-05-11T16:10:04.190636",
+      "entry_price": 4674.26,
+      "exit_price": 4729.56,
+      "volume": 0.01,
+      "pnl": 0.553
+    },
+    {
+      "entry_time": "2026-05-11T12:49:39.767137",
+      "exit_time": "2026-05-11T16:10:40.345822",
+      "entry_price": 4673.85,
+      "exit_price": 4730.56,
+      "volume": 0.01,
+      "pnl": 0.5671
+    },
+    {
+      "entry_time": "2026-05-11T12:49:39.986072",
+      "exit_time": "2026-05-11T16:14:56.851130",
+      "entry_price": 4673.81,
+      "exit_price": 4728.77,
+      "volume": 0.01,
+      "pnl": 0.5496
+    },
+    {
+      "entry_time": "2026-05-11T12:49:47.544386",
+      "exit_time": "2026-05-11T16:15:45.399939",
+      "entry_price": 4673.31,
+      "exit_price": 4729.77,
+      "volume": 0.01,
+      "pnl": 0.5646
+    },
+    {
+      "entry_time": "2026-05-11T12:49:47.627911",
+      "exit_time": "2026-05-11T16:15:48.989602",
+      "entry_price": 4673.35,
+      "exit_price": 4730.77,
+      "volume": 0.01,
+      "pnl": 0.5742
+    },
+    {
+      "entry_time": "2026-05-11T12:50:47.373385",
+      "exit_time": "2026-05-11T16:41:46.358293",
+      "entry_price": 4672.85,
+      "exit_price": 4728.43,
+      "volume": 0.01,
+      "pnl": 0.5558
+    },
+    {
+      "entry_time": "2026-05-11T12:50:48.516257",
+      "exit_time": "2026-05-11T16:41:54.545226",
+      "entry_price": 4672.81,
+      "exit_price": 4729.43,
+      "volume": 0.01,
+      "pnl": 0.5662
+    },
+    {
+      "entry_time": "2026-05-11T12:53:05.472190",
+      "exit_time": "2026-05-11T16:42:41.764522",
+      "entry_price": 4671.53,
+      "exit_price": 4730.43,
+      "volume": 0.01,
+      "pnl": 0.589
+    },
+    {
+      "entry_time": "2026-05-11T12:53:08.256246",
+      "exit_time": "2026-05-11T16:49:00.145759",
+      "entry_price": 4671.03,
+      "exit_price": 4729.53,
+      "volume": 0.01,
+      "pnl": 0.585
+    },
+    {
+      "entry_time": "2026-05-11T12:53:12.912321",
+      "exit_time": "2026-05-11T16:52:53.228007",
+      "entry_price": 4670.53,
+      "exit_price": 4730.53,
+      "volume": 0.01,
+      "pnl": 0.6
+    },
+    {
+      "entry_time": "2026-05-11T13:13:50.054360",
+      "exit_time": "2026-05-11T16:54:00.365667",
+      "entry_price": 4668.01,
+      "exit_price": 4731.53,
+      "volume": 0.01,
+      "pnl": 0.6352
+    },
+    {
+      "entry_time": "2026-05-11T13:16:49.434687",
+      "exit_time": "2026-05-11T17:05:38.717743",
+      "entry_price": 4668.34,
+      "exit_price": 4732.51,
+      "volume": 0.01,
+      "pnl": 0.6417
+    },
+    {
+      "entry_time": "2026-05-11T13:18:02.081403",
+      "exit_time": "2026-05-11T18:23:03.726321",
+      "entry_price": 4667.84,
+      "exit_price": 4720.18,
+      "volume": 0.01,
+      "pnl": 0.5234
+    },
+    {
+      "entry_time": "2026-05-11T13:18:48.154545",
+      "exit_time": "2026-05-11T18:23:04.091521",
+      "entry_price": 4672.1,
+      "exit_price": 4720.2,
+      "volume": 0.01,
+      "pnl": 0.481
+    },
+    {
+      "entry_time": "2026-05-11T13:18:48.156586",
+      "exit_time": "2026-05-25T13:35:54.022433",
+      "entry_price": 4671.1,
+      "exit_price": 4565.01,
+      "volume": 0.01,
+      "pnl": -1.0609
+    },
+    {
+      "entry_time": "2026-05-11T13:18:48.157710",
+      "exit_time": "2026-05-25T13:36:25.922933",
+      "entry_price": 4671.6,
+      "exit_price": 4567.01,
+      "volume": 0.01,
+      "pnl": -1.0459
+    },
+    {
+      "entry_time": "2026-05-11T14:02:50.738304",
+      "exit_time": "2026-05-25T13:37:45.469054",
+      "entry_price": 4706.28,
+      "exit_price": 4569.01,
+      "volume": 0.01,
+      "pnl": -1.3727
+    },
+    {
+      "entry_time": "2026-05-11T14:09:05.786117",
+      "exit_time": "2026-05-25T13:42:07.610812",
+      "entry_price": 4712.65,
+      "exit_price": 4570.9,
+      "volume": 0.01,
+      "pnl": -1.4175
+    },
+    {
+      "entry_time": "2026-05-11T14:09:05.788600",
+      "exit_time": "2026-05-25T13:42:08.220452",
+      "entry_price": 4713.65,
+      "exit_price": 4572.9,
+      "volume": 0.01,
+      "pnl": -1.4075
+    },
+    {
+      "entry_time": "2026-05-11T14:09:05.797234",
+      "exit_time": "2026-05-25T13:42:10.177752",
+      "entry_price": 4714.65,
+      "exit_price": 4574.9,
+      "volume": 0.01,
+      "pnl": -1.3975
+    },
+    {
+      "entry_time": "2026-05-11T14:11:09.673404",
+      "exit_time": "2026-05-25T13:46:26.770420",
+      "entry_price": 4711.24,
+      "exit_price": 4567.4,
+      "volume": 0.01,
+      "pnl": -1.4384
+    },
+    {
+      "entry_time": "2026-05-11T14:11:09.676604",
+      "exit_time": "2026-05-25T14:04:18.997165",
+      "entry_price": 4712.24,
+      "exit_price": 4566.48,
+      "volume": 0.01,
+      "pnl": -1.4576
+    },
+    {
+      "entry_time": "2026-05-11T14:11:09.678000",
+      "exit_time": "2026-05-25T14:07:31.268834",
+      "entry_price": 4713.24,
+      "exit_price": 4568.48,
+      "volume": 0.01,
+      "pnl": -1.4476
+    },
+    {
+      "entry_time": "2026-05-11T14:18:09.097959",
+      "exit_time": "2026-05-25T14:08:00.280925",
+      "entry_price": 4722.81,
+      "exit_price": 4570.48,
+      "volume": 0.01,
+      "pnl": -1.5233
+    },
+    {
+      "entry_time": "2026-05-11T14:18:09.099125",
+      "exit_time": "2026-05-25T14:53:00.595154",
+      "entry_price": 4723.81,
+      "exit_price": 4563.36,
+      "volume": 0.01,
+      "pnl": -1.6045
+    },
+    {
+      "entry_time": "2026-05-11T14:18:09.100092",
+      "exit_time": "2026-05-25T15:03:14.426436",
+      "entry_price": 4724.81,
+      "exit_price": 4565.36,
+      "volume": 0.01,
+      "pnl": -1.5945
+    },
+    {
+      "entry_time": "2026-05-11T14:28:17.449819",
+      "exit_time": "2026-05-25T15:05:07.750303",
+      "entry_price": 4726.48,
+      "exit_price": 4567.36,
+      "volume": 0.01,
+      "pnl": -1.5912
+    },
+    {
+      "entry_time": "2026-05-11T14:28:17.453535",
+      "exit_time": "2026-06-29T15:14:07.120634",
+      "entry_price": 4727.48,
+      "exit_price": 4016.05,
+      "volume": 0.01,
+      "pnl": -7.1143
+    },
+    {
+      "entry_time": "2026-05-11T14:28:17.454608",
+      "exit_time": "2026-06-29T15:14:08.816390",
+      "entry_price": 4728.48,
+      "exit_price": 4014.05,
+      "volume": 0.01,
+      "pnl": -7.1443
+    },
+    {
+      "entry_time": "2026-05-11T14:40:40.807152",
+      "exit_time": "2026-06-29T15:18:53.512101",
+      "entry_price": 4736.18,
+      "exit_price": 4018.05,
+      "volume": 0.01,
+      "pnl": -7.1813
+    },
+    {
+      "entry_time": "2026-05-11T14:40:40.817581",
+      "exit_time": "2026-06-29T15:52:37.019900",
+      "entry_price": 4734.18,
+      "exit_price": 4024.85,
+      "volume": 0.01,
+      "pnl": -7.0933
+    },
+    {
+      "entry_time": "2026-05-11T14:40:40.818583",
+      "exit_time": "2026-06-29T15:52:38.585023",
+      "entry_price": 4735.18,
+      "exit_price": 4022.85,
+      "volume": 0.01,
+      "pnl": -7.1233
+    }
+  ]
+}

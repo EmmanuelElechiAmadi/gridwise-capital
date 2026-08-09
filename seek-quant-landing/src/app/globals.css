@@ -270,6 +270,55 @@ body {
   background-size: 60px 60px;
 }
 
+/* ─── GLASS (fixed header backdrop) ─── */
+.glass {
+  background: rgba(5, 5, 8, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ─── GRADIENT TEXT (Header brand) ─── */
+.gradient-text {
+  background: linear-gradient(135deg, #e8c97a 0%, #c9a84c 50%, #a07830 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── SECTION PADDING (Pricing) ─── */
+.section-padding {
+  padding: 96px 0;
+}
+
+@media (max-width: 768px) {
+  .section-padding {
+    padding: 64px 0;
+  }
+}
+
+/* ─── INTELLIGENCE / ANALYTICS page helpers ─── */
+.intel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+}
+.intel-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.intel-card-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
 /* ─── TICKER ─── */
 @keyframes ticker {
   from { transform: translateX(0); }

@@ -23,6 +23,13 @@ from analysis.trade_logger import TradeLogger
 from utils.notifications import TelegramNotifier
 from utils.config_loader import load_config
 from ml.regime_adapter import RegimeAdapter
+from ml.kronos import (
+    KronosRegimeAdapter,
+    KronosRiskMetrics,
+    MetaRegimeAdapter,
+    IncrementalInferenceEngine,
+)
+from optimization.portfolio_optimizer import KronosPortfolioOptimizer
 from adaptive.updater import AdaptiveUpdater
 
 from accounts.models import BrokerAccount, ConnectionStatus
@@ -63,10 +70,81 @@ class App:
 
         self.running = True
 
-        # ── ML regime adapter ──────────────────────────────────────────
-        self.regime_adapter = RegimeAdapter(self.config)
-        if self.config.ML_ENABLED:
+        # ── ML regime adapter (RF-based, Kronos forecast, or Meta blend) ──
+        kronos_enabled = getattr(self.config, "KRONOS_ENABLED", False)
+        blend_enabled = getattr(self.config, "KRONOS_BLEND_ENABLED", False)
+
+        if kronos_enabled and blend_enabled:
+            # Meta-adapter blends Kronos + RF by confidence
+            kronos_adapter = KronosRegimeAdapter(self.config, self.log)
+            rf_adapter = RegimeAdapter(self.config)
+            # Use IncrementalInferenceEngine to avoid re-encoding full context on every refresh
+            if getattr(self.config, "KRONOS_INCREMENTAL_ENABLED", True):
+                kronos_predictor = kronos_adapter._predictor or getattr(kronos_adapter, '_init_predictor', lambda: None)
+                if kronos_adapter._predictor is not None and kronos_adapter._predictor.is_available():
+                    k_engine = IncrementalInferenceEngine(kronos_adapter._predictor, cache_size=128)
+                    kronos_adapter._incremental_engine = k_engine
+                    self.log.info("IncrementalInferenceEngine attached to Kronos adapter")
+            self.regime_adapter = MetaRegimeAdapter(
+                self.config, kronos_adapter, rf_adapter, self.log
+            )
+            self.log.info("Using MetaRegimeAdapter (Kronos + RF blended by confidence)")
+        elif kronos_enabled:
+            self.regime_adapter = KronosRegimeAdapter(self.config, self.log)
+            # Attach IncrementalInferenceEngine to avoid re-encoding full context on every refresh
+            if getattr(self.config, "KRONOS_INCREMENTAL_ENABLED", True):
+                kronos_adapter = self.regime_adapter
+                kronos_adapter._init_predictor()
+                if kronos_adapter._predictor is not None and kronos_adapter._predictor.is_available():
+                    k_engine = IncrementalInferenceEngine(kronos_adapter._predictor, cache_size=128)
+                    kronos_adapter._incremental_engine = k_engine
+                    self.log.info("IncrementalInferenceEngine attached to Kronos adapter")
+            self.log.info("Using Kronos foundation model for regime adaptation")
+        else:
+            self.regime_adapter = RegimeAdapter(self.config)
+        if (getattr(self.config, "ML_ENABLED", False) or kronos_enabled):
             self.strategy.regime_adapter = self.regime_adapter
+
+        # ── Kronos Risk Metrics (VaR/CVaR) ──────────────────────────────
+        self.kronos_risk = None
+        self._kronos_predictor = None  # hold ref for risk metric extraction
+        if getattr(self.config, "KRONOS_RISK_METRICS_ENABLED", False) and kronos_enabled:
+            kronos_adapt = self.regime_adapter
+            if blend_enabled and hasattr(self.regime_adapter, '_kronos_adapter'):
+                kronos_adapt = self.regime_adapter._kronos_adapter
+            # Store a reference to the underlying predictor for raw sample extraction
+            predictor_ref = getattr(kronos_adapt, '_predictor', None)
+            if predictor_ref is not None and predictor_ref.is_available():
+                self._kronos_predictor = predictor_ref
+                self.kronos_risk = KronosRiskMetrics(config=self.config)
+                self.log.info("KronosRiskMetrics initialized for VaR/CVaR position sizing")
+                # Apply initial risk adjustment to lot size
+            else:
+                self.log.warning("KronosRiskMetrics: Kronos predictor not available")
+
+        # ── Portfolio Optimizer (multi-symbol) ──────────────────────────
+        self.portfolio_optimizer = None
+        kronos_symbols = getattr(self.config, "KRONOS_SYMBOLS", None)
+        if kronos_symbols and kronos_enabled:
+            try:
+                symbols = [s.strip() for s in kronos_symbols.split(",") if s.strip()]
+                if len(symbols) > 0:
+                    # Create a KronosRegimeAdapter or reuse existing for multi-symbol
+                    kronos_adapt = self.regime_adapter
+                    if blend_enabled and hasattr(self.regime_adapter, '_kronos_adapter'):
+                        kronos_adapt = self.regime_adapter._kronos_adapter
+                    self.portfolio_optimizer = KronosPortfolioOptimizer(
+                        adapter=kronos_adapt,
+                        symbols=symbols,
+                        config=self.config,
+                        logger=self.log,
+                    )
+                    self.log.info(f"KronosPortfolioOptimizer initialized for {symbols}")
+            except Exception as exc:
+                self.log.warning(f"Failed to init KronosPortfolioOptimizer: {exc}")
+
+        # ── Portfolio allocation tracker (blended from optimizer) ───────
+        self._last_portfolio_allocs: Dict[str, float] = {}
 
         # ── Adaptive walk‑forward updater ──────────────────────────────
         self.adaptive_updater = AdaptiveUpdater(
@@ -100,10 +178,34 @@ class App:
             self.strategy.spacing = self.regime_adapter.spacing
             self.strategy.levels = self.regime_adapter.levels
 
+        # ── Portfolio optimizer: sync per-symbol Kronos forecasts (Item 6) ──
+        if self.portfolio_optimizer is not None:
+            try:
+                self.portfolio_optimizer.update_from_adapter()
+            except Exception as exc:
+                self.log.warning(f"Portfolio optimizer update failed: {exc}")
+
+        # ── Kronos Risk Metrics: extract VaR/CVaR and apply position sizing (Item 10) ──
+        if self.kronos_risk is not None and self.kronos_risk.enabled:
+            try:
+                self._apply_kronos_risk_sizing()
+            except Exception as exc:
+                self.log.warning(f"Kronos risk sizing failed: {exc}")
+
     def _process_tick(self):
         tick = self.connector.symbol_tick()
         if tick:
             self.strategy.on_tick(tick)
+            # Auto-retry: if grid has 0 active orders and no ML signals are
+            # preventing them, try to re-place the grid.
+            if not self.strategy.active_orders:
+                positions = self.connector.get_positions() or []
+                if not positions:
+                    self.log.warning(
+                        "Grid has 0 active orders and 0 open positions — "
+                        "re-placing grid on next tick..."
+                    )
+                    self.strategy.on_start()
 
     def _process_account(self):
         acc = self.connector.account_info()
@@ -125,6 +227,56 @@ class App:
                 self.notifier.send(msg)
             self.connector.close_all_positions()
             self.strategy.reset_grid()
+
+    # ── Kronos Risk Sizing (Item 10) ───────────────────────────────────
+
+    def _apply_kronos_risk_sizing(self):
+        """
+        Extract VaR/CVaR from Kronos forecast samples and adjust the
+        strategy's lot size accordingly.
+
+        Called periodically from _sync_regime_params.
+
+        Workflow:
+          1. Get the raw forecast samples from the Kronos predictor
+          2. Compute VaR and CVaR from the sample distribution
+          3. Compute position size adjustment factor (0.1..1.0)
+          4. Apply to strategy.lot
+
+        If samples are unavailable, leaves lot size unchanged.
+        """
+        if self._kronos_predictor is None:
+            return
+
+        # Get raw forecast samples from the predictor's last run
+        raw_samples = getattr(self._kronos_predictor, '_last_raw_samples', None)
+        if raw_samples is None:
+            # Try to extract from the adapter's forecast_features
+            feat = getattr(self.regime_adapter, 'forecast_features', {})
+            raw_samples = feat.get('raw_samples', None)
+
+        if raw_samples is None or not hasattr(raw_samples, 'ndim') or raw_samples.ndim != 3:
+            self.log.warning("KronosRiskMetrics: no raw samples available for VaR computation")
+            return
+
+        try:
+            var, cvar = self.kronos_risk.compute_var_cvar(raw_samples)
+            adjustment = self.kronos_risk.position_size_adjustment(var, cvar)
+
+            # Apply adjustment to strategy's base lot size
+            base_lot = getattr(self.config, 'LOT_SIZE', 0.1)
+            adjusted_lot = round(base_lot * adjustment, 4)
+            adjusted_lot = max(0.001, adjusted_lot)  # enforce minimum
+
+            old_lot = self.strategy.lot
+            if abs(old_lot - adjusted_lot) / max(old_lot, 1e-8) > 0.05:
+                self.strategy.lot = adjusted_lot
+                self.log.info(
+                    f"KronosRiskMetrics: VaR={var:.4f} CVaR={cvar:.4f} "
+                    f"adjustment={adjustment:.2f} lot={old_lot}→{adjusted_lot}"
+                )
+        except Exception as e:
+            self.log.warning(f"KronosRiskMetrics: VaR/CVaR computation failed: {e}")
 
     # ── Signal handling ────────────────────────────────────────────────
 
@@ -230,6 +382,33 @@ class GridBot:
         spacing = self._app.regime_adapter.spacing
         levels = self._app.regime_adapter.levels
 
+        # ── Kronos forecast data (if enabled and available) ─────────────
+        kronos_forecast = {}
+        if getattr(self._app.config, "KRONOS_ENABLED", False):
+            try:
+                feat = getattr(self._app.regime_adapter, 'forecast_features', {})
+                if feat:
+                    kronos_forecast = {
+                        'trend': feat.get('trend', 0.0),
+                        'trend_strength': feat.get('trend_strength', 0.0),
+                        'volatility_forecast': feat.get('volatility_forecast', 0.0),
+                        'price_range': feat.get('price_range', 0.0),
+                        'price_min_forecast': feat.get('price_min_forecast', 0.0),
+                        'price_max_forecast': feat.get('price_max_forecast', 0.0),
+                        'regime_label': feat.get('regime_label', 'RANGING'),
+                    }
+            except Exception:
+                pass
+
+        # ── Breakout-specific Kronos enhancer data (if strategy supports it) ──
+        kronos_breakout = {}
+        try:
+            strategy = self._app.strategy
+            if hasattr(strategy, 'get_kronos_breakout_status'):
+                kronos_breakout = strategy.get_kronos_breakout_status()
+        except Exception:
+            pass
+
         return {
             'account_id': self.account_id,
             'active_orders': len(self._app.strategy.active_orders),
@@ -249,6 +428,8 @@ class GridBot:
             'grid_spacing': spacing,
             'grid_levels': levels,
             'paused': self._paused,
+            'kronos': kronos_forecast,
+            'kronos_breakout': kronos_breakout,
         }
 
     def detect_regime(self) -> str:

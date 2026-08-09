@@ -72,12 +72,20 @@ export default function Header() {
                     Admin
                   </Link>
                 ) : (
-                  <Link
-                    href="/dashboard"
-                    className="text-sm px-4 py-2 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all"
-                  >
-                    Dashboard
-                  </Link>
+                  <>
+                    <Link
+                      href="/dashboard"
+                      className="text-sm px-4 py-2 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/intelligence"
+                      className="hidden sm:inline text-sm px-3 py-2 text-zinc-400 hover:text-zinc-100 transition-colors"
+                    >
+                      Intelligence
+                    </Link>
+                  </>
                 )}
 
                 <Link

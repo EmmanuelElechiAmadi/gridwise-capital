@@ -86,6 +86,11 @@ def write_json(filename, data):
     try:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f)
+            f.flush()
+            os.fsync(f.fileno())
+        # Small delay after write to let Wine filesystem sync complete.
+        # Without this, the EA may FileIsExist() == true but read a partial file.
+        time.sleep(0.3)
         return True
     except IOError:
         return False
@@ -100,8 +105,9 @@ def delete_file(filename):
 
 # ── Symbol helper ──
 def _mt5_symbol(sym: str) -> str:
-    """Strip broker suffix (e.g. XAUUSD.r -> XAUUSD) for MT5 compatibility."""
-    return sym.split(".")[0]
+    """Return the symbol as-is. The EA writes full broker symbols (e.g. XAUUSD.r),
+    and OrderSend requires the exact broker symbol — do NOT strip suffixes."""
+    return sym
 
 # ── API Endpoints ──
 
@@ -163,7 +169,7 @@ def place_limit_order():
         return jsonify({'error': 'cannot write command file'}), 500
 
     # Wait for EA to process and write result
-    for _ in range(30):  # 3 second timeout
+    for _ in range(150):  # 15 second timeout (Wine filesystem sync can be slow)
         time.sleep(0.1)
         result = read_json("mt5_cmd_result.json")
         if result:
@@ -199,6 +205,40 @@ def open_orders():
     all_orders = [o for o in all_orders if o.get("magic") == MAGIC]
     return jsonify(all_orders)
 
+@app.route('/cancel_order', methods=['POST'])
+def cancel_order():
+    if not MT5_FILES:
+        return jsonify({'error': 'MT5 not connected'}), 503
+
+    data = request.get_json()
+    symbol = _mt5_symbol(data.get('symbol', 'XAUUSD'))
+    price_or_ticket = data.get('price_or_ticket')
+
+    cmd = {
+        "action": "cancel_order",
+        "symbol": symbol,
+        "price_or_ticket": price_or_ticket,
+        "magic": MAGIC
+    }
+
+    delete_file("mt5_cmd_result.json")
+
+    if not write_json("mt5_cmd.json", cmd):
+        return jsonify({'error': 'cannot write command file'}), 500
+
+    for _ in range(150):
+        time.sleep(0.1)
+        result = read_json("mt5_cmd_result.json")
+        if result:
+            delete_file("mt5_cmd_result.json")
+            if result.get("retcode") == 10009:  # TRADE_RETCODE_DONE
+                return jsonify({'success': True, 'ticket': result.get("ticket", 0)})
+            else:
+                return jsonify({'error': result.get("comment", "unknown"), 'retcode': result.get("retcode")}), 400
+
+    return jsonify({'error': 'timeout waiting for MT5 response'}), 504
+
+
 @app.route('/close_positions', methods=['POST'])
 def close_positions():
     if not MT5_FILES:
@@ -218,7 +258,7 @@ def close_positions():
     if not write_json("mt5_cmd.json", cmd):
         return jsonify({'error': 'cannot write command file'}), 500
 
-    for _ in range(30):
+    for _ in range(150):
         time.sleep(0.1)
         result = read_json("mt5_cmd_result.json")
         if result:

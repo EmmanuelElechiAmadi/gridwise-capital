@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Seek Quant — Web Platform
 
-## Getting Started
+Next.js 16 SaaS front-end for the **Seek Quant** algorithmic trading platform
+(grid/breakout trading on Gold via MetaTrader 5). The app talks to the Flask
+engine API (`gridbots/quant_env/dashboard/app.py`, port 5050).
 
-First, run the development server:
+## Pages
+
+| Route          | Description                                                              |
+| -------------- | ------------------------------------------------------------------------ |
+| `/`            | Marketing landing (hero, strategy, performance, pricing)                 |
+| `/pricing`     | Standalone pricing page (free / starter / professional / enterprise)     |
+| `/contact`     | Contact-sales page                                                       |
+| `/login`       | Sign in (demo: `admin@seekquant.com` / `admin123`, traders `trader123`)  |
+| `/signup`      | Register (demo mode)                                                     |
+| `/dashboard`   | Trader dashboard — live bot status, equity, performance, trades          |
+| `/intelligence`| Analytics & predictions — backtests, optimization, walk-forward, ML, Kronos |
+| `/admin`       | Admin panel — accounts, per-account performance, bot control             |
+| `/billing`     | Subscription management (demo, localStorage-backed)                      |
+| `/checkout`    | Plan checkout (demo)                                                     |
+
+## Intelligence page
+
+`/intelligence` is the analytics hub. It consumes the Flask engine API
+(`/api/analytics/overview`, `optimization`, `walkforward`, `ml`, `equity`,
+`live`) and falls back to embedded real artifacts when the engine is offline:
+
+- KPI tiles (fills, matched trades, realized PnL, profit factor, ML accuracy)
+- Strategy backtest comparison + metric cards
+- Gold price series & live equity curve
+- Optimization heatmap (spacing × levels)
+- Walk-forward out-of-sample returns
+- ML regime model (feature importances) — **Professional tier**
+- Kronos foundation-model & risk panel — **Professional tier**
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev        # http://localhost:3000
+npm run build      # type-check + production build
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The Flask backend must run for live data:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd ../gridbots && python3 launcher.py dashboard   # serves API on :5050
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+If the backend is offline the Intelligence page uses the committed
+`../gridbots/analytics_snapshot.json` data (export with
+`python3 ../gridbots/export_analytics_snapshot.py`).
 
-## Learn More
+## Environment
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Copy `.env.local` values (Supabase URL/key optional — empty values run the app
+in demo mode with localStorage auth).

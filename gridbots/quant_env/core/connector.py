@@ -67,6 +67,14 @@ class Connector:
     def place_limit_order(self, order_type, price, volume, comment=""):
         raise NotImplementedError
 
+    def cancel_order(self, price_or_ticket):
+        """
+        Cancel an existing pending order identified by price or ticket.
+        Subclasses must implement this or return True (no-op) if cancellation
+        is not supported.
+        """
+        raise NotImplementedError
+
     def close_all_positions(self):
         raise NotImplementedError
 
@@ -125,6 +133,10 @@ class MT5BridgeConnector(Connector):
     def place_limit_order(self, order_type, price, volume, comment=""):
         return self.bridge.place_limit_order(self.symbol, order_type, price, volume, comment)
 
+    def cancel_order(self, price_or_ticket):
+        """Cancel a pending order via the bridge server."""
+        return self.bridge.cancel_order(self.symbol, price_or_ticket)
+
     def close_all_positions(self):
         self.bridge.close_positions(self.symbol)
 
@@ -167,6 +179,10 @@ class DummyConnector(Connector):
 
     def place_limit_order(self, order_type, price, volume, comment=""):
         return "dummy_ticket_123"
+
+    def cancel_order(self, price_or_ticket):
+        """Dummy cancel — no-op for simulation mode."""
+        return True
 
     def close_all_positions(self):
         pass

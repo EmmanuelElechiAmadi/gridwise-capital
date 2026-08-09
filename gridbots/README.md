@@ -308,6 +308,34 @@ python -m pytest tests/test_ml.py -v
 - Comprehensive docstrings for all public methods
 - Type hints encouraged
 
+## Analytics API & Intelligence Webapp
+
+The Flask dashboard exposes structured analytics endpoints consumed by the
+Next.js **Intelligence** page (`seek-quant-landing/intelligence`):
+
+| Endpoint                       | Data                                                                 |
+| ------------------------------ | -------------------------------------------------------------------- |
+| `GET /api/analytics/overview`  | Strategy backtest/optimize/walkforward results, live fills, config   |
+| `GET /api/analytics/optimization` | Grid-search results from `optimization_results.csv` + best params  |
+| `GET /api/analytics/walkforward` | Out-of-sample windows from `walkforward_report.csv`                |
+| `GET /api/analytics/ml`        | `ml/model_metrics.json` — features + Gini importances                |
+| `GET /api/analytics/equity`    | Sampled `gold_data.csv` price series + live equity curve             |
+| `GET /api/analytics/live`      | FIFO-matched realized PnL trades from the engine trade DBs           |
+
+To export a committed, dependency-free snapshot of the same data (used by the
+webapp as an offline fallback and useful for fresh clones where the CSV/DB
+artifacts are gitignored):
+
+```bash
+python3 export_analytics_snapshot.py   # writes analytics_snapshot.json
+```
+
+## Realized PnL
+
+`GridStrategy.on_fill` now attributes FIFO realized PnL to each closing fill
+and passes it to `TradeLogger.log_fill`, so the fills table records real
+per-round-trip P&L instead of zeros.
+
 ## License
 
 Private use. All rights reserved.

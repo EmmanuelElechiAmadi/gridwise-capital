@@ -3,7 +3,7 @@
 //|  Bridge between MT5 and Python via JSON files (Mac-compatible)   |
 //+------------------------------------------------------------------+
 #property strict
-#property version   "1.00"
+#property version   "1.11"
 
 // ── File names (written to MT5 Files folder) ──
 #define FILE_ACCOUNT   "mt5_account.json"
@@ -13,13 +13,15 @@
 #define FILE_CMD       "mt5_cmd.json"
 #define FILE_CMD_RESULT "mt5_cmd_result.json"
 
-string g_symbols[] = {"XAUUSD", "EURUSD", "GBPUSD", "USDJPY"};
-int g_timer_sec = 1;
+// NOTE: Symbols must match EXACTLY what the broker provides.
+// If your broker uses "XAUUSD.r", keep the suffix here.
+string g_symbols[] = {"XAUUSD.r", "EURUSD.r", "GBPUSD.r", "USDJPY.r"};
+int g_timer_sec = 2;   // increased from 1 — Wine filesystem needs more time
 
 //+------------------------------------------------------------------+
 int OnInit() {
    EventSetTimer(g_timer_sec);
-   Print("✅ mt5_bridge_ea started, writing files every ", g_timer_sec, " sec");
+   Print("✅ mt5_bridge_ea started, timer interval ", g_timer_sec, " sec");
    return(INIT_SUCCEEDED);
 }
 
@@ -36,11 +38,16 @@ void OnDeinit(const int reason) {
 
 //+------------------------------------------------------------------+
 void OnTimer() {
+   // ⚡ CRITICAL: Process command BEFORE writing data files.
+   //    Under Wine, writing 4 files can take 1-2 seconds. If we wait
+   //    until after the writes, the Python server times out (504).
+   ProcessCommand();
+
+   // Then update the data files for the Python server.
    WriteAccount();
    WriteTick(g_symbols);
    WritePositions();
    WriteOrders();
-   ProcessCommand();
 }
 //+------------------------------------------------------------------+
 
@@ -154,7 +161,18 @@ void WriteOrders() {
 
 // ── Process pending commands (order placement) ──
 void ProcessCommand() {
-   int h = FileOpen(FILE_CMD, FILE_TXT|FILE_READ, 0, CP_UTF8);
+   // Check if command file exists before attempting to open it
+   if (!FileIsExist(FILE_CMD)) return;
+
+   // Wine filesystem sync is slow. Wait briefly for the write to complete
+   // so we don't read a partial file. (Sleep is safe in OnTimer context.)
+   Sleep(250);
+
+   // ⚡ CRITICAL FIX: Without FILE_ANSI, MQL5 ignores the codepage param
+   // and reads the file as native UTF-16, corrupting the UTF-8 bytes
+   // written by Python into garbled wide characters. FILE_ANSI tells
+   // MQL5 to treat the file as byte-oriented and use CP_UTF8 to decode.
+   int h = FileOpen(FILE_CMD, FILE_TXT|FILE_READ|FILE_ANSI, 0, CP_UTF8);
    if (h == INVALID_HANDLE) return;
 
    string content = "";
@@ -162,14 +180,22 @@ void ProcessCommand() {
       content += FileReadString(h);
    FileClose(h);
 
-   // Delete command file so we don't re-process
-   FileDelete(FILE_CMD);
+   Print("🔍 DEBUG cmd file read, len=", StringLen(content), " content=[", content, "]");
 
-   if (StringLen(content) < 10) return;
 
-   // Parse simple JSON command
-   // Expected: {"action":"place_limit","symbol":"XAUUSD","type":"buy_limit","price":1950.0,"volume":0.01,"comment":"Bridge","magic":123456}
+   // ── VALIDATION: ensure we read a complete, parseable JSON payload ──
+   // Minimum viable length for our command format (~30 chars for simplest cmd)
+   if (StringLen(content) < 30) { Print("⚠️ DEBUG too short, retrying"); return; }     // too short — still being written
+   if (StringFind(content, "\"action\"") < 0) { Print("⚠️ DEBUG no action field, retrying"); return; }  // missing required field
+   if (StringFind(content, "\"") < 0) { Print("⚠️ DEBUG no quotes, retrying"); return; }          // no JSON structure
+
+   // Parse action — if empty, JSON was truncated / garbled
    string action = GetJsonValue(content, "action");
+   Print("🔍 DEBUG parsed action=[", action, "]");
+   if (action == "") { Print("⚠️ DEBUG action empty after parse, retrying"); return; }   // unparseable, retry next tick (DON'T delete yet)
+
+
+   // ── place_limit command ──
    if (action == "place_limit") {
       string symbol = GetJsonValue(content, "symbol");
       string order_type = GetJsonValue(content, "type");
@@ -190,7 +216,9 @@ void ProcessCommand() {
       req.magic = magic;
       req.comment = comment;
       req.type_time = ORDER_TIME_GTC;
-      req.type_filling = ORDER_FILLING_IOC;
+      // Use ORDER_FILLING_RETURN for pending orders — IOC is incompatible
+      // with limit orders on most brokers and causes instant rejection.
+      req.type_filling = ORDER_FILLING_RETURN;
 
       MqlTradeResult result = {};
       bool sent = OrderSend(req, result);
@@ -201,8 +229,13 @@ void ProcessCommand() {
       res_json += "\"comment\":\"" + result.comment + "\"";
       res_json += "}";
       WriteFile(FILE_CMD_RESULT, res_json);
+
+      // Only delete command AFTER result was written
+      FileDelete(FILE_CMD);
+      return;
    }
 
+   // ── close_positions command ──
    if (action == "close_positions") {
       string symbol = GetJsonValue(content, "symbol");
       int magic = (int)StringToInteger(GetJsonValue(content, "magic"));
@@ -228,7 +261,7 @@ void ProcessCommand() {
             req.deviation = 10;
             req.magic = magic;
             req.comment = "GridBotClose";
-            req.type_filling = ORDER_FILLING_IOC;
+            req.type_filling = ORDER_FILLING_RETURN;
 
             MqlTradeResult result = {};
             bool sent = OrderSend(req, result);
@@ -258,7 +291,14 @@ void ProcessCommand() {
       res_json += "\"cancelled_orders\":" + IntegerToString(cancelled);
       res_json += "}";
       WriteFile(FILE_CMD_RESULT, res_json);
+
+      // Only delete command AFTER result was written
+      FileDelete(FILE_CMD);
+      return;
    }
+
+   // Unknown action — delete stale command so it doesn't accumulate
+   FileDelete(FILE_CMD);
 }
 
 // ── Simple JSON string value extractor (no nested objects) ──
