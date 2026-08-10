@@ -174,8 +174,6 @@ def _try_bridge_status():
                 "position_direction": dir_str,
                 "net_position": round(net_pos, 2),
                 "latest_price": latest_price,
-                "grid_spacing": None,
-                "grid_levels": None,
             }
     except (http_requests.exceptions.ConnectionError,
             http_requests.exceptions.Timeout):
@@ -221,54 +219,42 @@ def _format_result(raw_text: str) -> str:
 
 # ── Stub helpers for dashboard data ────────────────────────────────────
 
-def _get_recent_trades(account_id=None, limit=50):
-    """Return recent trades from DB as list of dicts.
+def _default_account_id():
+    """Return the id of the first configured account (the bot logs trades and
+    equity to trade_data/trades_<account_id>.db).  Falls back to 'default'."""
+    try:
+        mgr = _get_manager()
+        accounts = mgr.account_manager.list_accounts()
+        if accounts:
+            return accounts[0].id
+    except Exception:
+        pass
+    return "default"
 
-    Reads the per-account trade DB first, then falls back to the legacy
-    engine DB (gridbots/quant_env/trades.db) which holds historical fills
-    written before multi-account split.
+
+def _get_recent_trades(account_id=None, limit=50):
+    """Return the CURRENT account's recent trades (no historical fallback).
+
+    Historical demo fills remain available via /api/analytics/live.
     """
     from quant_env.analysis.trade_logger import TradeLogger
     try:
-        logger = TradeLogger(account_id=account_id or "default")
+        logger = TradeLogger(account_id=account_id or _default_account_id())
         rows = logger.get_recent(limit)
         logger.close()
-        if rows:
-            return rows
+        return rows or []
     except Exception:
-        pass
-
-    # Legacy single-file DB fallback
-    legacy = PROJECT_ROOT / "quant_env" / "trades.db"
-    if legacy.exists():
-        try:
-            import sqlite3 as _sql
-            conn = _sql.connect(str(legacy), timeout=5.0)
-            rows = conn.execute(
-                "SELECT timestamp, symbol, side, price, volume, pnl FROM fills ORDER BY id DESC LIMIT ?",
-                (limit,),
-            ).fetchall()
-            conn.close()
-            return [
-                {"timestamp": ts, "symbol": sym, "side": side, "price": float(price or 0),
-                 "volume": float(vol or 0), "pnl": float(pnl or 0)}
-                for ts, sym, side, price, vol, pnl in rows
-            ]
-        except Exception:
-            pass
-    return []
+        return []
 
 
 def _get_performance_metrics(account_id=None):
-    """Return aggregated performance metrics (per-account DB, then legacy)."""
+    """Return aggregated performance metrics for the CURRENT account."""
     from quant_env.analysis.trade_logger import TradeLogger
     from quant_env.analysis.performance import compute_metrics
     try:
-        logger = TradeLogger(account_id=account_id or "default")
+        logger = TradeLogger(account_id=account_id or _default_account_id())
         trades = logger.get_recent(500)
         logger.close()
-        if not trades:
-            trades = _get_recent_trades(account_id, 500)
         if trades:
             import pandas as pd
             fills = pd.DataFrame(trades)
@@ -283,30 +269,15 @@ def _get_performance_metrics(account_id=None):
 
 
 def _get_equity_curve(account_id=None):
-    """Return equity curve data points (per-account DB, then legacy)."""
+    """Return the CURRENT account's equity curve (no historical fallback)."""
     from quant_env.analysis.trade_logger import TradeLogger
     try:
-        logger = TradeLogger(account_id=account_id or "default")
+        logger = TradeLogger(account_id=account_id or _default_account_id())
         rows = logger.get_equity_curve()
         logger.close()
-        if rows:
-            return rows
+        return rows or []
     except Exception:
-        pass
-
-    legacy = PROJECT_ROOT / "quant_env" / "trades.db"
-    if legacy.exists():
-        try:
-            import sqlite3 as _sql
-            conn = _sql.connect(str(legacy), timeout=5.0)
-            rows = conn.execute(
-                "SELECT timestamp, equity FROM equity_snapshots ORDER BY timestamp"
-            ).fetchall()
-            conn.close()
-            return rows
-        except Exception:
-            pass
-    return []
+        return []
 
 
 # ── Simulation helpers (demo mode when no broker connected) ──────────
@@ -347,6 +318,341 @@ def _generate_demo_status():
     }
 
 
+# ── Kronos forecast computation (RF-model fallback) ──────────────────
+# The dashboard's Kronos widget expects /api/status to include a `kronos`
+# dict (regime_label, trend, trend_strength, volatility_forecast,
+# price_min/max_forecast, price_range).  The engine only produces this via
+# the optional Kronos foundation model, so here we compute a live forecast
+# from the trained RandomForest regime model + the latest gold data.  The
+# result is cached for 2 minutes so the 5s dashboard poll stays cheap.
+
+_kronos_cache = {'ts': 0.0, 'data': None}
+_kronos_model = None
+
+
+def _load_regime_model():
+    """Load the trained RegimeClassifier (cached globally)."""
+    global _kronos_model
+    if _kronos_model is not None:
+        return _kronos_model
+    try:
+        import sys as _sys
+        qenv = str(PROJECT_ROOT / "quant_env")
+        if qenv not in _sys.path:
+            _sys.path.insert(0, qenv)
+        from ml.regime_model import RegimeClassifier
+        path = os.path.join(qenv, "ml", "model.pkl")
+        if os.path.exists(path):
+            _kronos_model = RegimeClassifier.load(path)
+            print(f"[Kronos] loaded regime model from {path}")
+        else:
+            _kronos_model = None
+    except Exception as e:
+        print(f"[Kronos] model load failed: {e}")
+        _kronos_model = None
+    return _kronos_model
+
+
+def _load_recent_bars():
+    """Fetch live gold OHLCV from Yahoo Finance; fall back to the local
+    gold_data.csv snapshot when offline.  Never raises."""
+    import pandas as pd
+    bars = None
+    try:
+        import yfinance as yf
+        df = yf.download("GC=F", period="1mo", interval="1h",
+                         progress=False, auto_adjust=False, timeout=12)
+        if df is not None and not df.empty:
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
+            df = df.rename(columns={'Open': 'open', 'High': 'high', 'Low': 'low',
+                                    'Close': 'close', 'Volume': 'volume'})
+            keep = [c for c in ('open', 'high', 'low', 'close', 'volume') if c in df.columns]
+            if len(keep) >= 5:
+                df = df[keep].dropna()
+                if len(df) > 40:
+                    bars = df.tail(800)
+    except Exception as e:
+        print(f"[Kronos] live fetch failed (will use local snapshot): {e}")
+
+    if bars is not None:
+        return bars
+
+    # Local snapshot fallback
+    path = PROJECT_ROOT / "gold_data.csv"
+    if not path.exists():
+        return None
+    try:
+        df = pd.read_csv(str(path))
+        df['Datetime'] = pd.to_datetime(df['Datetime'], utc=True, errors='coerce')
+        df = df.dropna(subset=['Datetime']).set_index('Datetime')
+        df.columns = [c.lower() for c in df.columns]
+        if all(c in df.columns for c in ('open', 'high', 'low', 'close', 'volume')):
+            return df.tail(800)
+    except Exception as e:
+        print(f"[Kronos] local data load failed: {e}")
+    return None
+
+
+def _compute_kronos_forecast(force=False):
+    """Compute a live forecast from Yahoo Finance gold data + RF model.
+
+    Guaranteed to return a forecast dict whenever ANY market bars are
+    available (RandomForest when confident, otherwise a live momentum rule).
+    Never emits NaN/Inf.  Returns None only if no market data at all exists.
+    """
+    global _kronos_cache
+    now = time.time()
+    if (not force and _kronos_cache['data'] is not None
+            and (now - _kronos_cache['ts']) < 60):
+        return _kronos_cache['data']
+
+    result = None
+    last_error = None
+    try:
+        import numpy as np
+        import pandas as pd
+        bars = _load_recent_bars()
+        if bars is None or len(bars) < 20:
+            last_error = "No market data (live fetch + local snapshot unavailable)"
+        else:
+            closes = pd.to_numeric(bars['close'], errors='coerce').dropna()
+            last_price = float(closes.iloc[-1])
+            rets = closes.pct_change().dropna()
+            vol_bar = float(rets.tail(250).std()) if len(rets) > 1 else 0.0
+            if vol_bar is None or not np.isfinite(vol_bar) or vol_bar <= 0:
+                vol_bar = 1e-6
+            try:
+                delta_s = bars.index.to_series().diff().dt.total_seconds().median()
+            except Exception:
+                delta_s = 3600.0
+            if not np.isfinite(delta_s) or delta_s <= 0:
+                delta_s = 3600.0
+            bar_frac_year = delta_s / (365.25 * 86400.0)
+            annual_factor = (1.0 / bar_frac_year) ** 0.5 if bar_frac_year > 0 else 1.0
+            vol_annualized = vol_bar * annual_factor
+
+            n = min(20, len(closes) - 1)
+            window = closes.tail(n)
+            trend = float(window.iloc[-1]) / float(window.iloc[0]) - 1.0 if len(window) > 1 else 0.0
+            if not np.isfinite(trend):
+                trend = 0.0
+            exp_vol = vol_bar * (n ** 0.5)
+            trend_strength = abs(trend) / exp_vol if exp_vol > 0 else 0.0
+            if not np.isfinite(trend_strength):
+                trend_strength = 0.0
+            hvol = vol_bar * (20 ** 0.5)
+            low = last_price * (1 - hvol)
+            high = last_price * (1 + hvol)
+
+            # RF model (best effort, only used when confident)
+            rf_label, rf_conf = None, 0.0
+            try:
+                model = _load_regime_model()
+                if model is not None and len(bars) > model.lookback + 15:
+                    from ml.data_builder import build_features
+                    X, _ = build_features(bars, lookback=model.lookback,
+                                          regime_threshold=model.regime_threshold)
+                    if X is not None and not X.empty:
+                        pred = model.predict_with_confidence(X.iloc[-1:])
+                        rf_label = pred.get('regime_name')
+                        rf_conf = float(pred.get('confidence') or 0.0)
+            except Exception as e:
+                last_error = f"RF model unavailable: {e}"
+
+            if rf_label and rf_conf >= 0.45:
+                regime_label = rf_label.upper()
+                confidence = rf_conf
+                source, model_name = 'rf_regime_model', 'RandomForest'
+            else:
+                regime_label = ('BULL' if trend >= 0 else 'BEAR') if trend_strength >= 0.8 else 'RANGING'
+                confidence = min(0.9, 0.3 + trend_strength * 0.4)
+                source, model_name = 'live_momentum', 'Momentum'
+
+            result = {
+                'regime_label': regime_label,
+                'volatility_forecast': round(vol_annualized, 6),
+                'trend': round(trend, 6),
+                'trend_strength': round(min(trend_strength, 9.99), 2),
+                'price_range': round(high - low, 2),
+                'price_min_forecast': round(low, 2),
+                'price_max_forecast': round(high, 2),
+                'confidence': round(confidence, 4),
+                'source': source,
+                'model': model_name,
+                'last_price': round(last_price, 2),
+                'computed_at': now,
+                'last_error': last_error,
+            }
+    except Exception as e:
+        print(f"[Kronos] forecast computation failed: {e}")
+        result = None
+
+    _kronos_cache = {'ts': now, 'data': result}
+    return result
+
+
+_bridge_health_cache = {'ts': 0.0, 'data': None}
+
+
+def _try_bridge_health():
+    """Return the bridge /status payload (mode, files) with a short cache."""
+    global _bridge_health_cache
+    now = time.time()
+    if _bridge_health_cache['data'] is not None and (now - _bridge_health_cache['ts']) < 10:
+        return _bridge_health_cache['data']
+    data = None
+    try:
+        r = http_requests.get(f"{_get_bridge_url()}/status", timeout=2.0)
+        if r.status_code == 200:
+            data = r.json()
+    except Exception:
+        data = None
+    _bridge_health_cache = {'ts': now, 'data': data}
+    return data
+
+
+def _attach_bridge_status(status_dict):
+    """Add a `bridge` summary to a status dict so the UI can show live vs demo."""
+    h = _try_bridge_health()
+    if h:
+        status_dict['bridge'] = {
+            'mode': h.get('mode', 'unknown'),
+            'connected': bool(h.get('ea_running')),
+            'ea_running': bool(h.get('ea_running')),
+            'files_dir': h.get('mt5_files_dir'),
+            'hint': h.get('hint', ''),
+        }
+    else:
+        status_dict['bridge'] = {'mode': 'offline', 'connected': False, 'ea_running': False, 'files_dir': None}
+    return status_dict
+
+
+def _compute_breakout_forecast(kronos):
+    """Derive a simple breakout estimate from the regime forecast."""
+    if not kronos or not kronos.get('last_price'):
+        return None
+    last_price = float(kronos['last_price'])
+    regime = kronos.get('regime_label', 'RANGING')
+    conf = float(kronos.get('confidence', 0.0))
+    risk = max(float(kronos.get('price_range', 0.0)) / 4.0, 0.01)
+
+    if regime == 'BULL' and conf >= 0.45:
+        direction, status = 'BULLISH', 'active_bull'
+    elif regime == 'BEAR' and conf >= 0.45:
+        direction, status = 'BEARISH', 'active_bear'
+    elif regime == 'BULL':
+        direction, status = 'BULLISH', 'idle'
+    elif regime == 'BEAR':
+        direction, status = 'BEARISH', 'idle'
+    else:
+        direction, status = 'NEUTRAL', 'idle'
+
+    if status == 'active_bear':
+        stop_loss = round(last_price + risk, 2)
+        take_profit = round(last_price - risk * 2.0, 2)
+    else:
+        stop_loss = round(last_price - risk, 2)
+        take_profit = round(last_price + risk * 2.0, 2)
+
+    rr = (abs(take_profit - last_price) / risk) if risk > 0 else 0.0
+    return {
+        'status': status,
+        'direction': direction,
+        'entry_price': round(last_price, 2),
+        'stop_loss': stop_loss,
+        'take_profit': take_profit,
+        'r_multiple': round(rr, 2),
+        'confidence': conf,
+        'source': kronos.get('source', 'rf_regime_model'),
+    }
+
+
+def _compute_live_drawdown():
+    """Max drawdown % from the current account's live equity snapshots.
+
+    Works even before any trades are filled — the equity curve itself
+    captures floating P&L swings.  Cached for 30s.
+    """
+    global _dd_cache
+    now = time.time()
+    if _dd_cache['value'] is not None and (now - _dd_cache['ts']) < 30:
+        return _dd_cache['value']
+    rows = _get_equity_curve(None)
+    eqs = []
+    for r in rows:
+        try:
+            eqs.append(float(r[1]))
+        except (TypeError, ValueError, IndexError):
+            continue
+    dd = None
+    if len(eqs) >= 2:
+        peak = eqs[0]
+        max_dd = 0.0
+        for e in eqs:
+            if e > peak:
+                peak = e
+            if peak > 0:
+                d = (peak - e) / peak * 100.0
+                if d > max_dd:
+                    max_dd = d
+        dd = round(max_dd, 2)
+    _dd_cache = {'ts': now, 'value': dd}
+    return dd
+
+
+_dd_cache = {'ts': 0.0, 'value': None}
+
+
+def _attach_forecast_data(status_dict):
+    """Add kronos / kronos_breakout / current_price + real regime to a status dict."""
+    # Use a truthy check: the bot's status may carry kronos={} (empty), which
+    # means "no forecast" — recompute a real one in that case.
+    if status_dict.get('kronos'):
+        k = status_dict.get('kronos')
+    else:
+        k = _compute_kronos_forecast()
+        status_dict['kronos'] = k
+        status_dict['kronos_breakout'] = _compute_breakout_forecast(k)
+    if status_dict.get('current_price') is None:
+        status_dict['current_price'] = (
+            status_dict.get('latest_price')
+            or (k.get('last_price') if k else None)
+        )
+    # Surface the real detected regime instead of 'unknown' placeholders
+    cur = (status_dict.get('regime') or '').lower()
+    if cur in ('', 'unknown', 'ml_disabled', 'trending') and k and k.get('regime_label'):
+        status_dict['regime'] = k['regime_label'].lower()
+        status_dict['regime_confidence'] = round((k.get('confidence') or 0.0) * 100, 1)
+    # Derive a directional model signal for the Position widget
+    if k and k.get('regime_label'):
+        label = k['regime_label'].upper()
+        if label == 'BULL':
+            status_dict['signal_bias'] = 'Long'
+        elif label == 'BEAR':
+            status_dict['signal_bias'] = 'Short'
+        else:
+            status_dict['signal_bias'] = 'Neutral'
+    # Real max drawdown from the live equity curve (works before any fills)
+    if not status_dict.get('max_drawdown'):
+        dd = _compute_live_drawdown()
+        if dd is not None:
+            status_dict['max_drawdown'] = dd
+    # Surface the MT5 bridge mode (live vs demo) so failures are visible
+    return _attach_bridge_status(status_dict)
+
+
+def _forecast_regime_label():
+    """Return the RF forecast regime (lowercase) or 'unknown'."""
+    k = _compute_kronos_forecast()
+    if k and k.get('regime_label'):
+        return k['regime_label'].lower()
+    return 'unknown'
+
+
+
+
+
 # ── Routes ────────────────────────────────────────────────────────────
 
 @app.route('/')
@@ -359,7 +665,17 @@ def index():
 def equity_chart():
     account_id = request.args.get('account_id')
     data = _get_equity_curve(account_id)
-    return jsonify(data)
+    # Downsample to ~500 points and format for the Chart.js linear x-axis.
+    # Each row is a (timestamp, equity) tuple.
+    step = max(1, len(data) // 500)
+    out = []
+    for i, row in enumerate(data[::step]):
+        try:
+            eq = float(row[1])
+        except (TypeError, ValueError, IndexError):
+            continue
+        out.append({'x': i, 'y': eq})
+    return jsonify(out)
 
 
 @app.route('/api/performance')
@@ -572,8 +888,8 @@ def _build_account_status(acct, bridge_data=None, bot_status=None):
         'regime_confidence': 0.0,
         'position_direction': 'Neutral',
         'latest_price': None,
-        'grid_spacing': None,
-        'grid_levels': None,
+        'grid_spacing': acct.trading_config.get('grid_spacing'),
+        'grid_levels': acct.trading_config.get('num_levels'),
         'max_drawdown': 0.0,
         'max_drawdown_pct': 0.0,
     }
@@ -582,7 +898,7 @@ def _build_account_status(acct, bridge_data=None, bot_status=None):
     if bot_status:
         result.update(bot_status)
         result['has_bot'] = True
-        result['trading_active'] = True
+        result['trading_active'] = bool(bot_status.get('trading_active', True))
         result['broker_connected'] = bot_status.get('broker_connected', False)
         # Normalise pnl fields
         if 'total_pnl' in bot_status and 'pnl' not in bot_status:
@@ -621,15 +937,16 @@ def api_status():
     account_id = request.args.get('account_id')
 
     # ── Aggregate: return all accounts FROM RUNNING BOTS ───────────────
-    # Check if any bot threads are actually running before trusting
-    # all_statuses() — it returns stored account data even when idle.
-    has_active_bots = bool(mgr._bots) and any(
-        hasattr(b, '_thread') and b._thread and b._thread.is_alive()
-        for b in mgr._bots.values()
+    # GridBotManager stores the thread in _threads and links it to the bot
+    # (bot._thread).  Only report bot status when at least one is alive.
+    has_active_bots = bool(mgr._threads) and any(
+        t.is_alive() for t in mgr._threads.values()
     )
     statuses = mgr.all_statuses() if has_active_bots else []
 
     if statuses:
+        for _s in statuses:
+            _attach_forecast_data(_s)
         total_balance = sum(s.get('balance', 0.0) for s in statuses)
         total_equity = sum(s.get('equity', 0.0) for s in statuses)
         total_pnl = sum(s.get('total_pnl', 0.0) for s in statuses)
@@ -659,6 +976,8 @@ def api_status():
             demo['connection_status'] = 'connected'
             acc_list.append(demo)
 
+        for _s in acc_list:
+            _attach_forecast_data(_s)
         total_balance = sum(s.get('balance', 0.0) for s in acc_list)
         total_equity = sum(s.get('equity', 0.0) for s in acc_list)
         total_pnl = sum(s.get('pnl', 0.0) for s in acc_list)
@@ -691,8 +1010,8 @@ def api_status():
         demo['active_orders'] = 0
         demo['open_positions'] = 0
         demo['net_position'] = 0.0
-        demo['grid_spacing'] = None
-        demo['grid_levels'] = None
+        demo['grid_spacing'] = accounts[0].trading_config.get('grid_spacing')
+        demo['grid_levels'] = accounts[0].trading_config.get('num_levels')
         demo['trading_active'] = False
         demo['has_bot'] = False
         # But keep realistic balance/equity/pnl so the UI doesn't show zeros
@@ -700,6 +1019,7 @@ def api_status():
     else:
         # No accounts at all — pure demo mode
         demo['connection_status'] = 'demo'
+    _attach_forecast_data(demo)
     return jsonify({'accounts': [demo]})
 
 
@@ -802,8 +1122,10 @@ def api_bot_refresh_regime():
             bot = mgr.get_bot(account_id)
             if bot:
                 regime = bot.detect_regime()
+                if regime in (None, '', 'unknown', 'ml_disabled'):
+                    regime = _forecast_regime_label()
             else:
-                regime = 'unknown'
+                regime = _forecast_regime_label()
             return jsonify({'status': 'refreshed', 'regime': regime, 'account_id': account_id})
         else:
             # Refresh for all accounts
@@ -812,14 +1134,15 @@ def api_bot_refresh_regime():
                 bot = mgr.get_bot(acct.id)
                 if bot:
                     try:
-                        results[acct.id] = bot.detect_regime()
+                        r = bot.detect_regime()
+                        results[acct.id] = r if r not in (None, '', 'unknown', 'ml_disabled') else _forecast_regime_label()
                     except Exception:
-                        results[acct.id] = 'error'
+                        results[acct.id] = _forecast_regime_label()
                 else:
-                    results[acct.id] = 'unknown'
+                    results[acct.id] = _forecast_regime_label()
             if not results:
-                return jsonify({'status': 'refreshed', 'regime': 'unknown', 'message': 'No active bots running. Start a bot to refresh regime.'})
-            first_regime = next(iter(results.values()), 'unknown')
+                return jsonify({'status': 'refreshed', 'regime': _forecast_regime_label(), 'message': 'No active bots running. Showing model forecast regime.'})
+            first_regime = next(iter(results.values()), _forecast_regime_label())
             return jsonify({'status': 'refreshed', 'regime': first_regime, 'accounts': results})
     except Exception as e:
         return jsonify({'status': 'error', 'regime': 'unknown', 'message': str(e)})
@@ -866,7 +1189,26 @@ def api_strategy_select():
     account_id = data.get('account_id')
     if not key:
         return jsonify({'status': 'error', 'message': 'No strategy key provided.'})
-    # Strategy selection is per-account; for now just acknowledge
+
+    mgr = _get_manager()
+    acct = mgr.account_manager.get_account(account_id) if account_id else None
+    if acct is not None:
+        # Persist selection
+        mgr.account_manager.update_account(account_id, {'trading_config': {'strategy': key}})
+        # Apply immediately if the bot is already running
+        if mgr.get_bot(account_id):
+            mgr.restart_bot(account_id)
+            return jsonify({
+                'status': 'ok',
+                'message': f'Strategy "{key}" applied to account {account_id} (bot restarted).',
+                'strategy': key,
+            })
+        return jsonify({
+            'status': 'ok',
+            'message': f'Strategy "{key}" saved for account {account_id} — start the bot to apply.',
+            'strategy': key,
+        })
+    # No account — just acknowledge
     return jsonify({'status': 'ok', 'message': f'Strategy "{key}" noted for account {account_id or "default"}.', 'strategy': key})
 
 
@@ -1472,6 +1814,20 @@ if __name__ == '__main__':
             print(f"  ✅ Broker connected — balance: {bridge_test['balance']}")
         else:
             print("  ⚠️  Bridge not responding — demo data shown")
+
+    # ── Auto-start trading when the MT5 bridge is live (EA running) ──
+    # Set AUTO_START_BOT=false in .env to disable.
+    bridge_health = _try_bridge_health()
+    auto_start = os.environ.get('AUTO_START_BOT', 'true').lower() != 'false'
+    if auto_start and bridge_health and bridge_health.get('mode') == 'live' and accounts:
+        for acct in accounts:
+            if acct.enabled:
+                mgr.start_bot(acct.id)
+                mgr.resume_bot(acct.id)
+                print(f"  ▶ Auto-started bot for {acct.label} ({acct.id[:8]}...)")
+    elif accounts and bridge_health:
+        print(f"  ⚠️  Bridge mode={bridge_health.get('mode')} — bot NOT auto-started. "
+              f"Attach mt5_bridge_ea.mq5, enable Algo Trading, then click ▶ Start.")
     print("=" * 50)
     try:
         import waitress

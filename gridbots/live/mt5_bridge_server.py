@@ -50,6 +50,18 @@ if MT5_FILES:
 else:
     print("⚠️  MT5 Files directory not found. Running in DEMO mode.")
     print("   Set MT5_FILES_DIR env var or start mt5_bridge_ea.mq5 in MT5.")
+    print("   The bridge will keep re-checking on each request — start MT5 anytime.")
+
+
+def _ensure_mt5_files():
+    """Re-locate the MT5 Files directory if it wasn't found at startup
+    (e.g. MT5 was launched after the bridge)."""
+    global MT5_FILES
+    if MT5_FILES is None:
+        MT5_FILES = find_mt5_files_dir()
+        if MT5_FILES:
+            print(f"🔄 MT5 Files directory found now: {MT5_FILES}")
+    return MT5_FILES
 
 # ── File path helpers ──
 def mt5_path(filename):
@@ -109,6 +121,16 @@ def _mt5_symbol(sym: str) -> str:
     and OrderSend requires the exact broker symbol — do NOT strip suffixes."""
     return sym
 
+
+def _normalize_for_match(sym: str) -> str:
+    """Strip common broker suffixes so XAUUSD.r / XAUUSD / XAUUSDm all match."""
+    base = (sym or "").strip()
+    for suffix in (".r", ".m", "-cash", ".i"):
+        if base.lower().endswith(suffix):
+            base = base[:-len(suffix)]
+            break
+    return base
+
 # ── API Endpoints ──
 
 @app.route('/account_info')
@@ -127,11 +149,11 @@ def symbol_tick():
         for tick in ticks:
             if tick.get("symbol") == sym:
                 return jsonify(tick)
-        # Try stripping broker suffix (e.g. XAUUSD.r -> XAUUSD) or adding it
-        sym_base = _mt5_symbol(sym)
+        # Try suffix-normalised match (XAUUSD.r <-> XAUUSD <-> XAUUSDm)
+        want = _normalize_for_match(sym)
         for tick in ticks:
             ts = tick.get("symbol", "")
-            if ts == sym_base or ts.startswith(sym_base):
+            if ts == sym or ts.startswith(want) or _normalize_for_match(ts) == want:
                 return jsonify(tick)
         # Return first tick as fallback with a note
         first = ticks[0]
@@ -141,8 +163,8 @@ def symbol_tick():
 
 @app.route('/place_limit_order', methods=['POST'])
 def place_limit_order():
-    if not MT5_FILES:
-        return jsonify({'error': 'MT5 not connected'}), 503
+    if not _ensure_mt5_files():
+        return jsonify({'error': 'MT5 not connected (no Files dir). Attach mt5_bridge_ea.mq5 or set MT5_FILES_DIR.'}), 503
 
     data = request.get_json()
     symbol = _mt5_symbol(data['symbol'])
@@ -153,12 +175,12 @@ def place_limit_order():
 
     cmd = {
         "action": "place_limit",
-        "symbol": symbol,
-        "type": order_type,
-        "price": price,
-        "volume": volume,
-        "comment": comment,
-        "magic": MAGIC
+        "symbol": str(symbol),
+        "type": str(order_type),
+        "price": str(price),        # quoted strings — the EA parses these reliably
+        "volume": str(volume),
+        "comment": str(comment),
+        "magic": str(MAGIC),
     }
 
     # Remove old result file
@@ -167,19 +189,45 @@ def place_limit_order():
     # Write command for EA to pick up
     if not write_json("mt5_cmd.json", cmd):
         return jsonify({'error': 'cannot write command file'}), 500
+    print(f"🧾 CMD sent: {json.dumps(cmd)}")
 
     # Wait for EA to process and write result
     for _ in range(150):  # 15 second timeout (Wine filesystem sync can be slow)
         time.sleep(0.1)
         result = read_json("mt5_cmd_result.json")
         if result:
+            retcode = result.get("retcode")
+            if retcode == -1:
+                # EA is still parsing (partial write / parse retry) — keep waiting
+                continue
             delete_file("mt5_cmd_result.json")
-            if result.get("retcode") == 10009:  # TRADE_RETCODE_DONE
-                return jsonify({'ticket': result.get("ticket", 0), 'price': price, 'side': order_type})
-            else:
-                return jsonify({'error': result.get("comment", "unknown"), 'retcode': result.get("retcode")}), 400
+            if retcode == 10009:  # TRADE_RETCODE_DONE
+                return jsonify({
+                    'ticket': result.get("ticket", 0),
+                    'price': price,
+                    'side': order_type,
+                    'symbol': result.get("symbol", symbol),
+                    'comment': result.get("comment", ""),
+                })
+            return jsonify({
+                'error': result.get("comment", "unknown"),
+                'retcode': retcode,
+                'symbol': result.get("symbol", symbol),
+            }), 400
 
-    return jsonify({'error': 'timeout waiting for MT5 response'}), 504
+    # Timeout — return diagnostics so the dashboard/terminal can explain why
+    diag = {
+        'cmd_file_exists': bool(MT5_FILES and os.path.exists(mt5_path("mt5_cmd.json"))),
+        'result_file_exists': bool(MT5_FILES and os.path.exists(mt5_path("mt5_cmd_result.json"))),
+        'cmd_content': None,
+    }
+    if MT5_FILES and os.path.exists(mt5_path("mt5_cmd.json")):
+        try:
+            with open(mt5_path("mt5_cmd.json"), encoding="utf-8") as f:
+                diag['cmd_content'] = f.read()[:200]
+        except Exception:
+            diag['cmd_content'] = '<unreadable>'
+    return jsonify({'error': 'timeout waiting for MT5 response', 'diag': diag}), 504
 
 @app.route('/positions')
 def positions():
@@ -207,8 +255,8 @@ def open_orders():
 
 @app.route('/cancel_order', methods=['POST'])
 def cancel_order():
-    if not MT5_FILES:
-        return jsonify({'error': 'MT5 not connected'}), 503
+    if not _ensure_mt5_files():
+        return jsonify({'error': 'MT5 not connected (no Files dir). Attach mt5_bridge_ea.mq5 or set MT5_FILES_DIR.'}), 503
 
     data = request.get_json()
     symbol = _mt5_symbol(data.get('symbol', 'XAUUSD'))
@@ -216,9 +264,9 @@ def cancel_order():
 
     cmd = {
         "action": "cancel_order",
-        "symbol": symbol,
-        "price_or_ticket": price_or_ticket,
-        "magic": MAGIC
+        "symbol": str(symbol),
+        "price_or_ticket": str(price_or_ticket),
+        "magic": str(MAGIC)
     }
 
     delete_file("mt5_cmd_result.json")
@@ -230,27 +278,29 @@ def cancel_order():
         time.sleep(0.1)
         result = read_json("mt5_cmd_result.json")
         if result:
+            retcode = result.get("retcode")
+            if retcode == -1:
+                continue
             delete_file("mt5_cmd_result.json")
-            if result.get("retcode") == 10009:  # TRADE_RETCODE_DONE
-                return jsonify({'success': True, 'ticket': result.get("ticket", 0)})
-            else:
-                return jsonify({'error': result.get("comment", "unknown"), 'retcode': result.get("retcode")}), 400
+            if retcode == 10009:  # TRADE_RETCODE_DONE
+                return jsonify({'success': True, 'ticket': result.get("ticket", 0), 'comment': result.get("comment", "")})
+            return jsonify({'error': result.get("comment", "unknown"), 'retcode': retcode}), 400
 
     return jsonify({'error': 'timeout waiting for MT5 response'}), 504
 
 
 @app.route('/close_positions', methods=['POST'])
 def close_positions():
-    if not MT5_FILES:
-        return jsonify({'error': 'MT5 not connected'}), 503
+    if not _ensure_mt5_files():
+        return jsonify({'error': 'MT5 not connected (no Files dir). Attach mt5_bridge_ea.mq5 or set MT5_FILES_DIR.'}), 503
 
     data = request.get_json()
     symbol = _mt5_symbol(data.get('symbol', 'XAUUSD'))
 
     cmd = {
         "action": "close_positions",
-        "symbol": symbol,
-        "magic": MAGIC
+        "symbol": str(symbol),
+        "magic": str(MAGIC)
     }
 
     delete_file("mt5_cmd_result.json")
@@ -262,6 +312,9 @@ def close_positions():
         time.sleep(0.1)
         result = read_json("mt5_cmd_result.json")
         if result:
+            retcode = result.get("retcode")
+            if retcode == -1:
+                continue
             delete_file("mt5_cmd_result.json")
             return jsonify(result)
 
@@ -269,12 +322,34 @@ def close_positions():
 
 @app.route('/health')
 def health():
-    has_mt5 = MT5_FILES is not None
+    mt5 = _ensure_mt5_files()
+    has_mt5 = mt5 is not None
     has_account = read_json("mt5_account.json") is not None
     return jsonify({
-        'mt5_files_dir': MT5_FILES,
+        'mt5_files_dir': mt5,
         'ea_running': has_account,
         'mode': 'demo' if not has_mt5 else 'live'
+    })
+
+
+@app.route('/status')
+def status():
+    """Rich diagnostic status consumed by the dashboard (bridge mode, files)."""
+    mt5 = _ensure_mt5_files()
+    files = {}
+    if mt5:
+        for f in ("mt5_account.json", "mt5_tick.json", "mt5_positions.json", "mt5_orders.json"):
+            files[f] = os.path.exists(mt5_path(f)) if mt5 else False
+    return jsonify({
+        'mode': 'live' if mt5 else 'demo',
+        'mt5_files_dir': mt5,
+        'ea_running': read_json("mt5_account.json") is not None,
+        'files': files,
+        'hint': (
+            'OK' if mt5 else
+            'MT5 Files dir not found. Attach mt5_bridge_ea.mq5 to a chart, '
+            'enable Algo Trading, and ensure MT5_FILES_DIR in gridbots/.env is correct.'
+        ),
     })
 
 if __name__ == '__main__':

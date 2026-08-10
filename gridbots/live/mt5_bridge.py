@@ -9,6 +9,14 @@ class BridgeClient:
     def __init__(self, base_url):
         self.base_url = base_url
 
+    def health(self):
+        """Return bridge /status payload (mode, files) or None."""
+        try:
+            r = requests.get(f"{self.base_url}/status", timeout=3.0)
+            return r.json() if r.status_code == 200 else None
+        except requests.RequestException:
+            return None
+
     def account_info(self):
         try:
             r = requests.get(f"{self.base_url}/account_info", timeout=_BRIDGE_TIMEOUT)
@@ -41,9 +49,22 @@ class BridgeClient:
                 result = r.json()
                 print(f"✅ Placed {order_type} at {price}, ticket {result.get('ticket')}")
                 return result.get('ticket')
+            else:
+                print(f"❌ {order_type} {symbol} @ {price} failed: HTTP {r.status_code} — {r.text[:300]}")
+                return None
+        except requests.RequestException as e:
+            print(f"❌ {order_type} {symbol} @ {price}: bridge unreachable ({e})")
+            return None
+
+    def symbol_tick(self, symbol):
+        """Fetch the latest tick for a symbol with a useful error message."""
+        try:
+            r = requests.get(f"{self.base_url}/symbol_tick", params={'symbol': symbol}, timeout=5.0)
+            if r.status_code == 200:
+                return r.json()
+            return None
         except requests.RequestException:
-            pass
-        return None
+            return None
 
     def get_positions(self, symbol=None):
         try:

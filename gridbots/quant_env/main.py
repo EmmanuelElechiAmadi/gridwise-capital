@@ -58,7 +58,11 @@ class App:
         self.connector = create_connector(account)
         self.risk = RiskManager(self.config, self.log)
         self.logger = TradeLogger(account_id=account.id)
-        self.strategy = GridStrategy(self.connector, self.config, self.log)
+        # Create the strategy selected for this account (default: grid_strategy)
+        from strategies.registry import get_class as _get_strategy_class
+        _strategy_key = account.trading_config.get('strategy', 'grid_strategy')
+        _strategy_cls = _get_strategy_class(_strategy_key) or GridStrategy
+        self.strategy = _strategy_cls(self.connector, self.config, self.log)
         self.strategy.logger = self.logger
 
         env = load_config()
@@ -319,7 +323,9 @@ class GridBot:
         self._paused = True        # start paused
         self._thread: Optional[threading.Thread] = None
         self._lock = threading.Lock()
+        self._stop = False
         self.connected = False
+        self.last_error: Optional[str] = None
 
         # Check connectivity at construction time
         try:
@@ -331,14 +337,14 @@ class GridBot:
     # ── Lifecycle ──────────────────────────────────────────────────────
 
     def run(self):
-        """Called in a background thread.  Loops until paused."""
+        """Called in a background thread.  Loops until stopped."""
         self._app.log.info(f"GridBot [{self.account_id}]: background thread started (paused).")
-        self._app.regime_adapter.start()
-        self._app.adaptive_updater.start()
-        self._app.strategy.on_start()
-
         try:
-            while True:
+            self._app.regime_adapter.start()
+            self._app.adaptive_updater.start()
+            self._app.strategy.on_start()
+
+            while not self._stop:
                 if not self._paused:
                     self._app._sync_regime_params()
                     self._app._process_tick()
@@ -347,7 +353,11 @@ class GridBot:
                     self.connected = acc is not None
                 time.sleep(0.5)
         except Exception as exc:
-            self._app.log.error(f"GridBot [{self.account_id}]: thread crashed: {exc}")
+            import traceback
+            self.last_error = str(exc)
+            self._app.log.error(
+                f"GridBot [{self.account_id}]: thread crashed: {exc}\n{traceback.format_exc()}"
+            )
         finally:
             self._app._shutdown_cleanly()
 
@@ -358,6 +368,13 @@ class GridBot:
     def resume(self):
         self._paused = False
         self._app.log.info(f"GridBot [{self.account_id}]: resumed.")
+
+    def stop(self):
+        """Fully stop the background thread (waits briefly for it to exit)."""
+        self._stop = True
+        self._paused = True
+        if self._thread and self._thread.is_alive():
+            self._thread.join(timeout=3)
 
     # ── Dashboard API ──────────────────────────────────────────────────
 
@@ -417,6 +434,7 @@ class GridBot:
             'total_pnl': equity - balance,
             'pnl_pct': ((equity - balance) / balance * 100) if balance else 0.0,
             'current_price': price,
+            'latest_price': price,
             'balance': balance,
             'equity': equity,
             'regime': regime,
@@ -428,6 +446,10 @@ class GridBot:
             'grid_spacing': spacing,
             'grid_levels': levels,
             'paused': self._paused,
+            'has_bot': True,
+            'trading_active': not self._paused,
+            'num_orders': len(self._app.strategy.active_orders),
+            'last_error': self.last_error,
             'kronos': kronos_forecast,
             'kronos_breakout': kronos_breakout,
         }
@@ -488,10 +510,25 @@ class GridBotManager:
 
             bot = GridBot(account)
             t = threading.Thread(target=bot.run, daemon=True, name=f"gridbot-{account_id[:8]}")
+            bot._thread = t            # link thread to the bot (used by /api/status)
+            bot._stop = False
             t.start()
             self._bots[account_id] = bot
             self._threads[account_id] = t
             return True
+
+    def restart_bot(self, account_id: str) -> bool:
+        """Fully stop and re-create the bot (used to apply a new strategy)."""
+        with self._lock:
+            bot = self._bots.get(account_id)
+            if bot:
+                bot.stop()
+            self._bots.pop(account_id, None)
+            self._threads.pop(account_id, None)
+        started = self.start_bot(account_id)
+        if started:
+            self.resume_bot(account_id)
+        return started
 
     def stop_bot(self, account_id: str):
         """Pause the bot for the given account."""

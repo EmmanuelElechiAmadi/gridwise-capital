@@ -141,6 +141,8 @@
         .regime-pill.ranging  { background: var(--blue-bg);  color: var(--blue);  border: 1px solid rgba(77,159,255,0.2); }
         .regime-pill.unknown  { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(255,179,0,0.2); }
         .regime-pill.ml_disabled { background: var(--border); color: var(--text-3); border: 1px solid var(--border); }
+        .regime-pill.bull     { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+        .regime-pill.bear     { background: var(--red-bg);   color: var(--red);   border: 1px solid rgba(255,77,109,0.2); }
         .regime-conf-num { font-size: 1.6rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; line-height: 1; }
         .regime-conf-num span { font-size: 0.8rem; color: var(--text-2); font-weight: 500; }
         .conf-bar-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 8px; }
@@ -148,6 +150,8 @@
         .conf-bar-fill.trending { background: linear-gradient(90deg, var(--green-d), var(--green)); }
         .conf-bar-fill.ranging  { background: linear-gradient(90deg, #2979ff, var(--blue)); }
         .conf-bar-fill.unknown  { background: linear-gradient(90deg, #ff8f00, var(--amber)); }
+        .conf-bar-fill.bull     { background: linear-gradient(90deg, var(--green-d), var(--green)); }
+        .conf-bar-fill.bear     { background: linear-gradient(90deg, #c62828, var(--red)); }
         .pos-widget {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -165,6 +169,18 @@
         .pos-pill.short   { background: var(--red-bg);   color: var(--red);   border: 1px solid rgba(255,77,109,0.25); }
         .pos-pill.neutral { background: var(--blue-bg);  color: var(--blue);  border: 1px solid rgba(77,159,255,0.25); }
         .pos-exposure { font-size: 0.72rem; color: var(--text-2); margin-top: 6px; }
+        .pos-bias {
+            font-size: 0.66rem; color: var(--text-3); margin-top: 6px;
+            border-top: 1px solid var(--border); padding-top: 6px;
+        }
+        .pos-bias span { font-weight: 700; }
+        .grid-hint {
+            margin-top: 6px; padding-top: 6px;
+            border-top: 1px solid var(--border);
+            font-size: 0.64rem; font-weight: 600; text-align: center;
+        }
+        .grid-hint.ok   { color: var(--green); }
+        .grid-hint.warn { color: var(--amber); }
         .kronos-widget {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -189,6 +205,17 @@
             font-size: 0.68rem; font-weight: 600;
             font-family: 'JetBrains Mono', monospace;
             color: var(--text-2);
+        }
+        .kronos-src-row {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 14px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+        }
+        .kronos-src {
+            font-size: 0.62rem; font-weight: 600; letter-spacing: 0.4px;
+            color: var(--text-3);
+            font-family: 'JetBrains Mono', monospace;
         }
         .kronos-row {
             display: flex; justify-content: space-between; align-items: center;
@@ -282,6 +309,24 @@
         .grid-row .val { font-size: 0.8rem; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
         .val.price-up   { color: var(--green); }
         .val.price-down { color: var(--red); }
+        .conn-widget {
+            padding: 8px 14px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+        }
+        .conn-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 4px 0; font-size: 0.7rem;
+        }
+        .conn-row .lbl { color: var(--text-3); }
+        .conn-row .val { font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .conn-row .val.live { color: var(--green); }
+        .conn-row .val.demo { color: var(--amber); }
+        .conn-row .val.offline { color: var(--red); }
+        .conn-dir .conn-dir-val {
+            font-size: 0.58rem; font-weight: 500; color: var(--text-3);
+            max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;
+        }
         .ctrl-group { display: flex; flex-direction: column; gap: 7px; margin-bottom: 4px; }
         .ctrl-row   { display: flex; gap: 7px; }
         .ctrl-row .btn { flex: 1; }
@@ -294,6 +339,10 @@
         .qs-row { display: flex; justify-content: space-between; font-size: 0.72rem; }
         .qs-row .ql { color: var(--text-2); }
         .qs-row .qv { font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+        .qs-hint {
+            font-size: 0.6rem; color: var(--text-3); line-height: 1.4;
+            padding-top: 4px; border-top: 1px solid var(--border); margin-top: 2px;
+        }
 
         /* ══════════════════════════════════════════════════════════
            HEADER
@@ -800,6 +849,7 @@
         <div class="pos-widget">
             <div class="pos-pill neutral" id="posPill">◆ Neutral</div>
             <div class="pos-exposure" id="posExposure">Net Exposure: --</div>
+            <div class="pos-bias" id="posBias">Model signal: <span>--</span></div>
         </div>
         <div class="sidebar-section-label">Grid Status</div>
         <div class="grid-widget">
@@ -807,6 +857,7 @@
             <div class="grid-row"><span class="lbl">Active Orders</span><span class="val" id="sideOrders">0</span></div>
             <div class="grid-row"><span class="lbl">Grid Spacing</span><span class="val" id="sideSpacing">--</span></div>
             <div class="grid-row"><span class="lbl">Grid Levels</span><span class="val" id="sideLevels">--</span></div>
+            <div class="grid-hint" id="gridHint">--</div>
         </div>
         <div class="sidebar-section-label">Kronos Forecast</div>
         <div class="kronos-widget">
@@ -814,6 +865,7 @@
                 <span class="kronos-regime" id="kronosRegime">⟳ --</span>
                 <span class="kronos-vol" id="kronosVol">--</span>
             </div>
+            <div class="kronos-src-row"><span class="kronos-src" id="kronosSource">forecast engine</span></div>
             <div class="kronos-row"><span class="lbl">Trend</span><span class="val" id="kronosTrend">--</span></div>
             <div class="kronos-row"><span class="lbl">Strength</span><span class="val" id="kronosStrength">--</span></div>
             <div class="kronos-row"><span class="lbl">Price Range</span><span class="val" id="kronosRange">--</span></div>
@@ -844,6 +896,12 @@
                 </div>
             </div>
         </div>
+        <div class="sidebar-section-label">Connection</div>
+        <div class="conn-widget">
+            <div class="conn-row"><span class="lbl">MT5 Bridge</span><span class="val" id="connBridge">--</span></div>
+            <div class="conn-row"><span class="lbl">EA Status</span><span class="val" id="connEA">--</span></div>
+            <div class="conn-row conn-dir" id="connDir" style="display:none;"><span class="lbl">Files</span><span class="val conn-dir-val" id="connFiles">--</span></div>
+        </div>
         <div class="sidebar-section-label">Controls</div>
         <div class="ctrl-group">
             <div class="ctrl-row">
@@ -862,6 +920,7 @@
         <div class="qs-row"><span class="ql">Total Trades</span><span class="qv" id="qsTrades">--</span></div>
         <div class="qs-row"><span class="ql">Win Rate</span><span class="qv" id="qsWinRate">--</span></div>
         <div class="qs-row"><span class="ql">Profit Factor</span><span class="qv" id="qsPF">--</span></div>
+        <div class="qs-hint" id="qsHint" style="display:none;">No fills yet — stats appear once grid orders execute</div>
     </div>
 </aside>
 
@@ -1219,8 +1278,20 @@ async function loadEquityCurve() {
 async function loadPerformance() {
     try {
         const r = await fetch('/performance'); const d = await r.json();
-        if (d.status === 'no_trades') return;
         const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        if (d.status === 'no_trades' || !d || !d.num_trades) {
+            // No executed fills yet — show a clear empty state (pending limit orders only)
+            set('qsTrades',   '0');
+            set('qsWinRate',  '—');
+            set('qsPF',       '—');
+            set('perfWR',     '—');  set('perfPF', '—'); set('perfSR', '—');
+            set('perfTrades', '0');  set('perfRet', '—');
+            set('perfAW',     '—');  set('perfAL', '—');
+            set('chartReturn','—');  set('chartSharpe', '—');
+            const qsHint = document.getElementById('qsHint');
+            if (qsHint) qsHint.style.display = 'block';
+            return;
+        }
         set('perfWR',     (d.win_rate_pct ?? '--') + '%');
         set('perfPF',     (d.profit_factor ?? '--') + 'x');
         set('perfSR',     d.sharpe_ratio ?? '--');
@@ -1233,6 +1304,8 @@ async function loadPerformance() {
         set('qsPF',       (d.profit_factor ?? '--') + 'x');
         set('chartReturn', (d.total_return_pct ?? '--') + '%');
         set('chartSharpe', d.sharpe_ratio ?? '--');
+        const qsHint = document.getElementById('qsHint');
+        if (qsHint) qsHint.style.display = 'none';
     } catch(e) {}
 }
 
@@ -1515,7 +1588,7 @@ function updateUI(d) {
     $('kpiBalance').textContent = d.balance != null ? fmt$(d.balance) : '--';
     $('kpiEquity').textContent  = d.equity  != null ? fmt$(d.equity)  : '--';
     $('kpiOrders').textContent  = d.num_orders ?? 0;
-    $('kpiDD').textContent      = (d.max_drawdown ?? '--') + '%';
+    $('kpiDD').textContent      = (d.max_drawdown ?? d.max_drawdown_pct ?? '--') + '%';
     const pnl = d.pnl ?? 0;
     const pnlEl = $('kpiPnl');
     pnlEl.textContent = fmt$(pnl);
@@ -1527,7 +1600,7 @@ function updateUI(d) {
     const regime = d.regime ?? 'unknown';
     const conf = d.regime_confidence ?? 0;
     const pill = $('regimePill');
-    const icons = { trending:'📈', ranging:'📊', unknown:'❓', ml_disabled:'⚙️' };
+    const icons = { trending:'📈', ranging:'📊', unknown:'❓', ml_disabled:'⚙️', bull:'📈', bear:'📉' };
     pill.className = 'regime-pill ' + regime;
     pill.textContent = (icons[regime]||'❓') + ' ' + regime.charAt(0).toUpperCase() + regime.slice(1);
     $('regimeConf').innerHTML = conf.toFixed(1) + '<span>%</span>';
@@ -1540,10 +1613,49 @@ function updateUI(d) {
     posPill.className = 'pos-pill ' + dir.toLowerCase();
     posPill.textContent = (pIcons[dir]||'◆') + ' ' + dir;
     $('posExposure').textContent = 'Net Exposure: ' + (d.net_position ?? 0).toFixed(4);
+    const biasSpan = $('posBias').querySelector('span');
+    const bias = d.signal_bias || null;
+    if (bias === 'Long')    { biasSpan.textContent = '▲ Long';   biasSpan.style.color = 'var(--green)'; }
+    else if (bias === 'Short') { biasSpan.textContent = '▼ Short'; biasSpan.style.color = 'var(--red)'; }
+    else if (bias === 'Neutral') { biasSpan.textContent = '◆ Neutral'; biasSpan.style.color = 'var(--blue)'; }
+    else { biasSpan.textContent = '—'; biasSpan.style.color = 'var(--text-3)'; }
+    // ── Connection (MT5 bridge) widget ────────────────────────────
+    const br = d.bridge || {};
+    const brEl = $('connBridge');
+    if (brEl) {
+        if (br.mode === 'live') { brEl.textContent = '✅ LIVE';   brEl.className = 'val live'; }
+        else if (br.mode === 'demo') { brEl.textContent = '⛔ DEMO'; brEl.className = 'val demo'; }
+        else if (br.mode === 'offline') { brEl.textContent = '⛔ OFFLINE'; brEl.className = 'val offline'; }
+        else { brEl.textContent = '--'; brEl.className = 'val'; }
+    }
+    const eaEl = $('connEA');
+    if (eaEl) {
+        if (br.ea_running) { eaEl.textContent = '✅ running'; eaEl.className = 'val live'; }
+        else if (br.mode === 'live') { eaEl.textContent = '⚠️ EA not detected'; eaEl.className = 'val demo'; }
+        else { eaEl.textContent = '⚠️ not detected'; eaEl.className = 'val demo'; }
+    }
+    const dirRow = $('connDir');
+    if (dirRow) {
+        if (br.files_dir) { dirRow.style.display = 'flex'; $('connFiles').textContent = br.files_dir; }
+        else dirRow.style.display = 'none';
+    }
     $('sidePrice').textContent   = d.latest_price > 0 ? '$' + d.latest_price.toFixed(2) : '--';
-    $('sideOrders').textContent  = d.num_orders ?? 0;
+    $('sideOrders').textContent  = d.active_orders ?? d.num_orders ?? 0;
     $('sideSpacing').textContent = d.grid_spacing ?? '--';
     $('sideLevels').textContent  = d.grid_levels ?? '--';
+    // Bot state hint for the grid widget
+    const gh = $('gridHint');
+    if (d.last_error) {
+        gh.textContent = '⚠️ ' + d.last_error; gh.className = 'grid-hint warn';
+        gh.title = d.last_error;
+    } else if (d.has_bot) {
+        if (d.trading_active) { gh.textContent = '● Trading active'; gh.className = 'grid-hint ok'; gh.title = ''; }
+        else { gh.textContent = '● Bot paused — click ▶ Start'; gh.className = 'grid-hint warn'; gh.title = ''; }
+    } else if (d.broker_connected) {
+        gh.textContent = '● Bot not running — click ▶ Start'; gh.className = 'grid-hint warn'; gh.title = '';
+    } else {
+        gh.textContent = '● MT5 not connected'; gh.className = 'grid-hint warn'; gh.title = '';
+    }
     const bc = $('brokerChip');
     const bt = $('brokerChipText');
     if (d.broker_connected) { bc.className = 'status-chip connected'; bt.textContent = 'Broker Live'; }
@@ -1555,7 +1667,9 @@ function updateUI(d) {
     else { tc.className = 'status-chip paused'; tt.textContent = 'Paused'; }
     // ── Kronos forecast widget ───────────────────────────────────
     const k = d.kronos || {};
+    const kSrcEl = $('kronosSource');
     if (k && k.regime_label) {
+        if (kSrcEl) kSrcEl.textContent = k.source === 'kronos_model' ? '● Kronos foundation model' : k.source === 'live_momentum' ? '● Live market signal' : '● RF regime model';
         const kronosRegimeEl = $('kronosRegime');
         if (kronosRegimeEl) {
             const kl = (k.regime_label || 'RANGING').toLowerCase();
@@ -1600,7 +1714,8 @@ function updateUI(d) {
             }
         }
     } else {
-        // No kronos data – show placeholder
+        // No kronos data – show placeholder (with the reason if any)
+        if (kSrcEl) kSrcEl.textContent = k && k.last_error ? '⚠️ ' + k.last_error : '● forecast unavailable';
         const kronosRegimeEl = $('kronosRegime');
         if (kronosRegimeEl) { kronosRegimeEl.className = 'kronos-regime'; kronosRegimeEl.textContent = '⟳ --'; }
         $('kronosVol').textContent = '--';
@@ -1612,10 +1727,9 @@ function updateUI(d) {
     }
     // ── Breakout (Kronos) widget ──────────────────────────────
     const bk = d.kronos_breakout || {};
-    const breakoutActive = bk.status && bk.status !== 'idle' && bk.status !== 'no_data';
     const badgeEl = $('breakoutBadge');
     const confEl  = $('breakoutConf');
-    if (breakoutActive) {
+    if (bk && (bk.entry_price != null || bk.status)) {
         // Status badge
         if (badgeEl) {
             const cls = bk.status === 'active_bull' ? 'active-bull' : bk.status === 'active_bear' ? 'active-bear' : 'idle';
@@ -1642,7 +1756,7 @@ function updateUI(d) {
         // Confidence bar
         const fillEl = $('breakoutConfFill');
         if (fillEl && conf != null) {
-            fillEl.style.width = (conf * 100).toFixed(1) + '%';
+            fillEl.style.width = (Math.max(0, Math.min(1, conf)) * 100).toFixed(1) + '%';
             fillEl.style.left = '0%';
             const barCls = bk.status === 'active_bull' ? 'bull' : bk.status === 'active_bear' ? 'bear' : '';
             fillEl.className = 'breakout-conf-bar-fill ' + barCls;
