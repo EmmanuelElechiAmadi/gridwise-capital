@@ -1,6 +1,17 @@
 import os
 
 
+# Ensure gridbots/.env is loaded BEFORE any env-derived config is evaluated,
+# so RESEARCH_LLM_ENABLED / LLM_* / BRIDGE_URL etc. are correct no matter
+# which module imports Config first.
+try:
+    from dotenv import load_dotenv
+    _CONFIG_DIR = os.path.dirname(os.path.abspath(__file__))
+    load_dotenv(os.path.join(_CONFIG_DIR, "..", ".env"))   # gridbots/.env
+except Exception:
+    pass
+
+
 class Config:
     # ── Trading parameters ───────────────────────────────────────────
     SYMBOL = "XAUUSD.r"
@@ -70,7 +81,9 @@ class Config:
     REGIME_LEVELS_RANGING = int(os.getenv("REGIME_LEVELS_RANGING", "5"))
 
     # ── Kronos foundation model (forecast-driven regime adaptation) ──
-    KRONOS_ENABLED = os.getenv("KRONOS_ENABLED", "false").lower() == "true"
+    KRONOS_ENABLED = os.getenv("KRONOS_ENABLED", "true").lower() == "true"
+    # Kronos breakout enhancer (trade filtering + dynamic TP/SL on BreakoutStrategy)
+    KRONOS_BREAKOUT_ENABLED = os.getenv("KRONOS_BREAKOUT_ENABLED", "false").lower() == "true"
     KRONOS_MODEL = os.getenv("KRONOS_MODEL", "NeoQuasar/Kronos-small")
     KRONOS_TOKENIZER = os.getenv("KRONOS_TOKENIZER", "NeoQuasar/Kronos-Tokenizer-base")
     # Override the data-fetching symbol/interval for Kronos (defaults to YAHOO_SYMBOL)
@@ -111,3 +124,64 @@ class Config:
     KRONOS_VAR_CONFIDENCE = float(os.getenv("KRONOS_VAR_CONFIDENCE", "0.95"))
     # Max acceptable loss per trade for VaR-based position sizing
     KRONOS_MAX_RISK_PER_TRADE = float(os.getenv("KRONOS_MAX_RISK_PER_TRADE", "0.02"))
+
+    # ── Autonomous research loop (InsightForge for Quant) ─────────────
+    # Master switch — when True the ResearchScheduler starts with the bot
+    # and runs the agent team (scout→prober→analyst→strategist→brief)
+    # continuously.  Singleton-guarded: one loop per process.
+    RESEARCH_ENABLED = os.getenv("RESEARCH_ENABLED", "false").lower() == "true"
+    # Minutes between research cycles
+    RESEARCH_INTERVAL_MINUTES = int(os.getenv("RESEARCH_INTERVAL_MINUTES", "120"))
+    # Bars of cached history to probe per strategy
+    RESEARCH_MAX_BARS = int(os.getenv("RESEARCH_MAX_BARS", "1500"))
+    # Parameter variants probed per strategy
+    RESEARCH_PROBE_LIMIT = int(os.getenv("RESEARCH_PROBE_LIMIT", "2"))
+    # Opportunities prioritized per cycle
+    RESEARCH_TOP_N = int(os.getenv("RESEARCH_TOP_N", "3"))
+    # Symbol corpus the Prober probes (comma-separated): GC=F,SI=F,CL=F
+    RESEARCH_SYMBOLS = os.getenv("RESEARCH_SYMBOLS", "GC=F")
+    # Auto-approve a deployment only after N consistent cycles (0 = human gate only)
+    RESEARCH_AUTO_APPROVE_CYCLES = int(os.getenv("RESEARCH_AUTO_APPROVE_CYCLES", "0"))
+    # Enable the optional LLM narrative layer (requires an API key below)
+    RESEARCH_LLM_ENABLED = os.getenv("RESEARCH_LLM_ENABLED", "false").lower() == "true"
+
+    # ── LLM narrative layer (optional, fail-safe) ─────────────────────
+    # Provider: "openai" or "anthropic".  Leave empty to disable.
+    LLM_PROVIDER = os.getenv("LLM_PROVIDER", "")
+    LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+    # Latest tiers (2026): Haiku 4.5 = fast summaries, Opus 5 = deep synthesis.
+    # The client falls back Opus 4.8 -> Sonnet 5 -> 3.5-gen automatically, and
+    # auto-discovers working models from /v1/models if even those fail.
+    LLM_FAST_MODEL = os.getenv("LLM_FAST_MODEL", "claude-haiku-4-5")           # summaries
+    LLM_CAPABLE_MODEL = os.getenv("LLM_CAPABLE_MODEL", "claude-opus-5")        # deep synthesis
+    LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "500"))
+    LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "30"))
+
+    # ── Consensus engine (Phase 1 — common conclusion across brains) ──
+    # Direction decided when |consensus value| exceeds this.
+    CONSENSUS_DIRECTION_THRESHOLD = float(os.getenv("CONSENSUS_DIRECTION_THRESHOLD", "0.2"))
+
+    # ── Deployment quality gates (Phase 0) ────────────────────────────
+    # A deployment cannot be approved unless every gate passes (or the human
+    # explicitly force-approves, which is logged and auditable).
+    DEPLOY_MIN_TRADES = int(os.getenv("DEPLOY_MIN_TRADES", "30"))
+    DEPLOY_MIN_SHARPE = float(os.getenv("DEPLOY_MIN_SHARPE", "0.8"))
+    DEPLOY_MIN_OOS_CONSISTENCY = float(os.getenv("DEPLOY_MIN_OOS_CONSISTENCY", "0.6"))
+    DEPLOY_MIN_MC_PROB_PROFIT = float(os.getenv("DEPLOY_MIN_MC_PROB_PROFIT", "60.0"))
+    DEPLOY_MIN_Q_RICE = float(os.getenv("DEPLOY_MIN_Q_RICE", "0.03"))
+    DEPLOY_MAX_DRAWDOWN_PCT = float(os.getenv("DEPLOY_MAX_DRAWDOWN_PCT", "20.0"))
+
+    # ── Execution layer (Phase 3 — safe auto-execution) ───────────────
+    # Minimum consensus strength before the advisor can recommend a trade.
+    EXEC_MIN_CONSENSUS_STRENGTH = float(os.getenv("EXEC_MIN_CONSENSUS_STRENGTH", "0.35"))
+    # Maximum risk fraction of equity per trade (VaR-informed sizing).
+    EXEC_MAX_RISK_PER_TRADE = float(os.getenv("EXEC_MAX_RISK_PER_TRADE", "0.02"))
+    # Shadow forward-test minimums before a deployment can go live.
+    SHADOW_MIN_TRADES = int(os.getenv("SHADOW_MIN_TRADES", "20"))
+    SHADOW_MIN_SHARPE = float(os.getenv("SHADOW_MIN_SHARPE", "0.6"))
+    SHADOW_MIN_MC_PROB = float(os.getenv("SHADOW_MIN_MC_PROB", "55.0"))
+    # Kill-switches for live positions.
+    EXEC_KILL_MAX_DRAWDOWN_PCT = float(os.getenv("EXEC_KILL_MAX_DRAWDOWN_PCT", "15.0"))
+    EXEC_KILL_CONSENSUS_COLLAPSE = os.getenv("EXEC_KILL_CONSENSUS_COLLAPSE", "true").lower() == "true"
+    EXEC_KILL_CONSENSUS_FLOOR = float(os.getenv("EXEC_KILL_CONSENSUS_FLOOR", "0.15"))
+    EXEC_KILL_REGIME_FLIP = os.getenv("EXEC_KILL_REGIME_FLIP", "true").lower() == "true"

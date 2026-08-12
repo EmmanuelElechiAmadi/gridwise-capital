@@ -1,0 +1,145 @@
+[
+  {
+    "id": "e9e529caafba",
+    "opportunity_id": "f73ea3ea1592",
+    "strategy_key": "grid_strategy",
+    "params": {
+      "spacing": 0.12000000000000001,
+      "levels": 5,
+      "lot": 1.0
+    },
+    "metrics": {
+      "total_return_pct": -2.57,
+      "total_pnl": -250.32,
+      "sharpe_ratio": -0.5,
+      "max_drawdown_pct": 2.57,
+      "num_trades": 5,
+      "win_rate_pct": 20.0,
+      "profit_factor": 0.09,
+      "avg_win": 0.16,
+      "avg_loss": -0.44,
+      "monte_carlo": {
+        "mc_prob_profit_pct": 0.0,
+        "mc_var_95_pct": -0.53,
+        "mc_median_max_dd_pct": 0.0
+      }
+    },
+    "qrice": 0.0422,
+    "status": "voided",
+    "proposed_at": "2026-08-12T00:17:38Z",
+    "updated_at": "2026-08-12T00:25:57Z",
+    "approved_by": "human",
+    "approved_at": "2026-08-12T00:25:57Z",
+    "note": "auto-proposed by CQO; awaiting human approval [voided: pre-gate approval with negative Sharpe -0.50, 5 trades, 0% MC prob-profit — fails all hard quality gates]"
+  },
+  {
+    "id": "139b243c51cb",
+    "opportunity_id": "b6deeb291b9c",
+    "strategy_key": "grid_strategy",
+    "params": {
+      "spacing": 0.12000000000000001,
+      "levels": 5,
+      "lot": 1.0
+    },
+    "metrics": {
+      "total_return_pct": -3.56,
+      "total_pnl": -351.11,
+      "sharpe_ratio": -0.57,
+      "max_drawdown_pct": 3.56,
+      "num_trades": 5,
+      "win_rate_pct": 20.0,
+      "profit_factor": 0.02,
+      "avg_win": 0.04,
+      "avg_loss": -0.41,
+      "monte_carlo": {
+        "mc_prob_profit_pct": 0.0,
+        "mc_var_95_pct": -1.55,
+        "mc_median_max_dd_pct": 0.0
+      }
+    },
+    "qrice": 0.0352,
+    "status": "superseded",
+    "proposed_at": "2026-08-12T00:48:08Z",
+    "updated_at": "2026-08-12T00:48:08Z",
+    "approved_by": null,
+    "approved_at": null,
+    "params_signature": "[[\"levels\", 5], [\"lot\", 1.0], [\"spacing\", 0.12000000000000001]]",
+    "consistent_cycles": 1,
+    "note": "auto-proposed by CQO"
+  },
+  {
+    "id": "c3b67e345581",
+    "opportunity_id": "6c419e1eabb4",
+    "strategy_key": "breakout_strategy",
+    "params": {
+      "lookback_4h_bars": 5,
+      "breakout_threshold_pct": 0.05,
+      "confirmation_bars_1h": 2,
+      "lot": 0.01,
+      "max_positions": 1,
+      "tp_dollars": "3,5,10",
+      "sl_dollars": 3,
+      "kronos_enabled": false
+    },
+    "metrics": {
+      "total_return_pct": -0.01,
+      "total_pnl": -1.32,
+      "sharpe_ratio": -0.57,
+      "max_drawdown_pct": 0.01,
+      "num_trades": 2,
+      "win_rate_pct": 0.0,
+      "profit_factor": 0.0,
+      "avg_win": 0.0,
+      "avg_loss": -0.16,
+      "monte_carlo": {
+        "mc_prob_profit_pct": 40.0,
+        "mc_var_95_pct": -0.0,
+        "mc_median_max_dd_pct": 0.0
+      }
+    },
+    "qrice": 0.0217,
+    "status": "voided",
+    "proposed_at": "2026-08-12T00:50:06Z",
+    "updated_at": "2026-08-12T00:51:18Z",
+    "approved_by": "human",
+    "approved_at": "2026-08-12T00:51:18Z",
+    "params_signature": "[[\"breakout_threshold_pct\", 0.05], [\"confirmation_bars_1h\", 2], [\"kronos_enabled\", false], [\"lookback_4h_bars\", 5], [\"lot\", 0.01], [\"max_positions\", 1], [\"sl_dollars\", 3], [\"tp_dollars\", \"3,5,10\"]]",
+    "consistent_cycles": 1,
+    "note": "proposed via --deploy-strategy breakout_strategy [voided: pre-gate approval with negative Sharpe -0.57, 2 trades, 0% win-rate — fails all hard quality gates]"
+  },
+  {
+    "id": "1eae5c3116d7",
+    "opportunity_id": "bb10798ba936",
+    "strategy_key": "grid_strategy",
+    "params": {
+      "spacing": 0.1,
+      "levels": 5,
+      "lot": 1.0
+    },
+    "metrics": {
+      "total_return_pct": 0.0,
+      "total_pnl": 0.0,
+      "sharpe_ratio": 0,
+      "max_drawdown_pct": 0.0,
+      "num_trades": 5,
+      "win_rate_pct": 20.0,
+      "profit_factor": 0.06,
+      "avg_win": 0.1,
+      "avg_loss": -0.4,
+      "monte_carlo": {
+        "mc_prob_profit_pct": 0.0,
+        "mc_var_95_pct": 0.0,
+        "mc_median_max_dd_pct": 0.0
+      }
+    },
+    "qrice": 0.1206,
+    "status": "blocked_by_gates",
+    "proposed_at": "2026-08-12T01:35:44Z",
+    "updated_at": "2026-08-12T01:35:44Z",
+    "approved_by": null,
+    "approved_at": null,
+    "params_signature": "[[\"levels\", 5], [\"lot\", 1.0], [\"spacing\", 0.1]]",
+    "consistent_cycles": 1,
+    "note": "proposed from dashboard; awaiting human approval [blocked: 5 trades < 30, Sharpe 0.00 < 0.80, MC prob-profit 0.0% < 60%, missing OOS consistency]"
+  }
+]

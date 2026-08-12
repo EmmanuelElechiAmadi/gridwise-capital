@@ -320,6 +320,17 @@ def close_positions():
 
     return jsonify({'error': 'timeout waiting for MT5 response'}), 504
 
+@app.route('/bars')
+def bars():
+    """Return the 1H OHLC bars accumulated by the EA from live broker ticks
+    (used by the dashboard forecast — the broker's ACTUAL instrument)."""
+    mt5 = _ensure_mt5_files()
+    if not mt5:
+        return jsonify({'bars': [], 'symbol': None}), 200
+    data = read_json("mt5_bars_1h.json") or []
+    return jsonify({'bars': data, 'symbol': data[0].get('symbol', '') if data else None})
+
+
 @app.route('/health')
 def health():
     mt5 = _ensure_mt5_files()

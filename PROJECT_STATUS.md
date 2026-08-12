@@ -40,6 +40,112 @@ seek quant/
 - Flask dashboard API on `:5050` — status, performance, trades, account CRUD,
   bot control, strategy management, operations (backtest/optimize/walkforward/train_ml/benchmark_all),
   **new analytics endpoints** (`/api/analytics/*`).
+- **NEW — InsightForge for Quant agent team** (`quant_env/intelligence/`): autonomous
+  multi-agent quantitative research where every agent is a *quant professional
+  replacement* — DataScout (← Recruiter), MarketProber (← Interviewer), QuantAnalyst
+  (← Analyst), QuantStrategist (← Strategist), CQO Coordinator (← Coordinator).
+  Runs the full source→probe→synthesize→strategize→brief loop against the real
+  backtest engine, ML artifacts and cached gold history; formal signal-confidence
+  (Cₛ) and qRICE math; persistent OpportunityLedger + research brief JSON; CLI
+  (`python -m quant_env.intelligence.runner` or `python3 launcher.py research`); Flask
+  endpoints (`/api/intelligence/brief`, `/api/intelligence/ledger`) and a **"🤖 Agent
+  Team" tab wired into the gridbot dashboard UI** (`dashboard/templates/dashboard.html`).
+- **NEW — LLM narrative layer** (`intelligence/llm.py`): optional, fail-safe
+  natural-language layer — CQO executive summary (fast model), deep theme synthesis
+  and opportunity storyboards (capable model). No API key → deterministic fallback;
+  enabled via `RESEARCH_LLM_ENABLED` + `LLM_PROVIDER`/`LLM_API_KEY`; surfaced in the
+  brief, CLI and dashboard tab.
+- **NEW — continuous research loop** (`intelligence/scheduler.py` + `main.py`):
+  singleton-guarded `ResearchScheduler` starts with the bot when
+  `RESEARCH_ENABLED=true` (interval `RESEARCH_INTERVAL_MINUTES`); also
+  `python3 launcher.py research --interval 120 --llm` for a foreground loop.
+- **NEW — deeper per-agent capabilities**: Scout reports data-health/readiness +
+  stale artifacts; Prober runs out-of-sample revalidation probes + Monte Carlo
+  stress; Analyst adds an ML regime-model insight and `oos-degradation` flags;
+  Strategist specs include suggested capital allocation, MC tail-risk and a
+  diversification note.
+- **NEW — human-gated deployment** (`intelligence/deploy.py`): the CQO proposes
+  the top opportunity (`auto_deploy_top` / `launcher.py research --deploy` /
+  dashboard `POST /api/intelligence/deploy`); a human approves it
+  (`--approve <id>` / dashboard); `main.py` then applies the approved params to
+  the live strategy on next start. Nothing reaches the engine without approval.
+- **NEW — deployment gate on the dashboard UI**: the 🤖 Agent Team tab now has a
+  full approval panel — 🛠 Propose Top Opportunity, per-opportunity 🛠 Deploy
+  buttons, a deployment ledger (proposed/approved/rejected/superseded with
+  consistent-cycle counts), and ✓ Approve / ✕ Reject buttons (no terminal needed).
+- **NEW — Consensus Engine (v3, `intelligence/consensus/`)**: the three brains
+  (Kronos forecast, RF regime model, backtest/walk-forward probes, trend filter,
+  LLM verdict) cast typed `Signal`s fused by weighted vote into one attributed
+  `MarketView` (direction / agreement / consensus_strength / per-source why +
+  disagreements). Fail-safe: missing brains never block a cycle.
+- **NEW — LLM cross-validation + fact-check (v3, `intelligence/llm.py`)**:
+  capable model challenges the evidence bundle with a structured JSON verdict
+  (`cross_validate`); a deterministic `fact_check_verdict` rejects any citation
+  not verbatim in the bundle; `explain_market_view` writes the "why".
+- **NEW — hard deployment quality gates (v3, `intelligence/deploy.py`)**:
+  min trades ≥ 30, Sharpe ≥ 0.8, OOS consistency ≥ 0.6, MC prob-profit ≥ 60%,
+  qRICE ≥ 0.03, drawdown ≤ 20%. Failing proposals are `blocked_by_gates`;
+  legacy pre-gate approvals are re-validated at engine start; force-approve is
+  auditable (`approved_by="human:FORCE"`). The two shipped negative-Sharpe
+  approvals were voided.
+- **NEW — execution layer (v3, `intelligence/execution/`)**: `TradeExecutionAdvisor`
+  (consensus + gates + Kronos alignment → auditable trade with reason chain and
+  VaR-informed sizing), `ShadowForwardTester` (forward-test an approved
+  deployment on a held-out window before live promotion), and
+  `live_apply.evaluate_kill_switches` (drawdown / consensus collapse / regime
+  flip) + `apply_hot` (hot-reload approved params onto the running strategy).
+  Wired into the engine via `main.py._execution_guard()`.
+- **NEW — dashboard wiring (v3, ADVANCED-GRADE UI)**: Flask
+  `/api/intelligence/market_view`, `/api/intelligence/advise`,
+  `/api/intelligence/shadow` (GET history + POST run), `/api/intelligence/execution`
+  (kill-switch config + live consensus strength + drawdown + hot-applied log),
+  and `/api/intelligence/scheduler` (GET status + POST start/stop), plus
+  force-approve/void deploy actions. **Both** dashboards render the v3 panels;
+  the gridbot's Agent Team tab (`dashboard/templates/dashboard.html`) is now
+  advanced-grade: consensus meter (BULL↔BEAR gradient + marker), agreement /
+  strength dual bars, per-source diverging contribution bars with expandable
+  evidence, consensus-history sparkline, Trade Execution Advisor with risk
+  gauge + gate progress bars, Execution Guard panel (kill-switch tiles,
+  drawdown vs threshold bar, hot-applied deployments), deployment status filter
+  chips + aggregate gate summary + confirm dialogs for Force/Void + shadow-test
+  history, and research-loop Start/Stop controls with a live next-cycle
+  countdown — all auto-refreshing (30s).
+- **NEW — config knobs (v3)**: `CONSENSUS_*`, `DEPLOY_*`, `EXEC_*`, `SHADOW_*`
+  env-tunable defaults in `config.example.py`.
+- **NEW — research paper v3**: `RESEARCH/INSIGHTFORGE_QUANT_V3.md` documents the
+  consensus model, LLM fact-checking, deployment gates, shadow forward-testing
+  and execution kill-switches.
+- **NEW — tests (v3)**: deployment gates (blocked / force / legacy re-validation),
+  consensus fusion + attribution + ledger roundtrip, signal adapters, LLM
+  fact-check, advisor (hold/trade/block), shadow tester, kill-switches.
+
+- **NEW — full pipeline on the dashboard**: last completed brief loads on page
+  open (`/api/intelligence/last_brief` — narrative + deployment + themes);
+  LLM-layer telemetry tiles (enabled/provider/answered_by); corpus coverage
+  strip (symbol × bars); continuous-loop status + cycles + auto-approve config
+  (`/api/intelligence/scheduler`); and strategy-spec detail on opportunities
+  (allocation %, Monte Carlo, risk gates).
+- **NEW — auto-approve after N consistent cycles**: `--auto-approve N` /
+  `RESEARCH_AUTO_APPROVE_CYCLES` — a deployment is only auto-approved after the
+  same strategy+params is the top opportunity for N consecutive cycles
+  (`DeploymentManager.consider_auto_approve`); a change of top resets/supersedes.
+- **NEW — breakout-strategy deployments**: `PARAM_ALIASES` maps param names to
+  live breakout attributes (lookback_4h, threshold /100, TP string→float list,
+  Kronos flag); propose via `--deploy-strategy breakout_strategy` or dashboard
+  `{"action":"propose","strategy_key":"breakout_strategy"}`.
+- **NEW — correlation-aware theming**: the Analyst computes pairwise return
+  correlations across the multi-symbol corpus and emits a **Cross-Symbol
+  Correlation Insight** theme (high-correlation-cluster flag → treat as
+  correlated bets / diversify); per-strategy themes now record the symbol.
+- **NEW — multi-symbol corpus**: `intelligence/data.py` loads per-symbol cached
+  CSVs (gold_data.csv, SIF.csv, CLF.csv); the Prober probes each symbol with
+  cached history and tags probes; `refresh_multi_symbol.py` downloads the corpus
+  (`--symbols GC=F,SI=F,CL=F`); `RESEARCH_SYMBOLS` config + `--symbols` CLI.
+- **NEW — prompt tuning**: calibrated narration prompts (`_PROMPTS` constants in
+  `intelligence/llm.py`) with structured output, "never invent statistics" and
+  the human-approval gate, plus per-narration temperatures (summary 0.3, deep
+  synthesis 0.4).
+  Research paper in `RESEARCH/INSIGHTFORGE_QUANT_V2.md`. **45→46 tests.**
 - **52/52 tests passing** (`python -m pytest tests/ -v`).
 
 ### Web platform (`seek-quant-landing`)
@@ -76,11 +182,21 @@ seek quant/
 ## Roadmap (priority order)
 
 1. **Backtesting quality**: fix cost model, re-optimize, target Sharpe > 1 OOS.
-2. **ML uplift**: retrain with balanced data + feature selection; target >60% accuracy.
-3. **Live hardening**: bridge auto-reconnect, order-state reconciliation, idempotent commands.
-4. **Productization**: real Supabase auth, Stripe checkout, subscription-gated features.
-5. **Infrastructure**: Docker for engine + webapp, CI pipeline, monitoring (health/alerting).
-6. **Research**: Kronos forecast quality benchmark; multi-symbol portfolio (gold/silver/oil).
+   (The v3 quality gates + shadow forward-test now block deploying anything
+   that fails this bar, but the *strategy itself* still needs re-tuning.)
+2. **ML uplift**: retrain with balanced data + feature selection; target >60%
+   accuracy so the RF regime vote in the consensus gets stronger.
+3. **Live hardening**: bridge auto-reconnect, order-state reconciliation,
+   idempotent commands; then run the ShadowForwardTester on real forward data
+   before promoting any deployment to live (Tier 1/2 auto-execution).
+4. **Productization**: real Supabase auth, Stripe checkout, subscription-gated
+   features (the new Consensus + Execution panels are Professional-tier).
+5. **Infrastructure**: Docker for engine + webapp, CI pipeline, monitoring
+   (health/alerting on consensus disagreement spikes + kill-switch firings).
+6. **Research (paper v3 → v4)**: run the empirical benchmark — PBO/DSR on the
+   probe corpus, LLM fact-check hit-rate, Kronos-vs-RF-vs-blend regime
+   accuracy, shadow-forward-test results — and fold the numbers into
+   `RESEARCH/INSIGHTFORGE_QUANT_V3.md`.
 
 ## How to run
 

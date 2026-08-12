@@ -235,14 +235,32 @@ def _default_account_id():
 def _get_recent_trades(account_id=None, limit=50):
     """Return the CURRENT account's recent trades (no historical fallback).
 
-    Historical demo fills remain available via /api/analytics/live.
+    Rows are NORMALISED to the frontend contract
+    (timestamp/symbol/side/price/volume/pnl) regardless of the underlying
+    DB schema, so the dashboard never renders blank rows.
     """
     from quant_env.analysis.trade_logger import TradeLogger
     try:
         logger = TradeLogger(account_id=account_id or _default_account_id())
         rows = logger.get_recent(limit)
         logger.close()
-        return rows or []
+        out = []
+        for r in rows or []:
+            out.append({
+                'timestamp': (r.get('timestamp') or r.get('time')
+                              or r.get('datetime') or r.get('created_at')),
+                'symbol': (r.get('symbol') or r.get('instrument')
+                           or r.get('ticker')),
+                'side': (r.get('side') or r.get('type')
+                         or r.get('direction') or ''),
+                'price': (r.get('price') or r.get('entry_price')
+                          or r.get('open_price')),
+                'volume': (r.get('volume') or r.get('lots')
+                           or r.get('qty')),
+                'pnl': (r.get('pnl') or r.get('profit')
+                        or r.get('realized_pnl')),
+            })
+        return out
     except Exception:
         return []
 
@@ -354,14 +372,60 @@ def _load_regime_model():
 
 
 def _load_recent_bars():
-    """Fetch live gold OHLCV from Yahoo Finance; fall back to the local
-    gold_data.csv snapshot when offline.  Never raises."""
+    """Load recent OHLCV bars for the Kronos/RF forecast.
+
+    Order is chosen for SPEED and OFFLINE-SAFETY — this runs inside
+    /api/status (polled every 5 s) and must never block:
+
+      1) local ``gold_data.csv`` snapshot  (instant, no network)
+      2) broker bridge 1H bars            (3 s timeout)
+      3) live Yahoo Finance                (5 s timeout, last resort)
+
+    Never raises.
+    """
     import pandas as pd
     bars = None
+
+    # 1) Local snapshot (fast, offline-safe)
+    path = PROJECT_ROOT / "gold_data.csv"
+    if path.exists():
+        try:
+            df = pd.read_csv(str(path))
+            df['Datetime'] = pd.to_datetime(df['Datetime'], utc=True, errors='coerce')
+            df = df.dropna(subset=['Datetime']).set_index('Datetime')
+            df.columns = [c.lower() for c in df.columns]
+            if all(c in df.columns for c in ('open', 'high', 'low', 'close', 'volume')):
+                bars = df.tail(800)
+        except Exception as e:
+            print(f"[Kronos] local data load failed: {e}")
+
+    if bars is not None:
+        return bars
+
+    # 2) Broker's own 1H bars (XAUUSD.r spot) — the instrument actually traded
+    try:
+        r = http_requests.get(f"{_get_bridge_url()}/bars", timeout=3.0)
+        if r.status_code == 200:
+            payload = r.json()
+            rows = payload.get('bars') or []
+            if len(rows) >= 20:
+                df = pd.DataFrame(rows)
+                df['Datetime'] = pd.to_datetime(df.get('start', pd.Series(dtype='float')), unit='s', utc=True, errors='coerce')
+                df = df.set_index('Datetime').sort_index()
+                keep = [c for c in ('open', 'high', 'low', 'close', 'volume') if c in df.columns]
+                if len(keep) >= 5:
+                    bars = df[keep].dropna().tail(800)
+    except Exception as e:
+        print(f"[Kronos] bridge bars fetch failed: {e}")
+
+    if bars is not None:
+        return bars
+
+    # 3) Live Yahoo Finance (GC=F gold futures) — last resort, short timeout
     try:
         import yfinance as yf
         df = yf.download("GC=F", period="1mo", interval="1h",
-                         progress=False, auto_adjust=False, timeout=12)
+                         progress=False, auto_adjust=False, timeout=5)
         if df is not None and not df.empty:
             if isinstance(df.columns, pd.MultiIndex):
                 df.columns = df.columns.get_level_values(0)
@@ -375,22 +439,71 @@ def _load_recent_bars():
     except Exception as e:
         print(f"[Kronos] live fetch failed (will use local snapshot): {e}")
 
-    if bars is not None:
-        return bars
+    return bars
 
-    # Local snapshot fallback
-    path = PROJECT_ROOT / "gold_data.csv"
-    if not path.exists():
+
+_kronos_pred_cache = {'obj': None, 'checked': False, 'loading': False}
+
+
+def _try_kronos_foundation(df):
+    """Attempt the actual Kronos foundation-model forecast.
+
+    Returns a forecast dict (source='kronos_model') or None.  CRITICAL:
+    the dashboard/status request path must NEVER block on a HuggingFace
+    download, so:
+
+      - unless ``KRONOS_FOUNDATION_DASHBOARD=1`` is set, this is skipped
+        entirely (the RF/momentum fallback powers the widget);
+      - the model load (when enabled) happens in a BACKGROUND thread — the
+        first requests return None immediately and fall back gracefully.
+    """
+    global _kronos_pred_cache
+    if os.getenv("KRONOS_FOUNDATION_DASHBOARD", "0") != "1":
         return None
+    if _kronos_pred_cache['loading']:
+        return None  # model is loading in the background — don't block
     try:
-        df = pd.read_csv(str(path))
-        df['Datetime'] = pd.to_datetime(df['Datetime'], utc=True, errors='coerce')
-        df = df.dropna(subset=['Datetime']).set_index('Datetime')
-        df.columns = [c.lower() for c in df.columns]
-        if all(c in df.columns for c in ('open', 'high', 'low', 'close', 'volume')):
-            return df.tail(800)
+        if not _kronos_pred_cache['checked']:
+            _kronos_pred_cache['loading'] = True
+
+            def _load():
+                try:
+                    from ml.kronos import KronosPricePredictor
+                    _kronos_pred_cache['obj'] = KronosPricePredictor()
+                except Exception as e:
+                    print(f"[Kronos] foundation import failed: {e}")
+                    _kronos_pred_cache['obj'] = None
+                finally:
+                    _kronos_pred_cache['checked'] = True
+                    _kronos_pred_cache['loading'] = False
+
+            threading.Thread(target=_load, daemon=True).start()
+            return None
+
+        pred = _kronos_pred_cache['obj']
+        if pred is None or not pred.is_available():
+            return None
+        feats = pred.get_forecast_features(df)
+        if not feats or not feats.get('regime_label'):
+            return None
+        last_price = float(df['close'].iloc[-1]) if len(df) else 0.0
+        ts = float(feats.get('trend_strength') or 0.0)
+        return {
+            'regime_label': str(feats['regime_label']).upper(),
+            'volatility_forecast': round(float(feats.get('volatility_forecast') or 0.0), 6),
+            'trend': round(float(feats.get('trend') or 0.0), 6),
+            'trend_strength': round(min(float(ts), 9.99), 2),
+            'price_range': round(float(feats.get('price_range') or 0.0), 2),
+            'price_min_forecast': round(float(feats.get('price_min_forecast') or last_price), 2),
+            'price_max_forecast': round(float(feats.get('price_max_forecast') or last_price), 2),
+            'confidence': round(min(0.9, 0.3 + float(ts) * 0.4), 4),
+            'source': 'kronos_model',
+            'model': 'Kronos foundation',
+            'last_price': round(last_price, 2),
+            'computed_at': time.time(),
+        }
     except Exception as e:
-        print(f"[Kronos] local data load failed: {e}")
+        print(f"[Kronos] foundation forecast failed: {e}")
     return None
 
 
@@ -445,6 +558,9 @@ def _compute_kronos_forecast(force=False):
             low = last_price * (1 - hvol)
             high = last_price * (1 + hvol)
 
+            # Kronos foundation model (best effort) — highest priority
+            kronos_fc = _try_kronos_foundation(bars)
+
             # RF model (best effort, only used when confident)
             rf_label, rf_conf = None, 0.0
             try:
@@ -484,6 +600,8 @@ def _compute_kronos_forecast(force=False):
                 'computed_at': now,
                 'last_error': last_error,
             }
+            if kronos_fc is not None:
+                result = kronos_fc
     except Exception as e:
         print(f"[Kronos] forecast computation failed: {e}")
         result = None
@@ -926,101 +1044,130 @@ def _build_account_status(acct, bridge_data=None, bot_status=None):
     return result
 
 
+@app.route('/api/logs')
+def api_logs():
+    """Return the most recent lines from the bot's rotating log file(s) —
+    powers the dashboard Event Log with the bot's real activity."""
+    n = min(int(request.args.get('limit', 80)), 500)
+    lines = []
+    log_dir = PROJECT_ROOT / "logs"
+    if log_dir.exists():
+        files = sorted(log_dir.glob("quantbot_*.log"),
+                       key=lambda p: os.path.getmtime(str(p)), reverse=True)
+        if files:
+            try:
+                with open(str(files[0]), 'r', errors='replace') as f:
+                    tail = f.readlines()[-n:]
+                    lines = [ln.rstrip('\n') for ln in tail]
+            except Exception:
+                lines = []
+    return jsonify({'status': 'ok', 'lines': lines})
+
+
 @app.route('/api/status')
 def api_status():
     """
     JSON status — returns all accounts and aggregate dashboard data.
     Called every 5 s by pollStatus() in dashboard.html.
     Always wraps individual results in { accounts: [ … ] } for the frontend.
+    NEVER 500s: any exception falls back to a demo/idle account so the UI
+    shows an explicit "not connected" state instead of frozen placeholders.
     """
-    mgr = _get_manager()
-    account_id = request.args.get('account_id')
+    try:
+        mgr = _get_manager()
+        account_id = request.args.get('account_id')
 
-    # ── Aggregate: return all accounts FROM RUNNING BOTS ───────────────
-    # GridBotManager stores the thread in _threads and links it to the bot
-    # (bot._thread).  Only report bot status when at least one is alive.
-    has_active_bots = bool(mgr._threads) and any(
-        t.is_alive() for t in mgr._threads.values()
-    )
-    statuses = mgr.all_statuses() if has_active_bots else []
+        # ── Aggregate: return all accounts FROM RUNNING BOTS ───────────────
+        # GridBotManager stores the thread in _threads and links it to the bot
+        # (bot._thread).  Only report bot status when at least one is alive.
+        has_active_bots = bool(mgr._threads) and any(
+            t.is_alive() for t in mgr._threads.values()
+        )
+        statuses = mgr.all_statuses() if has_active_bots else []
 
-    if statuses:
-        for _s in statuses:
-            _attach_forecast_data(_s)
-        total_balance = sum(s.get('balance', 0.0) for s in statuses)
-        total_equity = sum(s.get('equity', 0.0) for s in statuses)
-        total_pnl = sum(s.get('total_pnl', 0.0) for s in statuses)
-        return jsonify({
-            'accounts': statuses,
-            'total_balance': round(total_balance, 2),
-            'total_equity': round(total_equity, 2),
-            'total_pnl': round(total_pnl, 2),
-            'total_pnl_pct': round((total_pnl / total_balance * 100) if total_balance else 0.0, 2),
-            'num_accounts': len(statuses),
-        })
+        if statuses:
+            for _s in statuses:
+                _attach_forecast_data(_s)
+            total_balance = sum(s.get('balance', 0.0) for s in statuses)
+            total_equity = sum(s.get('equity', 0.0) for s in statuses)
+            total_pnl = sum(s.get('total_pnl', 0.0) for s in statuses)
+            return jsonify({
+                'accounts': statuses,
+                'total_balance': round(total_balance, 2),
+                'total_equity': round(total_equity, 2),
+                'total_pnl': round(total_pnl, 2),
+                'total_pnl_pct': round((total_pnl / total_balance * 100) if total_balance else 0.0, 2),
+                'num_accounts': len(statuses),
+            })
 
-    # No running bots — try reading live data from the bridge directly
-    bridge_data = _try_bridge_status()
-    if bridge_data:
-        # All accounts from the store with bridge data merged in
+        # No running bots — try reading live data from the bridge directly
+        bridge_data = _try_bridge_status()
+        if bridge_data:
+            # All accounts from the store with bridge data merged in
+            accounts = mgr.account_manager.list_accounts()
+            acc_list = []
+            if accounts:
+                for acct in accounts:
+                    acc_list.append(_build_account_status(acct, bridge_data=bridge_data))
+            else:
+                # No accounts configured — show bridge data as a single demo account
+                demo = _generate_demo_status()
+                demo.update(bridge_data)
+                demo['broker_connected'] = True
+                demo['connection_status'] = 'connected'
+                acc_list.append(demo)
+
+            for _s in acc_list:
+                _attach_forecast_data(_s)
+            total_balance = sum(s.get('balance', 0.0) for s in acc_list)
+            total_equity = sum(s.get('equity', 0.0) for s in acc_list)
+            total_pnl = sum(s.get('pnl', 0.0) for s in acc_list)
+            return jsonify({
+                'accounts': acc_list,
+                'total_balance': round(total_balance, 2),
+                'total_equity': round(total_equity, 2),
+                'total_pnl': round(total_pnl, 2),
+                'total_pnl_pct': round((total_pnl / total_balance * 100) if total_balance else 0.0, 2),
+                'num_accounts': len(acc_list),
+            })
+
+        # Bridge is unreachable and no bots running.
+        # If configured accounts exist, show demo data so the dashboard
+        # has realistic placeholder values rather than all zeros.
+        # Mark broker_connected=False so the UI can show a "not connected" indicator.
+        demo = _generate_demo_status()
         accounts = mgr.account_manager.list_accounts()
-        acc_list = []
         if accounts:
-            for acct in accounts:
-                acc_list.append(_build_account_status(acct, bridge_data=bridge_data))
+            # Use the first account's label/ID for context
+            demo['account_id'] = accounts[0].id
+            demo['label'] = accounts[0].label
+            demo['connection_status'] = 'disconnected'
+            demo['broker_connected'] = False
+            demo['regime'] = 'unknown'
+            demo['regime_confidence'] = 0.0
+            demo['position_direction'] = 'Neutral'
+            # Reset trading-specific fields since no bot/bridge is active
+            demo['num_orders'] = 0
+            demo['active_orders'] = 0
+            demo['open_positions'] = 0
+            demo['net_position'] = 0.0
+            demo['grid_spacing'] = accounts[0].trading_config.get('grid_spacing')
+            demo['grid_levels'] = accounts[0].trading_config.get('num_levels')
+            demo['trading_active'] = False
+            demo['has_bot'] = False
+            demo['last_error'] = 'bridge_unreachable: no MT5 session connected'
         else:
-            # No accounts configured — show bridge data as a single demo account
-            demo = _generate_demo_status()
-            demo.update(bridge_data)
-            demo['broker_connected'] = True
-            demo['connection_status'] = 'connected'
-            acc_list.append(demo)
-
-        for _s in acc_list:
-            _attach_forecast_data(_s)
-        total_balance = sum(s.get('balance', 0.0) for s in acc_list)
-        total_equity = sum(s.get('equity', 0.0) for s in acc_list)
-        total_pnl = sum(s.get('pnl', 0.0) for s in acc_list)
-        return jsonify({
-            'accounts': acc_list,
-            'total_balance': round(total_balance, 2),
-            'total_equity': round(total_equity, 2),
-            'total_pnl': round(total_pnl, 2),
-            'total_pnl_pct': round((total_pnl / total_balance * 100) if total_balance else 0.0, 2),
-            'num_accounts': len(acc_list),
-        })
-
-    # Bridge is unreachable and no bots running.
-    # If configured accounts exist, show demo data so the dashboard
-    # has realistic placeholder values rather than all zeros.
-    # Mark broker_connected=False so the UI can show a "not connected" indicator.
-    demo = _generate_demo_status()
-    accounts = mgr.account_manager.list_accounts()
-    if accounts:
-        # Use the first account's label/ID for context
-        demo['account_id'] = accounts[0].id
-        demo['label'] = accounts[0].label
-        demo['connection_status'] = 'disconnected'
+            # No accounts at all — pure demo mode
+            demo['connection_status'] = 'demo'
+        _attach_forecast_data(demo)
+        return jsonify({'accounts': [demo]})
+    except Exception as e:
+        print(f"[api_status] error: {e}")
+        demo = _generate_demo_status()
+        demo['connection_status'] = 'error'
         demo['broker_connected'] = False
-        demo['regime'] = 'unknown'
-        demo['regime_confidence'] = 0.0
-        demo['position_direction'] = 'Neutral'
-        # Reset trading-specific fields since no bot/bridge is active
-        demo['num_orders'] = 0
-        demo['active_orders'] = 0
-        demo['open_positions'] = 0
-        demo['net_position'] = 0.0
-        demo['grid_spacing'] = accounts[0].trading_config.get('grid_spacing')
-        demo['grid_levels'] = accounts[0].trading_config.get('num_levels')
-        demo['trading_active'] = False
-        demo['has_bot'] = False
-        # But keep realistic balance/equity/pnl so the UI doesn't show zeros
-        # balance, equity, pnl are already set by _generate_demo_status()
-    else:
-        # No accounts at all — pure demo mode
-        demo['connection_status'] = 'demo'
-    _attach_forecast_data(demo)
-    return jsonify({'accounts': [demo]})
+        demo['last_error'] = str(e)
+        return jsonify({'status': 'error', 'error': str(e), 'accounts': [demo]})
 
 
 @app.route('/api/bot/start', methods=['POST'])
@@ -1056,11 +1203,19 @@ def api_bot_stop():
 
         mgr = _get_manager()
         if account_id:
-            mgr.stop_bot(account_id)
-            return jsonify({'status': 'stopped', 'account_id': account_id, 'message': 'Stopped'})
+            bot = mgr.get_bot(account_id)
+            if bot:
+                bot.pause()
+                bot.cancel_pending_orders()
+                return jsonify({'status': 'stopped', 'account_id': account_id, 'message': 'Paused; pending orders cancelled'})
+            return jsonify({'status': 'stopped', 'account_id': account_id, 'message': 'No running bot'})
         else:
-            mgr.stop_all()
-            return jsonify({'status': 'stopped', 'message': 'All bots paused'})
+            n = 0
+            for bot in list(mgr._bots.values()):
+                bot.pause()
+                bot.cancel_pending_orders()
+                n += 1
+            return jsonify({'status': 'stopped', 'message': f'Paused {n} bot(s); pending orders cancelled'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
@@ -1077,11 +1232,14 @@ def api_bot_close_all():
             bot = mgr.get_bot(account_id)
             if bot:
                 bot.close_all_positions()
-            return jsonify({'status': 'closed', 'account_id': account_id, 'message': 'Positions closed'})
+                return jsonify({'status': 'closed', 'account_id': account_id, 'message': 'Close-all sent'})
+            return jsonify({'status': 'closed', 'account_id': account_id, 'message': 'No running bot'})
         else:
-            for bot in mgr._bots.values():
+            n = 0
+            for bot in list(mgr._bots.values()):
                 bot.close_all_positions()
-            return jsonify({'status': 'closed', 'message': 'All positions closed'})
+                n += 1
+            return jsonify({'status': 'closed', 'message': f'Close-all sent for {n} bot(s)'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
@@ -1098,11 +1256,14 @@ def api_bot_reset_grid():
             bot = mgr.get_bot(account_id)
             if bot:
                 bot.reset_grid()
-            return jsonify({'status': 'reset', 'account_id': account_id})
+                return jsonify({'status': 'reset', 'account_id': account_id, 'message': 'Grid reset'})
+            return jsonify({'status': 'reset', 'account_id': account_id, 'message': 'No running bot'})
         else:
-            for bot in mgr._bots.values():
+            n = 0
+            for bot in list(mgr._bots.values()):
                 bot.reset_grid()
-            return jsonify({'status': 'reset', 'message': 'All grids reset'})
+                n += 1
+            return jsonify({'status': 'reset', 'message': f'Reset {n} bot(s)'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
@@ -1776,6 +1937,396 @@ def api_analytics_live():
         "fills": live["fills"],
         "metrics": live["metrics"],
     })
+
+
+# ── InsightForge for Quant — autonomous research team ─────────────────
+# These endpoints expose the multi-agent quantitative research loop
+# (DataScout -> MarketProber -> QuantAnalyst -> QuantStrategist) as a
+# dashboard API. Every agent is a named replacement for a human quant
+# professional; see gridbots/quant_env/intelligence/ for the framework.
+
+
+def _run_intelligence_cycle():
+    """Run one agent-team cycle with a light probe budget (fast enough for HTTP)."""
+    from quant_env.intelligence.coordinator import CoordinatorAgent
+    brief, _ = CoordinatorAgent({
+        "max_bars": 600,
+        "probe_limit": 2,
+        "top_n": 3,
+        "llm_enabled": getattr(Config, "RESEARCH_LLM_ENABLED", False),
+    }).run_cycle()
+    return brief
+
+
+@app.route('/api/intelligence/brief')
+def api_intelligence_brief():
+    """Trigger + return the latest autonomous research brief."""
+    try:
+        brief = _run_intelligence_cycle()
+        return jsonify({"status": "ok", "brief": brief})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/ledger')
+def api_intelligence_ledger():
+    """Return the persisted opportunity ledger (instruments/probes/themes/opportunities)."""
+    try:
+        from quant_env.intelligence.ledger import OpportunityLedger
+        ledger = OpportunityLedger.load()
+        return jsonify({"status": "ok", "ledger": ledger.to_dict()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/deployments')
+def api_intelligence_deployments():
+    """List all strategy deployments (proposed / approved / rejected)."""
+    try:
+        from quant_env.intelligence.deploy import DeploymentManager
+        return jsonify({"status": "ok", "deployments": DeploymentManager().list()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/last_brief')
+def api_intelligence_last_brief():
+    """Return the persisted research brief (last completed cycle) without re-running."""
+    try:
+        from quant_env.intelligence.ledger import OUTPUT_DIR
+        import json as _json
+        path = os.path.join(OUTPUT_DIR, "research_brief.json")
+        if not os.path.exists(path):
+            return jsonify({"status": "empty"})
+        with open(path) as f:
+            brief = _json.load(f)
+        return jsonify({"status": "ok", "brief": brief})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/scheduler', methods=['GET', 'POST'])
+def api_intelligence_scheduler():
+    """Research-loop status + control.
+
+    GET  — status (running, cycles, next cycle estimate, config).
+    POST — {"action": "start"|"stop"} controls the ResearchScheduler
+           singleton from the dashboard.
+    """
+    try:
+        from quant_env.intelligence.scheduler import ResearchScheduler
+        s = ResearchScheduler._instance
+        last = getattr(s, "last_brief", None) or {}
+
+        if request.method == 'POST':
+            data = request.get_json(silent=True) or {}
+            action = data.get("action")
+            if action not in ("start", "stop"):
+                return jsonify({"status": "error",
+                                "error": f"unknown action: {action}"}), 400
+            if s is None:
+                # Lazily create the singleton with engine Config defaults.
+                from quant_env.intelligence.scheduler import ResearchScheduler as RS
+                s = RS.get_instance(Config, None)
+            if action == "start":
+                s.start()
+            else:
+                s.stop()
+            return jsonify({"status": "ok", "action": action,
+                            "running": bool(s.running)})
+
+        running = bool(s and s.running)
+        now = time.time()
+        last_run_at = None
+        next_cycle_at = None
+        if running and s is not None:
+            # Scheduler stores _loop_started_at (set in _run) — else estimate.
+            started = getattr(s, "_loop_started_at", None)
+            last_run_at = started
+            if started:
+                next_cycle_at = started + s.interval_minutes * 60
+
+        return jsonify({
+            "status": "ok",
+            "running": running,
+            "interval_minutes": int(getattr(s, "interval_minutes", 0)) if s else 0,
+            "cycles_run": int(getattr(s, "cycles_run", 0)) if s else 0,
+            "last_brief_cycle_id": last.get("cycle_id") if isinstance(last, dict) else None,
+            "last_run_at": last_run_at,
+            "next_cycle_at": next_cycle_at,
+            "enabled": bool(getattr(Config, "RESEARCH_ENABLED", False)),
+            "auto_approve_cycles": int(getattr(Config, "RESEARCH_AUTO_APPROVE_CYCLES", "0")),
+            "symbols": getattr(Config, "RESEARCH_SYMBOLS", "GC=F"),
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/execution')
+def api_intelligence_execution():
+    """Execution-guard status: kill-switch config, live consensus strength,
+    drawdown snapshot and hot-applied deployments — everything the terminal
+    knows about execution, exposed to the dashboard."""
+    try:
+        from quant_env.intelligence.ledger import OpportunityLedger
+        from quant_env.intelligence.execution import live_apply
+        from quant_env.intelligence.execution.advisor import (
+            MIN_CONSENSUS_STRENGTH, MAX_RISK_PER_TRADE)
+        from quant_env.intelligence.deploy import (
+            DEPLOY_MIN_TRADES, DEPLOY_MIN_SHARPE, DEPLOY_MIN_OOS_CONSISTENCY,
+            DEPLOY_MIN_MC_PROB_PROFIT, DEPLOY_MIN_Q_RICE, DEPLOY_MAX_DRAWDOWN_PCT)
+
+        ledger = OpportunityLedger.load()
+        views = list(ledger.market_views or [])
+        latest = views[-1] if views else None
+        consensus_strength = (latest or {}).get("consensus_strength", 0.0)
+        direction = (latest or {}).get("direction", "RANGING")
+
+        # Drawdown snapshot: best effort from the live account (engine App).
+        drawdown_pct = 0.0
+        try:
+            mgr = _get_manager()
+            for acct in mgr.account_manager.list_accounts():
+                bot = mgr.get_bot(acct.id)
+                if bot is not None:
+                    app = getattr(bot, "_app", None)
+                    dd = getattr(app, "_last_drawdown_pct", None) if app else None
+                    if dd is not None:
+                        drawdown_pct = max(drawdown_pct, float(dd))
+        except Exception:
+            pass
+
+        kill = {
+            "max_drawdown_pct": live_apply.EXEC_KILL_MAX_DRAWDOWN_PCT,
+            "consensus_collapse_armed": live_apply.EXEC_KILL_CONSENSUS_COLLAPSE,
+            "consensus_floor": live_apply.EXEC_KILL_CONSENSUS_FLOOR,
+            "regime_flip_armed": live_apply.EXEC_KILL_REGIME_FLIP,
+        }
+        # Evaluate the kill-switches against the current state.
+        from quant_env.intelligence.execution.live_apply import evaluate_kill_switches
+        flatten, reasons = evaluate_kill_switches(
+            market_view=latest, current_drawdown_pct=drawdown_pct)
+
+        return jsonify({
+            "status": "ok",
+            "kill": kill,
+            "current": {
+                "consensus_strength": consensus_strength,
+                "direction": direction,
+                "drawdown_pct": round(drawdown_pct, 2),
+                "kill_triggered": bool(flatten),
+                "kill_reasons": reasons,
+                "advisor_min_consensus_strength": MIN_CONSENSUS_STRENGTH,
+                "advisor_max_risk_per_trade": MAX_RISK_PER_TRADE,
+            },
+            "gates": {
+                "min_trades": DEPLOY_MIN_TRADES,
+                "min_sharpe": DEPLOY_MIN_SHARPE,
+                "min_oos_consistency": DEPLOY_MIN_OOS_CONSISTENCY,
+                "min_mc_prob_profit": DEPLOY_MIN_MC_PROB_PROFIT,
+                "min_qrice": DEPLOY_MIN_Q_RICE,
+                "max_drawdown": DEPLOY_MAX_DRAWDOWN_PCT,
+            },
+            "hot_applied": live_apply.list_hot_applied(),
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+# ── Consensus / execution endpoints (Phase 1 + 3) ─────────────────────
+@app.route('/api/intelligence/market_view')
+def api_intelligence_market_view():
+    """Return the latest consensus MarketView + its attribution chain."""
+    try:
+        from quant_env.intelligence.ledger import OpportunityLedger
+        ledger = OpportunityLedger.load()
+        views = list(ledger.market_views or [])
+        latest = views[-1] if views else None
+        return jsonify({
+            "status": "ok",
+            "market_view": latest,
+            "history": views[-20:],
+            "count": len(views),
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/advise', methods=['GET', 'POST'])
+def api_intelligence_advise():
+    """Trade recommendation from the advisor (consensus + gates + Kronos).
+
+    Optionally accepts a POST body: {"price": ..., "equity": ...,
+    "deployment_id": ...} to size lots.  With no market view present the
+    advisor returns a HOLD with an explanation.
+    """
+    try:
+        from quant_env.intelligence.consensus import ConsensusEngine
+        from quant_env.intelligence.consensus.sources import collect_all_signals
+        from quant_env.intelligence.ledger import OpportunityLedger
+        from quant_env.intelligence.execution import TradeExecutionAdvisor
+
+        ledger = OpportunityLedger.load()
+        ctx = {
+            "max_bars": 600,
+            "probe_limit": 2,
+        }
+        signals = collect_all_signals(
+            ctx=ctx, ledger=ledger,
+            project_root=_get_project_root(),
+            symbol=getattr(Config, "RESEARCH_SYMBOLS", "GC=F").split(",")[0])
+        view = ConsensusEngine().fuse(
+            signals, symbol=getattr(Config, "RESEARCH_SYMBOLS", "GC=F").split(",")[0],
+            cycle_id="dashboard-advise")
+
+        body = request.get_json(silent=True) or {}
+        deployment = None
+        if body.get("deployment_id"):
+            from quant_env.intelligence.deploy import DeploymentManager
+            for r in DeploymentManager().list():
+                if r["id"] == body.get("deployment_id"):
+                    deployment = r
+                    break
+        try:
+            equity = float(body.get("equity") or 10000.0)
+        except (TypeError, ValueError):
+            equity = 10000.0
+        advisor = TradeExecutionAdvisor({
+            "equity": equity,
+        })
+        rec = advisor.advise(
+            market_view=view,
+            deployment=deployment,
+            price=body.get("price"),
+            symbol=getattr(Config, "RESEARCH_SYMBOLS", "GC=F").split(",")[0])
+        return jsonify({"status": "ok", "market_view": view.to_dict(),
+                        "recommendation": rec.to_dict()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/shadow', methods=['GET', 'POST'])
+def api_intelligence_shadow():
+    """Shadow forward-testing.
+
+    GET  — return the history of shadow forward-test reports.
+    POST — run a new shadow forward-test for an approved deployment on a
+           held-out recent window.
+    """
+    try:
+        from quant_env.intelligence.execution import ShadowForwardTester
+
+        if request.method == 'GET':
+            tester = ShadowForwardTester()
+            return jsonify({"status": "ok", "reports": list(reversed(tester.reports))})
+
+        from quant_env.intelligence.deploy import DeploymentManager
+        from quant_env.intelligence.data import load_cached_history
+
+        body = request.get_json(silent=True) or {}
+        deployment_id = body.get("deployment_id")
+        if not deployment_id:
+            return jsonify({"status": "error",
+                            "error": "deployment_id is required"}), 400
+        dep = next((r for r in DeploymentManager().list()
+                    if r["id"] == deployment_id), None)
+        if dep is None:
+            return jsonify({"status": "error",
+                            "error": "deployment not found"}), 404
+
+        symbol = body.get("symbol") or getattr(Config, "RESEARCH_SYMBOLS", "GC=F")
+        # RESEARCH_SYMBOLS may be a comma-separated corpus — use the first.
+        symbol = str(symbol).split(",")[0].strip() or "GC=F"
+        history = load_cached_history(_get_project_root(), symbol)
+        if history is None:
+            return jsonify({"status": "error",
+                            "error": f"no cached history for {symbol}"}), 400
+
+        tester = ShadowForwardTester()
+        report = tester.test(dep, history,
+                             forward_window=int(body.get("window", 200)))
+        return jsonify({"status": "ok", "report": report})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+def _get_project_root():
+    """gridbots/ — parent of the quant_env package."""
+    import os as _os
+    return _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+
+
+@app.route('/api/intelligence/deploy', methods=['POST'])
+def api_intelligence_deploy():
+    """
+    Human-gated deployment actions.
+
+    body: {"action": "propose"|"approve"|"force_approve"|"reject"|"void",
+           "deployment_id": "...",
+           "opportunity_id": "..." (optional propose target),
+           "reason": "..." (optional void reason)}
+
+    - ``approve`` is blocked by the hard quality gates.
+    - ``force_approve`` bypasses them (auditable: approved_by="human:FORCE").
+    - ``void`` retires a deployment forever (never applied by the engine).
+    """
+    try:
+        from quant_env.intelligence.deploy import DeploymentManager
+        from quant_env.intelligence.ledger import OpportunityLedger
+        data = request.get_json(silent=True) or {}
+        action = data.get("action")
+        dm = DeploymentManager()
+
+        if action == "approve":
+            rec = dm.approve(data.get("deployment_id"))
+            if rec is None:
+                return jsonify({"status": "error",
+                                "error": "Deployment not found."}), 404
+            if rec["status"] == "blocked_by_gates":
+                return jsonify({
+                    "status": "blocked",
+                    "deployment": rec,
+                    "message": "Deployment BLOCKED by quality gates: "
+                               + ", ".join(rec.get("quality", {}).get("failed", [])),
+                }), 200
+            return jsonify({"status": "ok", "deployment": rec,
+                            "message": "Deployment approved — applied on next bot start."})
+        if action == "force_approve":
+            rec = dm.approve(data.get("deployment_id"), force=True)
+            if rec is None:
+                return jsonify({"status": "error",
+                                "error": "Deployment not found."}), 404
+            return jsonify({"status": "ok", "deployment": rec,
+                            "message": "Deployment FORCE-approved (auditable override)."})
+        if action == "reject":
+            rec = dm.reject(data.get("deployment_id"))
+            return jsonify({"status": "ok" if rec else "error",
+                            "deployment": rec or None})
+        if action == "void":
+            rec = dm.void(data.get("deployment_id"), reason=data.get("reason", ""))
+            return jsonify({"status": "ok" if rec else "error",
+                            "deployment": rec or None})
+        if action == "propose":
+            # Propose the top opportunity (or the best for a given strategy)
+            # from the persisted ledger.
+            ledger = OpportunityLedger.load()
+            target = data.get("strategy_key")
+            if target:
+                candidates = [o for o in ledger.opportunities
+                              if o.strategy_key == target]
+            else:
+                candidates = ledger.top_opportunities(1)
+            if not candidates:
+                return jsonify({"status": "error",
+                                "error": f"no opportunities to deploy for {target or 'top'}"}), 400
+            best = max(candidates, key=lambda o: o.qrice())
+            best.status = "proposed"
+            ledger.save()
+            rec = dm.propose(best, note="proposed from dashboard; awaiting human approval")
+            return jsonify({"status": "ok", "deployment": rec})
+        return jsonify({"status": "error", "error": f"unknown action: {action}"}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 
 # ── Entry point ────────────────────────────────────────────────────────

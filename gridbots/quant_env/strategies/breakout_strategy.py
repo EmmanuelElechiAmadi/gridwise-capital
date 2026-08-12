@@ -244,6 +244,101 @@ class BreakoutStrategy(BaseStrategy):
 
     # ── lifecycle ─────────────────────────────────────────────────────
 
+    def on_start(self):
+        """Called when the bot starts. Seeds the multi-timeframe candle
+        history from recent price data so breakouts can be evaluated
+        immediately instead of waiting ~20h for the 4H range to form from
+        live ticks.  Skipped in backtests / dummy connectors."""
+        if not hasattr(self.connector, 'bridge') and not hasattr(self.connector, 'base_url'):
+            return
+        try:
+            self._seed_from_history()
+        except Exception as exc:
+            self.log.warning(f"Breakout history seed failed: {exc}")
+
+        # Start the Kronos enhancer's background forecast refresh so trade
+        # filtering / dynamic TP-SL actually run (not just the flag).
+        if self._kronos:
+            try:
+                self._kronos.start()
+                self.log.info("KronosBreakoutEnhancer background refresh started.")
+            except Exception as exc:
+                self.log.warning(f"Kronos enhancer start failed: {exc}")
+
+    def _seed_from_history(self):
+        """Pre-build 1H/4H candles from recent hourly gold price history.
+
+        Uses live Yahoo Finance GC=F hourly bars (best effort), falling back
+        to the local gold_data.csv snapshot resampled to hourly.  Once seeded,
+        the 4H range is available on the first live tick.
+        """
+        import os
+        import pandas as pd
+
+        df = None
+        try:
+            import yfinance as yf
+            df = yf.download("GC=F", period="1mo", interval="1h",
+                             progress=False, auto_adjust=False, timeout=10)
+            if df is not None and not df.empty and isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
+        except Exception:
+            df = None
+
+        if df is None or df.empty:
+            # Local snapshot fallback (1-min bars -> resample to 1h)
+            path = os.path.join(os.path.dirname(__file__), '..', '..', 'gold_data.csv')
+            if os.path.exists(path):
+                try:
+                    d = pd.read_csv(path)
+                    d['Datetime'] = pd.to_datetime(d['Datetime'], utc=True, errors='coerce')
+                    d = d.dropna(subset=['Datetime']).set_index('Datetime')
+                    d.columns = [c.lower() for c in d.columns]
+                    d = d.resample('1h').agg({
+                        'open': 'first', 'high': 'max',
+                        'low': 'min', 'close': 'last', 'volume': 'sum',
+                    }).dropna()
+                    df = d
+                except Exception:
+                    df = None
+
+        if df is None or df.empty:
+            return
+        df.columns = [str(c).lower() for c in df.columns]
+        if not {'open', 'high', 'low', 'close'}.issubset(set(df.columns)):
+            return
+
+        now = time.time()
+        n = len(df)
+        hours = []
+        for i in range(n):
+            hours.append({
+                'open': float(df['open'].iloc[i]),
+                'high': float(df['high'].iloc[i]),
+                'low': float(df['low'].iloc[i]),
+                'close': float(df['close'].iloc[i]),
+                'start_time': now - (n - i) * 3600,
+            })
+
+        # Reset and seed the aggregators
+        self._agg_1h.completed.clear()
+        self._agg_4h.completed.clear()
+        self._agg_4h._buffer = []
+        for c in hours:
+            self._agg_1h.completed.append(c)
+            self._agg_4h.add(c)
+
+        candles = self._agg_4h.recent(self.lookback_4h)
+        if len(candles) >= 2:
+            self._recent_high = max(c['high'] for c in candles)
+            self._recent_low = min(c['low'] for c in candles)
+            self.log.info(
+                f"📊 Breakout seeded: {len(hours)} hourly bars -> "
+                f"{len(self._agg_4h.completed)} 4H candles; "
+                f"range high={self._recent_high:.2f} low={self._recent_low:.2f}"
+            )
+
+
     def __init__(self, connector, config, logger):
         super().__init__(connector, config, logger)
 

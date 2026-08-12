@@ -20,6 +20,13 @@
 string g_symbols[] = {"XAUUSD.r", "XAUUSD", "XAUUSDm", "GOLD", "XAU", "EURUSD.r", "EURUSD", "GBPUSD.r", "GBPUSD", "USDJPY.r", "USDJPY"};
 int g_timer_sec = 2;   // increased from 1 — Wine filesystem needs more time
 
+// ── 1H bar accumulator (dashboard forecast data source: broker ticks) ──
+string g_bar_sym = "";
+datetime g_bar_key = 0;
+double   g_bar_open = 0, g_bar_high = 0, g_bar_low = 0, g_bar_close = 0;
+string   g_bars[];          // completed 1H bars as JSON strings
+#define  BAR_HISTORY_MAX 500
+
 //+------------------------------------------------------------------+
 int OnInit() {
    EventSetTimer(g_timer_sec);
@@ -62,6 +69,70 @@ void EnsureSymbol(string name) {
       ArrayResize(g_symbols, sz + 1);
       g_symbols[sz] = name;
    }
+}
+
+// ── Build 1H OHLC bars from live ticks and write mt5_bars_1h.json ──
+// This gives the dashboard forecast the broker's ACTUAL instrument data
+// (e.g. XAUUSD.r) instead of external Yahoo futures.
+void BuildBarHistory() {
+   // Pick the traded (gold) symbol once
+   if (g_bar_sym == "") {
+      for (int i = 0; i < ArraySize(g_symbols); i++) {
+         if (StringFind(g_symbols[i], "XAU") >= 0 || StringFind(g_symbols[i], "GOLD") >= 0) {
+            if (SymbolInfoDouble(g_symbols[i], SYMBOL_BID) > 0) { g_bar_sym = g_symbols[i]; break; }
+         }
+      }
+      if (g_bar_sym == "" && ArraySize(g_symbols) > 0) g_bar_sym = g_symbols[0];
+   }
+   if (g_bar_sym == "") return;
+
+   MqlTick tick;
+   if (!SymbolInfoTick(g_bar_sym, tick)) return;
+   double price = tick.bid > 0 ? tick.bid : tick.ask;
+   if (price <= 0) return;
+
+   datetime key = (datetime)((long)TimeCurrent() / 3600 * 3600);
+   if (g_bar_key == 0) {
+      g_bar_key = key;
+      g_bar_open = g_bar_high = g_bar_low = g_bar_close = price;
+      return;
+   }
+
+   if (key != g_bar_key) {
+      // Finalise the completed bar and push to history
+      string json = "{";
+      json += "\"open\":" + DoubleToString(g_bar_open, 2) + ",";
+      json += "\"high\":" + DoubleToString(g_bar_high, 2) + ",";
+      json += "\"low\":" + DoubleToString(g_bar_low, 2) + ",";
+      json += "\"close\":" + DoubleToString(g_bar_close, 2) + ",";
+      json += "\"volume\":1,";
+      json += "\"start\":" + DoubleToString((double)g_bar_key, 0);
+      json += "}";
+      int sz = ArraySize(g_bars);
+      ArrayResize(g_bars, sz + 1);
+      g_bars[sz] = json;
+      if (ArraySize(g_bars) > BAR_HISTORY_MAX) {
+         for (int i = 1; i < ArraySize(g_bars); i++) g_bars[i-1] = g_bars[i];
+         ArrayResize(g_bars, BAR_HISTORY_MAX);
+      }
+      // Start a new bar
+      g_bar_key = key;
+      g_bar_open = g_bar_high = g_bar_low = g_bar_close = price;
+   } else {
+      if (price > g_bar_high) g_bar_high = price;
+      if (price < g_bar_low)  g_bar_low  = price;
+      g_bar_close = price;
+   }
+
+   // Write the history file (only if we have at least one completed bar)
+   if (ArraySize(g_bars) == 0) return;
+   string hist = "[";
+   for (int i = 0; i < ArraySize(g_bars); i++) {
+      if (i > 0) hist += ",";
+      hist += g_bars[i];
+   }
+   hist += "]";
+   WriteFile("mt5_bars_1h.json", hist);
 }
 
 // ── Find an available symbol matching the requested one ─────────────
@@ -114,6 +185,7 @@ void OnTimer() {
    WriteTick(g_symbols);
    WritePositions();
    WriteOrders();
+   BuildBarHistory();      // 1H bars from live ticks (forecast data source)
 }
 //+------------------------------------------------------------------+
 

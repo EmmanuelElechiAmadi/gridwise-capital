@@ -322,6 +322,15 @@ Next.js **Intelligence** page (`seek-quant-landing/intelligence`):
 | `GET /api/analytics/equity`    | Sampled `gold_data.csv` price series + live equity curve             |
 | `GET /api/analytics/live`      | FIFO-matched realized PnL trades from the engine trade DBs           |
 
+### Consensus & Execution API (v3)
+
+| Endpoint                       | Data                                                                 |
+| ------------------------------ | -------------------------------------------------------------------- |
+| `GET /api/intelligence/market_view` | Latest consensus MarketView + recent history (attribution chain) |
+| `POST /api/intelligence/advise`    | Trade Execution Advisor recommendation (consensus + gates + Kronos) |
+| `POST /api/intelligence/shadow`    | Forward-test an approved deployment on a held-out recent window    |
+| `POST /api/intelligence/deploy`    | `approve` / `force_approve` / `reject` / `void` a deployment       |
+
 To export a committed, dependency-free snapshot of the same data (used by the
 webapp as an offline fallback and useful for fresh clones where the CSV/DB
 artifacts are gitignored):

@@ -243,10 +243,28 @@ class GridStrategy(BaseStrategy):
 
         spacing = self._get_spacing()
 
+        # Current market price — used to re-price replacements if the market
+        # moved past the fill-based level (avoids MT5 "Invalid price" rejects).
+        mid = None
+        try:
+            tick = self.connector.symbol_tick()
+            if tick and tick.get('bid') and tick.get('ask'):
+                mid = round((tick['bid'] + tick['ask']) / 2, 2)
+        except Exception:
+            mid = None
+
         if side == 'buy':
             # A buy was filled → place a sell one grid spacing above
             new = round(price + spacing, 2)
-            if self.connector.place_limit_order('sell_limit', new, self.lot):
+            placed = self.connector.place_limit_order('sell_limit', new, self.lot)
+            if not placed and mid:
+                new2 = round(mid + spacing, 2)
+                if new2 != new:
+                    self.log.info(f"Re-pricing sell_limit {new} -> {new2} (market moved)")
+                    placed = self.connector.place_limit_order('sell_limit', new2, self.lot)
+                    if placed:
+                        new = new2
+            if placed:
                 self.active_orders[new] = 'sell'
                 self.log.info(f"Replacement sell_limit placed at {new}")
             else:
@@ -254,7 +272,15 @@ class GridStrategy(BaseStrategy):
         else:
             # A sell was filled → place a buy one grid spacing below
             new = round(price - spacing, 2)
-            if self.connector.place_limit_order('buy_limit', new, self.lot):
+            placed = self.connector.place_limit_order('buy_limit', new, self.lot)
+            if not placed and mid:
+                new2 = round(mid - spacing, 2)
+                if new2 != new:
+                    self.log.info(f"Re-pricing buy_limit {new} -> {new2} (market moved)")
+                    placed = self.connector.place_limit_order('buy_limit', new2, self.lot)
+                    if placed:
+                        new = new2
+            if placed:
                 self.active_orders[new] = 'buy'
                 self.log.info(f"Replacement buy_limit placed at {new}")
             else:

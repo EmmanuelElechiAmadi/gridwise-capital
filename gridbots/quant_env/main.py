@@ -31,6 +31,7 @@ from ml.kronos import (
 )
 from optimization.portfolio_optimizer import KronosPortfolioOptimizer
 from adaptive.updater import AdaptiveUpdater
+from intelligence.scheduler import ResearchScheduler
 
 from accounts.models import BrokerAccount, ConnectionStatus
 from accounts.manager import BrokerAccountManager
@@ -65,6 +66,24 @@ class App:
         self.strategy = _strategy_cls(self.connector, self.config, self.log)
         self.strategy.logger = self.logger
 
+        # Human-gated deployment: apply approved research-team params to the
+        # live strategy (only records a human explicitly approved via the
+        # dashboard or `launcher.py research --approve <id>`).
+        self._last_drawdown_pct = 0.0
+        self._peak_equity = 0.0
+        self._kill_triggered = False
+        self._deployed_direction = None
+        try:
+            from intelligence.deploy import DeploymentManager
+            dep = DeploymentManager().approved_for(_strategy_key)
+            if dep:
+                applied = DeploymentManager.apply_to_strategy(self.strategy, dep)
+                self.log.info(
+                    f"Applied approved research deployment {dep['id']} to "
+                    f"{_strategy_key} (params: {', '.join(applied) or 'none'})")
+        except Exception as e:
+            self.log.warning(f"Research deployment apply failed: {e}")
+
         env = load_config()
         self.notifier = None
         if env.get('TELEGRAM_TOKEN'):
@@ -78,33 +97,39 @@ class App:
         kronos_enabled = getattr(self.config, "KRONOS_ENABLED", False)
         blend_enabled = getattr(self.config, "KRONOS_BLEND_ENABLED", False)
 
-        if kronos_enabled and blend_enabled:
-            # Meta-adapter blends Kronos + RF by confidence
-            kronos_adapter = KronosRegimeAdapter(self.config, self.log)
-            rf_adapter = RegimeAdapter(self.config)
-            # Use IncrementalInferenceEngine to avoid re-encoding full context on every refresh
-            if getattr(self.config, "KRONOS_INCREMENTAL_ENABLED", True):
-                kronos_predictor = kronos_adapter._predictor or getattr(kronos_adapter, '_init_predictor', lambda: None)
-                if kronos_adapter._predictor is not None and kronos_adapter._predictor.is_available():
-                    k_engine = IncrementalInferenceEngine(kronos_adapter._predictor, cache_size=128)
-                    kronos_adapter._incremental_engine = k_engine
-                    self.log.info("IncrementalInferenceEngine attached to Kronos adapter")
-            self.regime_adapter = MetaRegimeAdapter(
-                self.config, kronos_adapter, rf_adapter, self.log
+        try:
+            if kronos_enabled and blend_enabled:
+                # Meta-adapter blends Kronos + RF by confidence
+                kronos_adapter = KronosRegimeAdapter(self.config, self.log)
+                rf_adapter = RegimeAdapter(self.config)
+                # Use IncrementalInferenceEngine to avoid re-encoding full context on every refresh
+                if getattr(self.config, "KRONOS_INCREMENTAL_ENABLED", True):
+                    kronos_predictor = kronos_adapter._predictor or getattr(kronos_adapter, '_init_predictor', lambda: None)
+                    if kronos_adapter._predictor is not None and kronos_adapter._predictor.is_available():
+                        k_engine = IncrementalInferenceEngine(kronos_adapter._predictor, cache_size=128)
+                        kronos_adapter._incremental_engine = k_engine
+                        self.log.info("IncrementalInferenceEngine attached to Kronos adapter")
+                self.regime_adapter = MetaRegimeAdapter(
+                    self.config, kronos_adapter, rf_adapter, self.log
+                )
+                self.log.info("Using MetaRegimeAdapter (Kronos + RF blended by confidence)")
+            elif kronos_enabled:
+                self.regime_adapter = KronosRegimeAdapter(self.config, self.log)
+                # Attach IncrementalInferenceEngine to avoid re-encoding full context on every refresh
+                if getattr(self.config, "KRONOS_INCREMENTAL_ENABLED", True):
+                    kronos_adapter = self.regime_adapter
+                    kronos_adapter._init_predictor()
+                    if kronos_adapter._predictor is not None and kronos_adapter._predictor.is_available():
+                        k_engine = IncrementalInferenceEngine(kronos_adapter._predictor, cache_size=128)
+                        kronos_adapter._incremental_engine = k_engine
+                        self.log.info("IncrementalInferenceEngine attached to Kronos adapter")
+                self.log.info("Using Kronos foundation model for regime adaptation")
+            else:
+                self.regime_adapter = RegimeAdapter(self.config)
+        except Exception as e:
+            self.log.warning(
+                f"Kronos adapter init failed ({e}) — falling back to RF RegimeAdapter"
             )
-            self.log.info("Using MetaRegimeAdapter (Kronos + RF blended by confidence)")
-        elif kronos_enabled:
-            self.regime_adapter = KronosRegimeAdapter(self.config, self.log)
-            # Attach IncrementalInferenceEngine to avoid re-encoding full context on every refresh
-            if getattr(self.config, "KRONOS_INCREMENTAL_ENABLED", True):
-                kronos_adapter = self.regime_adapter
-                kronos_adapter._init_predictor()
-                if kronos_adapter._predictor is not None and kronos_adapter._predictor.is_available():
-                    k_engine = IncrementalInferenceEngine(kronos_adapter._predictor, cache_size=128)
-                    kronos_adapter._incremental_engine = k_engine
-                    self.log.info("IncrementalInferenceEngine attached to Kronos adapter")
-            self.log.info("Using Kronos foundation model for regime adaptation")
-        else:
             self.regime_adapter = RegimeAdapter(self.config)
         if (getattr(self.config, "ML_ENABLED", False) or kronos_enabled):
             self.strategy.regime_adapter = self.regime_adapter
@@ -155,6 +180,18 @@ class App:
             self.config, self.strategy, self.log
         )
 
+        # ── Autonomous research loop (InsightForge for Quant) ─────────
+        # Singleton-guarded: only one research thread runs per process.
+        self.research_scheduler = None
+        if getattr(self.config, "RESEARCH_ENABLED", False):
+            try:
+                self.research_scheduler = ResearchScheduler.get_instance(
+                    self.config, self.log
+                )
+                self.log.info("Autonomous research loop enabled (ResearchScheduler).")
+            except Exception as e:
+                self.log.warning(f"ResearchScheduler init failed: {e}")
+
     # ── Lifecycle ──────────────────────────────────────────────────────
 
     def run(self):
@@ -162,6 +199,8 @@ class App:
         self.log.info(f"Starting QuantBot for account {self.account.id} – press Ctrl-C to stop.")
         self.regime_adapter.start()
         self.adaptive_updater.start()
+        if self.research_scheduler is not None:
+            self.research_scheduler.start()
         self.strategy.on_start()
 
         try:
@@ -169,6 +208,7 @@ class App:
                 self._sync_regime_params()
                 self._process_tick()
                 self._process_account()
+                self._execution_guard()      # consensus kill-switch + hot-apply
                 time.sleep(0.5)
         finally:
             self._shutdown_cleanly()
@@ -179,8 +219,10 @@ class App:
         """Pull grid parameters from RegimeAdapter if ML is active."""
         if (self.regime_adapter.enabled and
                 self.regime_adapter.regime != RegimeAdapter.UNKNOWN):
-            self.strategy.spacing = self.regime_adapter.spacing
-            self.strategy.levels = self.regime_adapter.levels
+            # Only grid strategies expose spacing/levels
+            if hasattr(self.strategy, 'spacing') and hasattr(self.strategy, 'levels'):
+                self.strategy.spacing = self.regime_adapter.spacing
+                self.strategy.levels = self.regime_adapter.levels
 
         # ── Portfolio optimizer: sync per-symbol Kronos forecasts (Item 6) ──
         if self.portfolio_optimizer is not None:
@@ -196,20 +238,87 @@ class App:
             except Exception as exc:
                 self.log.warning(f"Kronos risk sizing failed: {exc}")
 
+    # ── Execution guard (Phase 3): consensus kill-switch + hot-apply ───
+    _GUARD_EVERY = 60          # check every ~30s of the 0.5s loop
+    _guard_counter = 0
+    _hot_applied_sigs = set()
+
+    def _execution_guard(self):
+        """Periodically enforce kill-switches and hot-apply approved params."""
+        self._guard_counter += 1
+        if self._guard_counter < self._GUARD_EVERY:
+            return
+        self._guard_counter = 0
+
+        # 1) Load the latest consensus MarketView (if any).
+        market_view = None
+        try:
+            from intelligence.ledger import OpportunityLedger
+            views = list(OpportunityLedger.load().market_views or [])
+            market_view = views[-1] if views else None
+        except Exception:
+            pass
+
+        # 2) Kill-switch: drawdown / consensus collapse / regime flip.
+        try:
+            from intelligence.execution.live_apply import evaluate_kill_switches
+            dd = float(getattr(self, "_last_drawdown_pct", 0.0) or 0.0)
+            deployed_dir = getattr(self, "_deployed_direction", None)
+            flatten, reasons = evaluate_kill_switches(
+                market_view=market_view, current_drawdown_pct=dd,
+                deployed_direction=deployed_dir)
+            if flatten and not getattr(self, "_kill_triggered", False):
+                self.log.warning(
+                    "🛑 KILL-SWITCH triggered: " + " | ".join(reasons))
+                self._kill_triggered = True
+                self.strategy.on_stop()                 # cancel pending
+                self.connector.close_all_positions()    # flatten live
+        except Exception as e:
+            self.log.warning(f"Kill-switch check failed: {e}")
+
+        # 3) Hot-apply newly approved deployments (no restart needed).
+        try:
+            from intelligence.deploy import DeploymentManager
+            from intelligence.execution.live_apply import apply_hot
+            for dep in DeploymentManager().list():
+                if dep.get("status") != "approved":
+                    continue
+                sig = (dep.get("id"), dep.get("params_signature"))
+                if sig in self._hot_applied_sigs:
+                    continue
+                applied = apply_hot(self.strategy, dep)
+                self._hot_applied_sigs.add(sig)
+                self.log.info(
+                    f"Hot-applied deployment {dep['id']} "
+                    f"({', '.join(applied.get('applied', [])) or 'no params'})")
+        except Exception as e:
+            self.log.warning(f"Hot-apply failed: {e}")
+
+    def _active_orders_count(self) -> int:
+        """Number of pending grid orders (grid strategies only; 0 otherwise)."""
+        if hasattr(self.strategy, 'active_orders'):
+            try:
+                return len(self.strategy.active_orders)
+            except Exception:
+                return 0
+        return 0
+
     def _process_tick(self):
         tick = self.connector.symbol_tick()
         if tick:
             self.strategy.on_tick(tick)
-            # Auto-retry: if grid has 0 active orders and no ML signals are
-            # preventing them, try to re-place the grid.
-            if not self.strategy.active_orders:
-                positions = self.connector.get_positions() or []
-                if not positions:
-                    self.log.warning(
-                        "Grid has 0 active orders and 0 open positions — "
-                        "re-placing grid on next tick..."
-                    )
-                    self.strategy.on_start()
+            # Auto-retry is grid-specific — only re-place for strategies that
+            # expose active_orders (GridStrategy).  Breakout manages its own
+            # entries and must NOT be restarted here.
+            if hasattr(self.strategy, 'active_orders'):
+                if not self.strategy.active_orders:
+                    positions = self.connector.get_positions() or []
+                    if not positions:
+                        self.log.warning(
+                            "Grid has 0 active orders and 0 open positions — "
+                            "re-placing grid on next tick..."
+                        )
+                        self.strategy.on_start()
 
     def _process_account(self):
         acc = self.connector.account_info()
@@ -221,8 +330,15 @@ class App:
             for p in pos
         )
         self.logger.log_equity(
-            acc.equity, acc.balance, net, len(self.strategy.active_orders)
+            acc.equity, acc.balance, net, self._active_orders_count()
         )
+        # Track drawdown from peak equity (feeds the execution kill-switch).
+        self._peak_equity = max(
+            getattr(self, "_peak_equity", 0.0) or 0.0, float(acc.equity or 0.0))
+        if getattr(self, "_peak_equity", 0.0) > 0:
+            self._last_drawdown_pct = max(
+                0.0, (self._peak_equity - float(acc.equity or 0.0))
+                / self._peak_equity * 100.0)
         action, value = self.risk.check(acc.equity, acc.balance, net)
         if action:
             msg = f"Risk trigger [{self.account.id}]: {action} {value}"
@@ -230,7 +346,8 @@ class App:
             if self.notifier:
                 self.notifier.send(msg)
             self.connector.close_all_positions()
-            self.strategy.reset_grid()
+            if hasattr(self.strategy, 'reset_grid'):
+                self.strategy.reset_grid()
 
     # ── Kronos Risk Sizing (Item 10) ───────────────────────────────────
 
@@ -272,7 +389,9 @@ class App:
             adjusted_lot = round(base_lot * adjustment, 4)
             adjusted_lot = max(0.001, adjusted_lot)  # enforce minimum
 
-            old_lot = self.strategy.lot
+            old_lot = getattr(self.strategy, 'lot', None)
+            if old_lot is None:
+                return
             if abs(old_lot - adjusted_lot) / max(old_lot, 1e-8) > 0.05:
                 self.strategy.lot = adjusted_lot
                 self.log.info(
@@ -292,6 +411,7 @@ class App:
         """Orderly shutdown of all components."""
         self.log.info(f"Shutting down QuantBot for account {self.account.id}...")
         for comp in (self.regime_adapter, self.adaptive_updater,
+                     self.research_scheduler,
                      self.strategy, self.connector, self.logger):
             try:
                 if hasattr(comp, 'stop'):
@@ -342,6 +462,8 @@ class GridBot:
         try:
             self._app.regime_adapter.start()
             self._app.adaptive_updater.start()
+            if self._app.research_scheduler is not None:
+                self._app.research_scheduler.start()
             self._app.strategy.on_start()
 
             while not self._stop:
@@ -349,6 +471,7 @@ class GridBot:
                     self._app._sync_regime_params()
                     self._app._process_tick()
                     self._app._process_account()
+                    self._app._execution_guard()   # kill-switch + hot-apply
                     acc = self._app.connector.account_info()
                     self.connected = acc is not None
                 time.sleep(0.5)
@@ -365,14 +488,59 @@ class GridBot:
         self._paused = True
         self._app.log.info(f"GridBot [{self.account_id}]: paused.")
 
+    def cancel_pending_orders(self):
+        """Cancel this bot's pending limit orders (best-effort)."""
+        try:
+            if hasattr(self._app.strategy, 'active_orders') and self._app.strategy.active_orders:
+                for p in list(self._app.strategy.active_orders.keys()):
+                    try:
+                        self._app.connector.cancel_order(p)
+                    except Exception:
+                        pass
+                self._app.strategy.active_orders.clear()
+        except Exception:
+            pass
+
+    def close_all_positions(self):
+        """Close all open positions via the broker connector."""
+        try:
+            self._app.connector.close_all_positions()
+            self._app.log.info(f"GridBot [{self.account_id}]: close_all_positions sent.")
+        except Exception as e:
+            self._app.log.warning(f"GridBot [{self.account_id}]: close_all failed: {e}")
+
+    def reset_grid(self):
+        """Reset the strategy: re-place the grid, or restart breakout warm-up."""
+        try:
+            if hasattr(self._app.strategy, 'reset_grid'):
+                self._app.strategy.reset_grid()
+            else:
+                self._app.strategy.on_start()
+            self._app.log.info(f"GridBot [{self.account_id}]: strategy reset.")
+        except Exception as e:
+            self._app.log.warning(f"GridBot [{self.account_id}]: reset failed: {e}")
+
     def resume(self):
         self._paused = False
         self._app.log.info(f"GridBot [{self.account_id}]: resumed.")
 
     def stop(self):
-        """Fully stop the background thread (waits briefly for it to exit)."""
+        """Fully stop the background thread and cancel its pending grid orders
+        (so they don't keep executing under a different strategy)."""
         self._stop = True
         self._paused = True
+        # Cancel pending grid orders best-effort so they don't linger
+        try:
+            if hasattr(self._app.strategy, 'active_orders') and self._app.strategy.active_orders:
+                prices = list(self._app.strategy.active_orders.keys())
+                for p in prices:
+                    try:
+                        self._app.connector.cancel_order(p)
+                    except Exception:
+                        pass
+                self._app.strategy.active_orders.clear()
+        except Exception:
+            pass
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=3)
 
@@ -396,8 +564,8 @@ class GridBot:
         regime = (self._app.regime_adapter.regime_name
                   if self._app.regime_adapter.enabled else "ml_disabled")
         regime_conf = self._app.regime_adapter.confidence
-        spacing = self._app.regime_adapter.spacing
-        levels = self._app.regime_adapter.levels
+        spacing = getattr(self._app.regime_adapter, 'spacing', None)
+        levels = getattr(self._app.regime_adapter, 'levels', None)
 
         # ── Kronos forecast data (if enabled and available) ─────────────
         kronos_forecast = {}
@@ -428,7 +596,7 @@ class GridBot:
 
         return {
             'account_id': self.account_id,
-            'active_orders': len(self._app.strategy.active_orders),
+            'active_orders': self._app._active_orders_count(),
             'open_positions': num_pos,
             'net_position': net_pos,
             'total_pnl': equity - balance,
@@ -448,7 +616,7 @@ class GridBot:
             'paused': self._paused,
             'has_bot': True,
             'trading_active': not self._paused,
-            'num_orders': len(self._app.strategy.active_orders),
+            'num_orders': self._app._active_orders_count(),
             'last_error': self.last_error,
             'kronos': kronos_forecast,
             'kronos_breakout': kronos_breakout,

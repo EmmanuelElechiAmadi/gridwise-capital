@@ -95,6 +95,7 @@ export interface EquityPoint {
   [key: string]: unknown;
 }
 
+
 /* ── API Functions ──────────────────────────────────────────── */
 
 /**
@@ -167,3 +168,164 @@ export async function stopBot(accountId?: string): Promise<{ status: string }> {
     body: JSON.stringify(accountId ? { account_id: accountId } : {}),
   });
 }
+
+/* ── Intelligence (research agents / consensus / execution) ────── */
+
+export interface LLMFactCheck {
+  passed?: boolean;
+  checked?: number;
+  flagged?: string[];
+  failed_citations?: string[];
+}
+
+export interface LLMVerdict {
+  direction?: string;
+  strength?: number;
+  confidence?: number;
+  horizon?: string;
+  key_risks?: string[];
+  evidence_cited?: string[];
+  _fact_check?: LLMFactCheck;
+}
+
+export interface MarketView {
+  id?: string;
+  direction: string;
+  direction_value?: number;
+  strength?: number;
+  agreement_index?: number;
+  consensus_strength?: number;
+  contributions?: Array<{
+    source: string;
+    direction: string;
+    strength?: number;
+    confidence?: number;
+    contribution?: number;
+    evidence?: Record<string, unknown>;
+    note?: string;
+  }>;
+  disagreements?: Array<{ source: string; direction?: string; message?: string }>;
+  llm_verdict?: LLMVerdict | null;
+  llm_fact_check?: LLMFactCheck | null;
+  generated_at?: string;
+  sources?: string[];
+}
+
+export interface DeploymentRecord {
+  id: string;
+  strategy_key: string;
+  status: string;
+  qrice?: number;
+  params?: Record<string, unknown>;
+  metrics?: Record<string, unknown>;
+  quality?: {
+    passed?: boolean;
+    failed?: string[];
+    gates?: Array<{ gate: string; value?: number | null; threshold: number; passed: boolean }>;
+  };
+  note?: string;
+  approved_by?: string | null;
+  proposed_at?: string;
+  approved_at?: string | null;
+}
+
+export interface TradeRecommendation {
+  symbol: string;
+  action: string;
+  side?: string | null;
+  confidence?: number;
+  suggested_lot?: number;
+  risk_fraction?: number;
+  reason_chain?: Array<{ step: string; detail: string }>;
+  gates?: Array<{ gate: string; passed: boolean; value: number; threshold: number }>;
+  generated_at?: string;
+}
+
+export interface ShadowReport {
+  id: string;
+  deployment_id?: string;
+  strategy_key?: string;
+  status: string;
+  metrics?: Record<string, unknown>;
+  gates?: Array<{ gate: string; passed: boolean; value: number; threshold: number }>;
+  reason?: string;
+  window_bars?: number;
+}
+
+
+/**
+ * Get the latest consensus MarketView + recent history.
+ */
+export async function getMarketView(): Promise<{
+  status: string;
+  market_view: MarketView | null;
+  history: MarketView[];
+  count: number;
+} | null> {
+  return fetchJSON("/api/intelligence/market_view");
+}
+
+/**
+ * Get a trade recommendation from the advisor (consensus + gates + Kronos).
+ */
+export async function getAdvice(payload?: {
+  price?: number;
+  equity?: number;
+  deployment_id?: string;
+}): Promise<{
+  status: string;
+  market_view: MarketView;
+  recommendation: TradeRecommendation;
+} | null> {
+  const res = await fetch(`${API_BASE}/api/intelligence/advise`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload ?? {}),
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+/**
+ * List all deployments (proposed / approved / blocked / voided).
+ */
+export async function getDeployments(): Promise<{
+  status: string;
+  deployments: DeploymentRecord[];
+} | null> {
+  return fetchJSON("/api/intelligence/deployments");
+}
+
+/**
+ * Approve / force-approve / reject / void a deployment.
+ */
+export async function deploymentAction(
+  action: "approve" | "force_approve" | "reject" | "void",
+  deployment_id: string,
+  reason?: string
+): Promise<{ status: string; deployment?: DeploymentRecord; message?: string } | null> {
+  const res = await fetch(`${API_BASE}/api/intelligence/deploy`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, deployment_id, reason }),
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+/**
+ * Forward-test an approved deployment on a held-out recent window.
+ */
+export async function runShadowTest(deployment_id: string): Promise<{
+  status: string;
+  report: ShadowReport;
+} | null> {
+  const res = await fetch(`${API_BASE}/api/intelligence/shadow`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ deployment_id }),
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+

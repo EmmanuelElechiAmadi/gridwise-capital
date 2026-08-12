@@ -1,0 +1,662 @@
+{
+  "schema": "insightforge.quant.ledger/v2",
+  "created_at": "2026-08-12T01:35:44Z",
+  "updated_at": "2026-08-12T01:35:44Z",
+  "instruments": [
+    {
+      "symbol": "XAUUSD.r",
+      "timeframe": "1m",
+      "source": "MT5 bridge (raw ticks)",
+      "coverage_bars": 509,
+      "status": "sourced",
+      "source_agent": "DataScout",
+      "note": "cached history: 509 bars",
+      "sourced_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "symbol": "GC=F",
+      "timeframe": "1h",
+      "source": "Yahoo Finance",
+      "coverage_bars": 509,
+      "status": "sourced",
+      "source_agent": "DataScout",
+      "note": "cached history: 509 bars",
+      "sourced_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "symbol": "SI=F",
+      "timeframe": "1h",
+      "source": "Yahoo Finance",
+      "coverage_bars": 510,
+      "status": "sourced",
+      "source_agent": "DataScout",
+      "note": "cached history: 510 bars",
+      "sourced_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "symbol": "CL=F",
+      "timeframe": "1h",
+      "source": "Yahoo Finance",
+      "coverage_bars": 510,
+      "status": "sourced",
+      "source_agent": "DataScout",
+      "note": "cached history: 510 bars",
+      "sourced_at": "2026-08-12T01:35:44Z"
+    }
+  ],
+  "probes": [
+    {
+      "id": "96577334cd20",
+      "strategy_key": "breakout_strategy",
+      "symbol": "GC=F",
+      "timeframe": "1m",
+      "params": {
+        "lookback_4h_bars": 5,
+        "breakout_threshold_pct": 0.05,
+        "confirmation_bars_1h": 2,
+        "lot": 0.01,
+        "max_positions": 1,
+        "tp_dollars": "3,5,10",
+        "sl_dollars": 3,
+        "kronos_enabled": false
+      },
+      "metrics": {
+        "total_return_pct": -0.05,
+        "total_pnl": -5.19,
+        "sharpe_ratio": -1.32,
+        "max_drawdown_pct": 0.05,
+        "num_trades": 2,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.0,
+        "avg_loss": -2.09,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 26.0,
+          "mc_var_95_pct": -0.02,
+          "mc_median_max_dd_pct": 0.01
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 509,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "7f543c6bc4d6",
+      "strategy_key": "breakout_strategy",
+      "symbol": "GC=F",
+      "timeframe": "1m",
+      "params": {
+        "lookback_4h_bars": 7.0,
+        "breakout_threshold_pct": 0.05,
+        "confirmation_bars_1h": 2,
+        "lot": 0.01,
+        "max_positions": 1,
+        "tp_dollars": "3,5,10",
+        "sl_dollars": 3,
+        "kronos_enabled": false
+      },
+      "metrics": {
+        "total_return_pct": -0.05,
+        "total_pnl": -5.19,
+        "sharpe_ratio": -1.32,
+        "max_drawdown_pct": 0.05,
+        "num_trades": 2,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.0,
+        "avg_loss": -2.09,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 26.0,
+          "mc_var_95_pct": -0.02,
+          "mc_median_max_dd_pct": 0.01
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 509,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "c58561395e65",
+      "strategy_key": "grid_strategy",
+      "symbol": "GC=F",
+      "timeframe": "1m",
+      "params": {
+        "spacing": 0.1,
+        "levels": 5,
+        "lot": 1.0
+      },
+      "metrics": {
+        "total_return_pct": 0.0,
+        "total_pnl": 0.0,
+        "sharpe_ratio": 0,
+        "max_drawdown_pct": 0.0,
+        "num_trades": 5,
+        "win_rate_pct": 20.0,
+        "profit_factor": 0.06,
+        "avg_win": 0.1,
+        "avg_loss": -0.4,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 0.0,
+          "mc_var_95_pct": 0.0,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 509,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "73285dad1dc8",
+      "strategy_key": "grid_strategy",
+      "symbol": "GC=F",
+      "timeframe": "1m",
+      "params": {
+        "spacing": 0.12000000000000001,
+        "levels": 5,
+        "lot": 1.0
+      },
+      "metrics": {
+        "total_return_pct": -1.04,
+        "total_pnl": -99.94,
+        "sharpe_ratio": -0.98,
+        "max_drawdown_pct": 1.04,
+        "num_trades": 5,
+        "win_rate_pct": 40.0,
+        "profit_factor": 0.29,
+        "avg_win": 0.18,
+        "avg_loss": -0.42,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 0.0,
+          "mc_var_95_pct": -0.61,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 509,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "45a157168397",
+      "strategy_key": "breakout_strategy",
+      "symbol": "SI=F",
+      "timeframe": "1m",
+      "params": {
+        "lookback_4h_bars": 5,
+        "breakout_threshold_pct": 0.05,
+        "confirmation_bars_1h": 2,
+        "lot": 0.01,
+        "max_positions": 1,
+        "tp_dollars": "3,5,10",
+        "sl_dollars": 3,
+        "kronos_enabled": false
+      },
+      "metrics": {
+        "total_return_pct": -0.01,
+        "total_pnl": -1.04,
+        "sharpe_ratio": -1.02,
+        "max_drawdown_pct": 0.01,
+        "num_trades": 1,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.0,
+        "avg_loss": -0.04,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 25.0,
+          "mc_var_95_pct": -0.01,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 510,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "3cd62ff67f41",
+      "strategy_key": "breakout_strategy",
+      "symbol": "SI=F",
+      "timeframe": "1m",
+      "params": {
+        "lookback_4h_bars": 7.0,
+        "breakout_threshold_pct": 0.05,
+        "confirmation_bars_1h": 2,
+        "lot": 0.01,
+        "max_positions": 1,
+        "tp_dollars": "3,5,10",
+        "sl_dollars": 3,
+        "kronos_enabled": false
+      },
+      "metrics": {
+        "total_return_pct": -0.01,
+        "total_pnl": -0.92,
+        "sharpe_ratio": -0.91,
+        "max_drawdown_pct": 0.01,
+        "num_trades": 1,
+        "win_rate_pct": 100.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.08,
+        "avg_loss": 0.0,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 55.5,
+          "mc_var_95_pct": -0.01,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 510,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "c6f88bc8e6d5",
+      "strategy_key": "grid_strategy",
+      "symbol": "SI=F",
+      "timeframe": "1m",
+      "params": {
+        "spacing": 0.1,
+        "levels": 5,
+        "lot": 1.0
+      },
+      "metrics": {
+        "total_return_pct": -3.53,
+        "total_pnl": -347.5,
+        "sharpe_ratio": -1.65,
+        "max_drawdown_pct": 3.53,
+        "num_trades": 5,
+        "win_rate_pct": 100.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.57,
+        "avg_loss": 0.0,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 23.0,
+          "mc_var_95_pct": -1.04,
+          "mc_median_max_dd_pct": 0.51
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 510,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "83de10a98006",
+      "strategy_key": "grid_strategy",
+      "symbol": "SI=F",
+      "timeframe": "1m",
+      "params": {
+        "spacing": 0.12000000000000001,
+        "levels": 5,
+        "lot": 1.0
+      },
+      "metrics": {
+        "total_return_pct": -3.52,
+        "total_pnl": -346.93,
+        "sharpe_ratio": -1.08,
+        "max_drawdown_pct": 3.52,
+        "num_trades": 5,
+        "win_rate_pct": 100.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.7,
+        "avg_loss": 0.0,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 18.5,
+          "mc_var_95_pct": -2.02,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 510,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "0111116de653",
+      "strategy_key": "breakout_strategy",
+      "symbol": "CL=F",
+      "timeframe": "1m",
+      "params": {
+        "lookback_4h_bars": 5,
+        "breakout_threshold_pct": 0.05,
+        "confirmation_bars_1h": 2,
+        "lot": 0.01,
+        "max_positions": 1,
+        "tp_dollars": "3,5,10",
+        "sl_dollars": 3,
+        "kronos_enabled": false
+      },
+      "metrics": {
+        "total_return_pct": -0.01,
+        "total_pnl": -0.9,
+        "sharpe_ratio": -0.9,
+        "max_drawdown_pct": 0.01,
+        "num_trades": 1,
+        "win_rate_pct": 100.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.1,
+        "avg_loss": 0.0,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 49.5,
+          "mc_var_95_pct": -0.01,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "oos": false,
+      "regime": "bull",
+      "data_bars": 510,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "83431f1b5334",
+      "strategy_key": "breakout_strategy",
+      "symbol": "CL=F",
+      "timeframe": "1m",
+      "params": {
+        "lookback_4h_bars": 7.0,
+        "breakout_threshold_pct": 0.05,
+        "confirmation_bars_1h": 2,
+        "lot": 0.01,
+        "max_positions": 1,
+        "tp_dollars": "3,5,10",
+        "sl_dollars": 3,
+        "kronos_enabled": false
+      },
+      "metrics": {
+        "total_return_pct": -0.01,
+        "total_pnl": -0.9,
+        "sharpe_ratio": -0.9,
+        "max_drawdown_pct": 0.01,
+        "num_trades": 1,
+        "win_rate_pct": 100.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.1,
+        "avg_loss": 0.0,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 47.5,
+          "mc_var_95_pct": -0.01,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "oos": false,
+      "regime": "bull",
+      "data_bars": 510,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "3b7cb5ee0988",
+      "strategy_key": "grid_strategy",
+      "symbol": "CL=F",
+      "timeframe": "1m",
+      "params": {
+        "spacing": 0.1,
+        "levels": 5,
+        "lot": 1.0
+      },
+      "metrics": {
+        "total_return_pct": -3.64,
+        "total_pnl": -358.24,
+        "sharpe_ratio": -1.32,
+        "max_drawdown_pct": 3.64,
+        "num_trades": 5,
+        "win_rate_pct": 80.0,
+        "profit_factor": 0.23,
+        "avg_win": 0.58,
+        "avg_loss": -10.0,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 24.0,
+          "mc_var_95_pct": -1.6,
+          "mc_median_max_dd_pct": 0.09
+        }
+      },
+      "oos": false,
+      "regime": "bull",
+      "data_bars": 510,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "bb0de92d0562",
+      "strategy_key": "grid_strategy",
+      "symbol": "CL=F",
+      "timeframe": "1m",
+      "params": {
+        "spacing": 0.12000000000000001,
+        "levels": 5,
+        "lot": 1.0
+      },
+      "metrics": {
+        "total_return_pct": -3.04,
+        "total_pnl": -297.65,
+        "sharpe_ratio": -1.0,
+        "max_drawdown_pct": 3.04,
+        "num_trades": 5,
+        "win_rate_pct": 100.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.7,
+        "avg_loss": 0.0,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 20.5,
+          "mc_var_95_pct": -2.03,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "oos": false,
+      "regime": "bull",
+      "data_bars": 510,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-12T01:35:44Z"
+    }
+  ],
+  "insights": [
+    {
+      "id": "f8f66682f61e",
+      "title": "Breakout Strategy Alpha Theme",
+      "theme": "breakout_strategy shows best-observed Sharpe -0.90 on 1 trades (return -0.01%) with OOS consistency 30%. Regime context: bull.",
+      "evidence": [
+        {
+          "probe_id": "8afd3d93d936",
+          "oos_probe_id": null,
+          "symbol": "CL=F",
+          "sharpe_ratio": -0.9,
+          "oos_sharpe_ratio": 0.30600000000000016,
+          "num_trades": 1,
+          "total_return_pct": -0.01,
+          "max_drawdown_pct": 0.01,
+          "oos_consistency": 0.3
+        }
+      ],
+      "confidence": 0.15129762080592196,
+      "risk_flags": [
+        "low-oos-consistency",
+        "thin-sample"
+      ],
+      "strategy_keys": [
+        "breakout_strategy"
+      ],
+      "source_agent": "QuantAnalyst",
+      "created_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "510b1a932d3c",
+      "title": "Grid Strategy Alpha Theme",
+      "theme": "grid_strategy shows best-observed Sharpe 0.00 on 5 trades (return +0.00%) with OOS consistency 30%. Regime context: ranging.",
+      "evidence": [
+        {
+          "probe_id": "67f3e5110676",
+          "oos_probe_id": null,
+          "symbol": "GC=F",
+          "sharpe_ratio": 0.0,
+          "oos_sharpe_ratio": 0.30600000000000016,
+          "num_trades": 5,
+          "total_return_pct": 0.0,
+          "max_drawdown_pct": 0.0,
+          "oos_consistency": 0.3
+        }
+      ],
+      "confidence": 0.2895591917746058,
+      "risk_flags": [
+        "low-oos-consistency"
+      ],
+      "strategy_keys": [
+        "grid_strategy"
+      ],
+      "source_agent": "QuantAnalyst",
+      "created_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "6fcbbaefe496",
+      "title": "Regime Model Insight",
+      "theme": "The regime classifier identifies volatility, atr_ratio, bb_width, rsi, macd as the most predictive features of BULL/RANGING/BEAR regimes.",
+      "evidence": [
+        {
+          "ml_accuracy": null,
+          "top_features": [
+            "volatility",
+            "atr_ratio",
+            "bb_width",
+            "rsi",
+            "macd"
+          ]
+        }
+      ],
+      "confidence": 0.4,
+      "risk_flags": [],
+      "strategy_keys": [],
+      "source_agent": "QuantAnalyst",
+      "created_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "cd5faeb14577",
+      "title": "Cross-Symbol Correlation Insight",
+      "theme": "Cross-symbol correlation: GC=F vs SI=F at +0.82 over the cached window. A tight cluster is forming \u2014 treat these as correlated bets and diversify allocation across independent symbols.",
+      "evidence": [
+        {
+          "pairs": [
+            {
+              "a": "GC=F",
+              "b": "SI=F",
+              "correlation": 0.817
+            },
+            {
+              "a": "SI=F",
+              "b": "CL=F",
+              "correlation": -0.346
+            },
+            {
+              "a": "GC=F",
+              "b": "CL=F",
+              "correlation": -0.323
+            }
+          ]
+        }
+      ],
+      "confidence": 0.8,
+      "risk_flags": [
+        "high-correlation-cluster"
+      ],
+      "strategy_keys": [],
+      "source_agent": "QuantAnalyst",
+      "created_at": "2026-08-12T01:35:44Z"
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "7916aae9a624",
+      "title": "Breakout Strategy \u2014 production-grade strategy spec",
+      "strategy_key": "breakout_strategy",
+      "source_agent": "strategist",
+      "params": {
+        "lookback_4h_bars": 5,
+        "breakout_threshold_pct": 0.05,
+        "confirmation_bars_1h": 2,
+        "lot": 0.01,
+        "max_positions": 1,
+        "tp_dollars": "3,5,10",
+        "sl_dollars": 3,
+        "kronos_enabled": false
+      },
+      "metrics": {
+        "total_return_pct": -0.01,
+        "total_pnl": -0.9,
+        "sharpe_ratio": -0.9,
+        "max_drawdown_pct": 0.01,
+        "num_trades": 1,
+        "win_rate_pct": 100.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.1,
+        "avg_loss": 0.0,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 49.5,
+          "mc_var_95_pct": -0.01,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "reach": 1.0,
+      "impact": 0.024999999999999994,
+      "confidence": 0.15129762080592196,
+      "effort_hours": 10.0,
+      "qrice": 0.0038,
+      "status": "prioritized",
+      "created_at": "2026-08-12T01:35:44Z"
+    },
+    {
+      "id": "bb10798ba936",
+      "title": "Grid Strategy \u2014 production-grade strategy spec",
+      "strategy_key": "grid_strategy",
+      "source_agent": "strategist",
+      "params": {
+        "spacing": 0.1,
+        "levels": 5,
+        "lot": 1.0
+      },
+      "metrics": {
+        "total_return_pct": 0.0,
+        "total_pnl": 0.0,
+        "sharpe_ratio": 0,
+        "max_drawdown_pct": 0.0,
+        "num_trades": 5,
+        "win_rate_pct": 20.0,
+        "profit_factor": 0.06,
+        "avg_win": 0.1,
+        "avg_loss": -0.4,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 0.0,
+          "mc_var_95_pct": 0.0,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "reach": 1.0,
+      "impact": 0.25,
+      "confidence": 0.2895591917746058,
+      "effort_hours": 6.0,
+      "qrice": 0.1206,
+      "status": "proposed",
+      "created_at": "2026-08-12T01:35:44Z"
+    }
+  ]
+}

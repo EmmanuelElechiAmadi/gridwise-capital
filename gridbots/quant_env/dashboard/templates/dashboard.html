@@ -804,11 +804,345 @@
             .form-grid { grid-template-columns: 1fr; }
             .tab-btn { font-size: 0.65rem; padding: 7px 6px; }
         }
+
+        /* ══════════════════════════════════════════════════════════
+           AGENT TEAM (InsightForge for Quant)
+        ══════════════════════════════════════════════════════════ */
+        .intel-stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px; margin-bottom: 18px;
+        }
+        .intel-stat {
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 12px 14px; text-align: center;
+        }
+        .intel-stat-l { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-3); }
+        .intel-stat-v { font-size: 1.1rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--text-1); margin-top: 3px; }
+        .intel-section-label {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--text-3); margin: 4px 0 10px;
+        }
+        .intel-agents {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 10px; margin-bottom: 20px;
+        }
+        .intel-agent {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 14px 16px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .intel-agent-role { font-size: 0.82rem; font-weight: 800; color: var(--text-1); }
+        .intel-agent-replaces { font-size: 0.72rem; color: var(--text-2); }
+        .intel-agent-resp { font-size: 0.66rem; color: var(--text-3); line-height: 1.5; }
+        .intel-cols {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .intel-theme {
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px;
+        }
+        .intel-theme-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .intel-theme-head span { font-size: 0.76rem; font-weight: 700; color: var(--text-1); }
+        .intel-theme-head b { font-size: 0.76rem; font-weight: 800; color: var(--purple); }
+        .intel-bar { height: 5px; border-radius: 100px; background: var(--border); margin-top: 8px; overflow: hidden; }
+        .intel-bar-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--purple), var(--cyan)); }
+        .intel-theme-text { font-size: 0.68rem; color: var(--text-2); margin-top: 8px; line-height: 1.6; }
+        .intel-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .intel-flag {
+            font-size: 0.58rem; font-weight: 600; padding: 3px 8px; border-radius: 100px;
+            background: var(--red-bg); color: var(--red); border: 1px solid rgba(255,77,109,0.2);
+        }
+        .intel-opp {
+            display: grid; grid-template-columns: 26px 1fr auto; align-items: center;
+            gap: 10px; background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 8px;
+        }
+        .intel-opp-rank {
+            width: 22px; height: 22px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+            font-size: 0.68rem; font-weight: 800; background: rgba(255,255,255,0.06); color: var(--text-3);
+        }
+        .intel-opp-rank.rank-one { background: linear-gradient(135deg, var(--purple), var(--cyan)); color: #000; }
+        .intel-opp-name { font-size: 0.74rem; font-weight: 700; color: var(--text-1); }
+        .intel-opp-status {
+            margin-left: 6px; font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--purple);
+        }
+        .intel-opp-meta { font-size: 0.62rem; color: var(--text-3); margin-top: 2px; }
+        .intel-opp-qrice { text-align: right; }
+        .intel-opp-qrice b { font-size: 0.9rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--purple); }
+        .intel-opp-qrice span { display: block; font-size: 0.52rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-3); }
+        .intel-none { font-size: 0.72rem; color: var(--text-3); font-style: italic; padding: 10px 0; }
+        .intel-status {
+            font-size: 0.62rem; font-weight: 600; color: var(--text-2);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .intel-narrative {
+            font-size: 0.74rem; color: var(--text-2); line-height: 1.7;
+            background: linear-gradient(180deg, rgba(180,122,255,0.06), rgba(0,229,255,0.03));
+            border: 1px solid rgba(180,122,255,0.18);
+            border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px;
+        }
+        .intel-narrative .lbl {
+            display: block; font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--purple); margin-bottom: 6px;
+        }
+        .intel-deploy {
+            display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px;
+        }
+        .intel-deploy .status {
+            font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 3px 8px; border-radius: 100px; white-space: nowrap;
+        }
+        .intel-deploy .status.proposed   { background: var(--amber-bg); color: var(--amber); }
+        .intel-deploy .status.approved   { background: var(--green-bg); color: var(--green); }
+        .intel-deploy .status.rejected   { background: var(--red-bg);   color: var(--red); }
+        .intel-deploy .status.superseded { background: var(--blue-bg);  color: var(--blue); }
+        .intel-deploy .meta { font-size: 0.66rem; color: var(--text-3); line-height: 1.5; }
+        .intel-deploy .meta b { color: var(--text-1); }
+        .intel-deploy .actions { display: flex; gap: 6px; }
+        .intel-deploy .actions .btn { white-space: nowrap; }
+        .intel-corpus { font-size: 0.66rem; color: var(--text-3); margin-bottom: 14px; line-height: 1.9; }
+        .intel-corpus span {
+            display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 100px; padding: 2px 10px; margin: 0 4px 4px 0;
+        }
+
+        /* ── v3: Consensus Market View ─────────────────────────────── */
+        .con-block { margin-top: 22px; border-top: 1px solid var(--border); padding-top: 16px; }
+        .con-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+        .con-direction { font-size: 1.6rem; font-weight: 800; letter-spacing: 0.5px; }
+        .con-direction.bull { color: var(--green); }
+        .con-direction.bear { color: var(--red); }
+        .con-direction.ranging { color: var(--amber); }
+        .con-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 12px; }
+        .con-stat { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; }
+        .con-stat .l { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-3); }
+        .con-stat .v { font-size: 0.85rem; font-weight: 700; margin-top: 2px; }
+        .con-contrib { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-bottom: 10px; }
+        .con-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+        .con-card .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .con-card .src { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .con-card .dir { font-size: 0.8rem; font-weight: 800; }
+        .con-card .sub { font-size: 0.6rem; color: var(--text-3); margin-top: 5px; line-height: 1.5; }
+        .con-card .ev { font-size: 0.58rem; color: var(--text-3); margin-top: 5px; font-family: 'JetBrains Mono', monospace; word-break: break-all; line-height: 1.5; }
+        .con-none { font-size: 0.72rem; color: var(--text-3); padding: 18px 0; text-align: center; }
+        .con-dissent { background: rgba(255,77,109,0.07); border: 1px solid rgba(255,77,109,0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.68rem; color: var(--text-2); margin-bottom: 10px; }
+        .con-llm { background: rgba(255,179,0,0.06); border: 1px solid rgba(255,179,0,0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.68rem; color: var(--text-2); margin-bottom: 10px; }
+        .con-llm .ok { color: var(--green); }
+        .con-llm .fail { color: var(--red); }
+
+        /* ── v3: Trade Execution Advisor ───────────────────────────── */
+        .advisor-block { margin-top: 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+        .advisor-action { font-size: 1.05rem; font-weight: 800; }
+        .advisor-action.trade-buy { color: var(--green); }
+        .advisor-action.trade-sell { color: var(--red); }
+        .advisor-action.hold { color: var(--text-3); }
+        .reason-step { font-size: 0.66rem; color: var(--text-2); margin-top: 5px; line-height: 1.5; }
+        .reason-step b { color: var(--amber); }
+
+        /* ── v3: Deployment quality gates + actions ────────────────── */
+        .gate-chip {
+            display: inline-block; font-size: 0.58rem; padding: 2px 8px; border-radius: 100px;
+            margin: 2px 4px 2px 0; background: var(--bg-card); border: 1px solid var(--border);
+        }
+        .gate-chip.ok { color: var(--green); border-color: rgba(0,230,118,0.25); }
+        .gate-chip.bad { color: var(--red); border-color: rgba(255,77,109,0.25); }
+        .intel-deploy .status.blocked_by_gates { background: var(--red-bg); color: var(--red); }
+        .intel-deploy .status.voided { background: rgba(128,138,160,0.12); color: var(--text-2); }
+        .shadow-report { margin-top: 8px; background: rgba(77,159,255,0.06); border: 1px solid rgba(77,159,255,0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.64rem; color: var(--text-2); line-height: 1.6; }
+        .shadow-report b { color: var(--blue); }
+
+        /* ════════════ v3 ADVANCED UI ════════════ */
+        .con-meter {
+            position: relative; height: 26px; border-radius: 13px; overflow: hidden;
+            background: linear-gradient(90deg, var(--red), rgba(255,77,109,0.25) 30%, rgba(255,179,0,0.2) 50%, rgba(0,230,118,0.25) 70%, var(--green));
+            border: 1px solid var(--border-bright); margin: 6px 0 4px;
+        }
+        .con-meter .marker {
+            position: absolute; top: -3px; bottom: -3px; width: 4px; border-radius: 2px;
+            background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.9);
+            transform: translateX(-2px); transition: left 0.6s ease;
+        }
+        .con-meter .scale { position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; font-size: 0.55rem; color: rgba(255,255,255,0.7); font-weight: 700; }
+        .con-meter-labels { display: flex; justify-content: space-between; font-size: 0.58rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; }
+        .dual-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 10px; }
+        .dbar .lbl { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--text-3); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .dbar .track { height: 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+        .dbar .fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+        .fill.amber { background: linear-gradient(90deg, var(--amber), #ffd54f); }
+        .fill.green { background: linear-gradient(90deg, var(--green), #69f0ae); }
+        .fill.red { background: linear-gradient(90deg, var(--red), #ff8aa0); }
+        .contrib-row { display: grid; grid-template-columns: 90px 1fr 64px; gap: 8px; align-items: center; margin: 3px 0; }
+        .contrib-row .src { font-size: 0.62rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+        .contrib-row .bar { height: 14px; background: var(--bg-card); border-radius: 4px; overflow: hidden; position: relative; border: 1px solid var(--border); }
+        .contrib-row .bar .fill { height: 100%; }
+        .contrib-row .val { font-size: 0.62rem; color: var(--text-2); font-family: 'JetBrains Mono', monospace; text-align: right; }
+        .con-trend { margin-top: 10px; padding: 10px 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .con-trend .t-label { font-size: 0.58rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .con-trend svg { width: 100%; height: 44px; display: block; }
+        .src-expand { cursor: pointer; margin-top: 6px; font-size: 0.58rem; color: var(--blue); text-transform: uppercase; letter-spacing: 0.4px; }
+        .src-expand:hover { text-decoration: underline; }
+        .src-ev-full { display: none; margin-top: 6px; font-size: 0.56rem; color: var(--text-3); font-family: 'JetBrains Mono', monospace; white-space: pre-wrap; word-break: break-all; line-height: 1.5; background: var(--bg-base); border: 1px solid var(--border); border-radius: 6px; padding: 8px; }
+        .con-generated { font-size: 0.58rem; color: var(--text-3); margin-top: 4px; }
+
+        /* Execution Guard panel */
+        .guard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 8px 0 10px; }
+        .guard-tile { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+        .guard-tile .l { font-size: 0.58rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; }
+        .guard-tile .v { font-size: 0.9rem; font-weight: 700; margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
+        .guard-tile .v.ok { color: var(--green); }
+        .guard-tile .v.warn { color: var(--amber); }
+        .guard-tile .v.crit { color: var(--red); }
+        .guard-tile .sub { font-size: 0.56rem; color: var(--text-3); margin-top: 2px; }
+        .guard-tile .bar { height: 6px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+        .guard-tile .bar .fill { height: 100%; }
+        .hot-list { margin-top: 6px; display: grid; gap: 4px; }
+        .hot-item { font-size: 0.62rem; color: var(--text-2); background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .hot-item b { color: var(--text-1); }
+        .hot-item .applied { color: var(--green); }
+
+        /* Filter chips + gate summary + shadow history */
+        .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+        .filter-chip { font-size: 0.62rem; padding: 4px 12px; border-radius: 100px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-2); cursor: pointer; transition: all 0.15s; }
+        .filter-chip.active { background: var(--purple-bg); color: var(--purple); border-color: rgba(180,122,255,0.35); font-weight: 700; }
+        .gate-summary { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; font-size: 0.6rem; color: var(--text-2); }
+        .gate-summary .n-pass { color: var(--green); font-weight: 700; }
+        .gate-summary .n-fail { color: var(--red); font-weight: 700; }
+        .shadow-history { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
+        .shadow-item { font-size: 0.6rem; color: var(--text-2); padding: 4px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .shadow-item .st { font-weight: 700; }
+        .st.promoted { color: var(--green); }
+        .st.held { color: var(--amber); }
+        .st.insufficient_data { color: var(--text-3); }
+        .shadow-item time { color: var(--text-3); }
+
+        /* Confirmation modal */
+        .mod-overlay { position: fixed; inset: 0; background: rgba(4,8,16,0.72); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 999; }
+        .mod-overlay.show { display: flex; }
+        .mod-box { background: var(--bg-surface); border: 1px solid var(--border-bright); border-radius: var(--radius-lg); padding: 22px 24px; width: 420px; max-width: 92vw; }
+        .mod-box h4 { margin-bottom: 8px; font-size: 0.95rem; }
+        .mod-box p { font-size: 0.74rem; color: var(--text-2); line-height: 1.6; margin-bottom: 16px; }
+        .mod-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+        /* Scheduler controls */
+        .sched-ctrl { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+        .sched-ctrl .btn { font-size: 0.6rem; padding: 3px 8px; }
+        .countdown { font-size: 0.58rem; color: var(--text-3); margin-top: 2px; }
+
+        /* Offline / idle banner */
+        .offline-banner {
+            display: none; margin-bottom: 16px; padding: 10px 14px;
+            border-radius: var(--radius-sm); font-size: 0.72rem; line-height: 1.5;
+            background: rgba(255,77,109,0.08); border: 1px solid rgba(255,77,109,0.3);
+            color: var(--red);
+        }
+        .offline-banner b { font-weight: 700; }
     </style>
 </head>
 <body>
 
 <div id="toast" class="toast"></div>
+
+<!-- Confirmation modal (force-approve / void — dangerous actions) -->
+<div class="mod-overlay" id="confirmModal">
+    <div class="mod-box">
+        <h4 id="confirmTitle">Are you sure?</h4>
+        <p id="confirmBody">This action cannot be undone.</p>
+        <div class="mod-actions">
+            <button class="btn btn-ghost btn-sm" onclick="closeConfirm()">Cancel</button>
+            <button class="btn btn-red btn-sm" id="confirmOk">Yes, do it</button>
+        </div>
+    </div>
+</div>
+
+<!-- Boot watchdog: shows ANY uncaught JS error (incl. parse errors in the
+     main script) so a dead dashboard is never a silent mystery. -->
+<div class="offline-banner" id="bootError" style="position:fixed;top:0;left:0;right:0;z-index:1000;margin:0;border-radius:0;"></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CORE CONTROLS — standalone script so buttons + Event Log always
+     work even if the main script below has an error.
+══════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+    // ── Boot watchdog: surface ANY uncaught JS error (parse/runtime) so a
+    // ── dead dashboard is never a silent mystery. Runs in this standalone
+    // ── script so it catches errors from the LATER main script too.
+    function showBootError(msg) {
+        var b = document.getElementById('bootError');
+        if (!b) return;
+        b.style.display = 'block';
+        b.textContent = '⚠ JavaScript error: ' + msg;
+    }
+    window.addEventListener('error', function (ev) {
+        var line = ev.message || 'unknown error';
+        if (ev.filename) line += ' @ ' + ev.filename.split('/').pop() + ':' + (ev.lineno || '?');
+        try { showBootError(line); } catch (_) {}
+        try {
+            var feed = document.getElementById('logFeed');
+            if (feed) { var d = document.createElement('div'); d.className = 'log-entry error'; d.textContent = '⚠ JS: ' + line; feed.appendChild(d); }
+        } catch (_) {}
+    });
+    // If the main script never registered its boot marker, flag it.
+    setTimeout(function () {
+        var b = document.getElementById('bootError');
+        if (b && !window.__mainScriptBooted) {
+            b.style.display = 'block';
+            b.textContent = '⚠ Main dashboard script did not start. Check the browser console (F12) for a syntax error.';
+        }
+    }, 2500);
+
+    function getFeed() { return document.getElementById('logFeed'); }
+    function feedLine(msg, level) {
+        const feed = getFeed();
+        if (!feed) return;
+        const t = new Date().toLocaleTimeString();
+        const div = document.createElement('div');
+        div.className = 'log-entry ' + (level || 'info');
+        div.textContent = '[' + t + '] ' + msg;
+        feed.appendChild(div);
+        if (feed.children.length > 200) feed.removeChild(feed.firstChild);
+        feed.scrollTop = feed.scrollHeight;
+    }
+    async function post(path, okMsg, errMsg, level) {
+        try {
+            const r = await fetch(path, { method: 'POST' });
+            const d = await r.json();
+            feedLine(okMsg + (d.message ? ': ' + d.message : ''), level || 'info');
+            return d;
+        } catch (e) {
+            feedLine((errMsg || 'Action failed') + ': ' + e.message, 'error');
+            return null;
+        }
+    }
+    window.addLog = window.addLog || feedLine;
+    window.startStrategy   = window.startStrategy   || (() => post('/api/bot/start', '▶ Started', 'Failed to start', 'success'));
+    window.stopStrategy    = window.stopStrategy    || (() => post('/api/bot/stop', '■ Stopped', 'Failed to stop', 'warn'));
+    window.closeAll        = window.closeAll        || (() => post('/api/bot/close_all', '⚠ Closed', 'Failed to close', 'warn'));
+    window.resetGrid       = window.resetGrid       || (() => post('/api/bot/reset_grid', '↺ Reset', 'Failed to reset'));
+    window.refreshRegime   = window.refreshRegime   || (() => post('/api/bot/refresh_regime', '⟳ Regime', 'Failed to refresh regime'));
+    window.exportTrades    = window.exportTrades    || (() => { window.open('/export_trades', '_blank'); });
+    window.loadLogs = window.loadLogs || (async () => {
+        try {
+            const r = await fetch('/api/logs?limit=80'); const d = await r.json();
+            if (!d || !d.lines || !d.lines.length) return;
+            const feed = getFeed(); if (!feed) return;
+            const joined = d.lines.join('\n');
+            if (feed.getAttribute('data-last') === joined) return;
+            feed.setAttribute('data-last', joined);
+            feed.innerHTML = d.lines.slice(-60).map(l => {
+                const safe = l.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const cls = /ERROR/i.test(l) ? 'log-entry error' : /WARNING/i.test(l) ? 'log-entry warn' : 'log-entry';
+                return '<div class="' + cls + '">' + safe + '</div>';
+            }).join('');
+            feed.scrollTop = feed.scrollHeight;
+        } catch (e) {}
+    });
+})();
+</script>
 
 <!-- ══════════════════════════════════════════════════════════════
      SIDEBAR
@@ -952,6 +1286,9 @@
 ══════════════════════════════════════════════════════════════ -->
 <main class="main">
 
+    <!-- Live connection banner (hidden when healthy) -->
+    <div class="offline-banner" id="offlineBanner"><b>⚠ Live feed unavailable.</b> No MT5 bridge / bot session is responding — the widgets below show idle placeholder values. Start the bridge (<code>live/mt5_bridge_server.py</code> + EA in MT5) then press <b>▶ Start</b>.</div>
+
     <!-- KPI Row -->
     <div class="kpi-grid">
         <div class="kpi-card accent-blue">
@@ -1018,6 +1355,7 @@
         <button class="tab-btn" data-tab="tabReport">📋 Report</button>
         <button class="tab-btn" data-tab="tabWF">🔄 Walkforward</button>
         <button class="tab-btn" data-tab="tabML">🧠 Train ML</button>
+        <button class="tab-btn" data-tab="tabIntelligence">🤖 Agent Team</button>
     </div>
 
     <!-- ── Trading Panel ──────────────────────────────────────── -->
@@ -1186,6 +1524,87 @@
         </div>
     </div>
 
+    <!-- ── Agent Team Panel (InsightForge for Quant) ─────────────── -->
+    <div class="op-panel" id="tabIntelligence">
+        <div class="op-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
+                <h3>🤖 InsightForge Agent Team</h3>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <span class="intel-status" id="intelStatus">—</span>
+                    <button class="btn btn-purple btn-sm" id="btnRunIntelligence" onclick="runIntelligenceCycle()">▶ Run Research Cycle</button>
+                </div>
+            </div>
+            <p>Autonomous quant research — every agent is a <strong>quant professional replacement</strong>:
+                Data Scout (← Recruiter), Market Prober (← Interviewer), Quant Research Analyst (← Analyst),
+                Quant Strategist (← Strategist), CQO Coordinator (← Coordinator).</p>
+            <div id="intelBody">
+                <div class="empty-state"><div class="ei">🤖</div><div class="et">Loading agent team…</div></div>
+            </div>
+
+            <!-- Research pipeline status -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:14px 0 6px;">
+                <div class="intel-stat"><div class="intel-stat-l">Research loop</div><div class="intel-stat-v" id="schedState">—</div>
+                    <div class="sched-ctrl">
+                        <button class="btn btn-green btn-xs" id="btnSchedStart" onclick="toggleScheduler('start')">▶ Start</button>
+                        <button class="btn btn-red btn-xs" id="btnSchedStop" onclick="toggleScheduler('stop')">■ Stop</button>
+                    </div>
+                </div>
+                <div class="intel-stat"><div class="intel-stat-l">Cycles run</div><div class="intel-stat-v" id="schedCycles">—</div></div>
+                <div class="intel-stat"><div class="intel-stat-l">Next cycle</div><div class="intel-stat-v" id="schedNext">—</div><div class="countdown" id="schedCountdown"></div></div>
+                <div class="intel-stat"><div class="intel-stat-l">LLM layer</div><div class="intel-stat-v" id="llmLayer">—</div></div>
+                <div class="intel-stat"><div class="intel-stat-l">Answered by</div><div class="intel-stat-v" id="llmAnswered">—</div></div>
+                <div class="intel-stat"><div class="intel-stat-l">Auto-approve</div><div class="intel-stat-v" id="autoApprove">—</div></div>
+            </div>
+
+            <!-- v3: Consensus Market View + Trade Execution Advisor -->
+            <div class="con-block">
+                <div class="con-header">
+                    <div class="intel-section-label" style="margin:0;">Consensus Market View — the common conclusion (Kronos + RF + backtests + LLM)</div>
+                    <button class="btn btn-ghost btn-sm" onclick="loadMarketView()">↻ Refresh</button>
+                </div>
+                <div id="consensusBody"><div class="con-none">Loading consensus…</div></div>
+                <div style="margin-top:10px;">
+                    <button class="btn btn-blue btn-sm" id="btnAdvise" onclick="runAdvisor()">⚡ Get Trade Advice</button>
+                    <span class="intel-status" id="adviseStatus">—</span>
+                </div>
+                <div id="advisorBody"></div>
+            </div>
+
+            <!-- v3: Execution Guard (kill-switches + hot-apply) -->
+            <div class="con-block">
+                <div class="con-header">
+                    <div class="intel-section-label" style="margin:0;">🛡 Execution Guard — kill-switches & hot-applied deployments</div>
+                    <button class="btn btn-ghost btn-sm" onclick="loadExecutionGuard()">↻ Refresh</button>
+                </div>
+                <div id="execGuardBody"><div class="con-none">Loading execution guard…</div></div>
+            </div>
+
+            <!-- Deployment gate · human approval -->
+            <div style="margin-top:22px;border-top:1px solid var(--border);padding-top:16px;">
+                <div class="intel-section-label">Deployment gate · human approval</div>
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
+                    <button class="btn btn-purple btn-sm" onclick="proposeDeployment()">🛠 Propose Top Opportunity</button>
+                    <button class="btn btn-ghost btn-sm" onclick="loadDeployments()">↻ Refresh</button>
+                    <span class="intel-status" id="deployStatus">—</span>
+                </div>
+                <div class="filter-chips" id="deployFilters"></div>
+                <div id="gateSummary"></div>
+                <div id="deploymentsBody">
+                    <div class="intel-none">Loading deployments…</div>
+                </div>
+                <div id="shadowBody"></div>
+                <div id="shadowHistory" class="shadow-history"></div>
+                <div style="font-size:0.66rem;color:var(--text-3);margin-top:8px;line-height:1.6;">
+                    Approved deployments apply to the live strategy on the next bot start (or hot-reload on the
+                    running bot). Every deployment must clear the hard quality gates (min trades / Sharpe / OOS /
+                    Monte-Carlo / qRICE / drawdown) before approval — <code>force-approve</code> is an auditable
+                    override, <code>void</code> retires a deployment forever, and <code>🧪 Shadow Test</code>
+                    forward-tests an approved deployment on a held-out window before it goes live.
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Log Feed -->
     <div class="card">
         <div class="card-header">
@@ -1204,6 +1623,7 @@
 ══════════════════════════════════════════════════════════════ -->
 <script>
 'use strict';
+window.__mainScriptBooted = true;   // signals the boot watchdog that this script parsed
 
 let _strategies = [];
 let _activeStrategy = null;
@@ -1318,15 +1738,19 @@ async function loadTrades() {
             return;
         }
         tbody.innerHTML = data.map(t => {
-            const sc = t.side === 'BUY' ? 'side-buy' : 'side-sell';
-            const pc = (t.pnl ?? 0) >= 0 ? 'pnl-pos' : 'pnl-neg';
+            const side = String(t.side || '').toUpperCase();
+            const sc = side === 'BUY' ? 'side-buy' : side === 'SELL' ? 'side-sell' : '';
+            const pnl = Number(t.pnl) || 0;
+            const pc = pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
+            const price = Number(t.price) || 0;
+            const volume = Number(t.volume) || 0;
             return `<tr>
                 <td>${t.timestamp ?? '--'}</td>
                 <td>${t.symbol ?? '--'}</td>
-                <td class="${sc}">${t.side ?? '--'}</td>
-                <td>$${(t.price ?? 0).toFixed(2)}</td>
-                <td>${(t.volume ?? 0).toFixed(4)}</td>
-                <td class="${pc}">${(t.pnl ?? 0) >= 0 ? '+' : ''}$${(t.pnl ?? 0).toFixed(2)}</td>
+                <td class="${sc}">${side || '--'}</td>
+                <td>$${price.toFixed(2)}</td>
+                <td>${volume.toFixed(4)}</td>
+                <td class="${pc}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}</td>
             </tr>`;
         }).join('');
     } catch(e) {}
@@ -1453,11 +1877,12 @@ function updateComparisonTable() {
 
 async function selectStrategy(key) {
     if (!key) return;
+    const acctId = window._defaultAccountId || null;
     try {
         const r = await fetch('/api/strategy/select', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({strategy: key})
+            body: JSON.stringify({strategy: key, account_id: acctId})
         });
         const d = await r.json();
         if (d.status === 'ok') {
@@ -1569,20 +1994,54 @@ function exportComparison() {
     URL.revokeObjectURL(url);
 }
 
+// Coherent "offline" account used to render the UI even when /api/status
+// is unreachable — so the dashboard never looks frozen, just clearly offline.
+const _OFFLINE_STATUS = {
+    account_id: 'offline',
+    balance: null, equity: null, pnl: null, pnl_pct: null,
+    num_orders: 0, max_drawdown: null,
+    regime: 'offline', regime_confidence: 0,
+    position_direction: 'Neutral', net_position: null,
+    latest_price: null, grid_spacing: null, grid_levels: null,
+    active_orders: 0, open_positions: 0,
+    broker_connected: false, has_bot: false, trading_active: false,
+    last_error: 'engine / bridge unreachable',
+    bridge: { mode: 'offline', ea_running: false },
+    kronos: null, kronos_breakout: null,
+};
+
 async function pollStatus() {
+    const banner = document.getElementById('offlineBanner');
     try {
         const r = await fetch('/api/status');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
         const d = await r.json();
+        if (d && d.status === 'error') {
+            _OFFLINE_STATUS.last_error = d.error || 'engine error';
+            updateUI(_OFFLINE_STATUS);
+            if (banner) { banner.style.display = 'block'; banner.innerHTML = '<b>⚠ Engine error:</b> ' + _esc(d.error || 'unknown') + ' — check the Flask server console and Event Log.'; }
+            try { addLog('⚠ /api/status engine error: ' + (d.error || ''), 'error'); } catch (_) {}
+            return;
+        }
         if (d) {
-            // Response is now wrapped in { accounts: [ {...} ], total_balance, ... }
-            // Extract the first account for the flat updateUI() function
             const statusData = d.accounts && d.accounts.length > 0 ? d.accounts[0] : d;
             if (statusData) updateUI(statusData);
         }
-    } catch(e) {}
+        // Healthy path: hide the banner and surface connection state.
+        if (banner) banner.style.display = 'none';
+    } catch(e) {
+        // Reachable-or-not: render the coherent offline state so the UI is
+        // never frozen at stale placeholders.
+        try { updateUI(_OFFLINE_STATUS); } catch (_) {}
+        if (banner) { banner.style.display = 'block'; banner.innerHTML = '<b>⚠ Cannot reach the engine.</b> Is the Flask dashboard running on :5050? (' + _esc(e.message) + ')'; }
+        try { addLog('⚠ /api/status failed: ' + e.message, 'error'); } catch (_) {}
+    }
 }
 
 function updateUI(d) {
+    // Track the active account id (used by strategy selection / bot control)
+    if (d.account_id) window._defaultAccountId = d.account_id;
+    else if (d.accounts && d.accounts[0] && d.accounts[0].account_id) window._defaultAccountId = d.accounts[0].account_id;
     const $ = id => document.getElementById(id);
     const fmt$ = v => ((v<0?'-$':'$')+Math.abs(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
     $('kpiBalance').textContent = d.balance != null ? fmt$(d.balance) : '--';
@@ -1787,6 +2246,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.add('active');
         document.getElementById(btn.dataset.tab).classList.add('active');
         if (btn.dataset.tab === 'tabStrategies') loadStrategyResults();
+        if (btn.dataset.tab === 'tabIntelligence') { loadIntelligence(); loadDeployments(); loadScheduler(); loadMarketView(); loadExecutionGuard(); loadShadowHistory(); }
     });
 });
 
@@ -1870,12 +2330,15 @@ async function stopStrategy() {
 }
 async function closeAll() {
     try { const r = await fetch('/api/bot/close_all', {method:'POST'}); const d = await r.json(); if (d.status === 'error') { addLog('Failed to close: ' + (d.message || 'unknown error'), 'error'); } else { addLog('⚠ ' + (d.message || 'Closed'), 'warn'); } } catch(e) { addLog('Failed to close: ' + e.message, 'error'); }
+    loadLogs();
 }
 async function resetGrid() {
     try { const r = await fetch('/api/bot/reset_grid', {method:'POST'}); const d = await r.json(); addLog('↺ ' + d.message, 'info'); } catch(e) { addLog('Failed to reset', 'error'); }
+    loadLogs();
 }
 async function refreshRegime() {
     try { const r = await fetch('/api/bot/refresh_regime', {method:'POST'}); const d = await r.json(); addLog('⟳ Regime: ' + (d.regime || d.status), 'info'); } catch(e) { addLog('Failed to refresh regime', 'error'); }
+    loadLogs();
 }
 function exportTrades() { window.open('/export_trades', '_blank'); }
 
@@ -1888,6 +2351,24 @@ function addLog(msg, level) {
     feed.appendChild(div);
     if (feed.children.length > 200) feed.removeChild(feed.firstChild);
     feed.scrollTop = feed.scrollHeight;
+}
+
+async function loadLogs() {
+    try {
+        const r = await fetch('/api/logs?limit=80'); const d = await r.json();
+        if (!d || !d.lines || !d.lines.length) return;
+        const feed = document.getElementById('logFeed');
+        if (!feed) return;
+        const joined = d.lines.join('\n');
+        if (feed.getAttribute('data-last') === joined) return;   // no change
+        feed.setAttribute('data-last', joined);
+        feed.innerHTML = d.lines.slice(-60).map(l => {
+            const safe = l.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const cls = /ERROR/i.test(l) ? 'log-entry error' : /WARNING/i.test(l) ? 'log-entry warn' : 'log-entry';
+            return '<div class="' + cls + '">' + safe + '</div>';
+        }).join('');
+        feed.scrollTop = feed.scrollHeight;
+    } catch(e) {}
 }
 
 function showToast(msg, type) {
@@ -1904,21 +2385,812 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// ── Init ───────────────────────────────────────────────────────
+// ── Agent Team (InsightForge for Quant) ────────────────────────────
+function _esc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+async function loadIntelligence() {
+    // Load the persisted ledger AND the last completed brief, so the panel is
+    // populated on page load (narrative, themes, opportunities, LLM layer).
+    // Each fetch is isolated: a missing endpoint (stale server) must not
+    // block the ledger view.
+    let ledger = null;
+    let brief = null;
+    try {
+        const lr = await fetch('/api/intelligence/ledger').then(function (r) { return r.json(); });
+        if (lr.status === 'ok') ledger = lr.ledger;
+    } catch (e) { /* ledger offline */ }
+    try {
+        const br = await fetch('/api/intelligence/last_brief').then(function (r) { return r.json(); });
+        if (br.status === 'ok') brief = br.brief;
+    } catch (e) { /* last_brief missing on stale server — not fatal */ }
+    if (ledger || brief) renderAgentTeam(ledger, brief);
+    fillLLMTiles(brief ? brief.narrative_layer : null);
+}
+
+function fillLLMTiles(layer) {
+    const set = function (id, v) { const el = document.getElementById(id); if (el) el.textContent = v; };
+    if (!layer) { set('llmLayer', '—'); set('llmAnswered', '—'); return; }
+    set('llmLayer', (layer.enabled ? 'enabled' : 'off') + ' · ' + (layer.provider || 'none'));
+    set('llmAnswered', layer.last_model || '—');
+}
+
+let _nextCycleAt = null;
+let _schedRunning = false;
+async function loadScheduler() {
+    const set = function (id, v) { const el = document.getElementById(id); if (el) el.textContent = v; };
+    try {
+        const r = await fetch('/api/intelligence/scheduler');
+        const d = await r.json();
+        if (d.status === 'ok') {
+            _schedRunning = !!d.running;
+            _nextCycleAt = d.next_cycle_at ? (new Date(d.next_cycle_at).getTime()) : null;
+            set('schedState', d.running
+                ? ('running · every ' + d.interval_minutes + 'm')
+                : (d.enabled ? 'enabled (starts with bot)' : 'off'));
+            set('schedCycles', d.cycles_run || '0');
+            set('schedNext', d.running ? (d.interval_minutes + 'm cadence') : '—');
+            set('autoApprove', (d.auto_approve_cycles || 0) > 0
+                ? (d.auto_approve_cycles + ' cycles')
+                : 'human only');
+            const startBtn = document.getElementById('btnSchedStart');
+            const stopBtn = document.getElementById('btnSchedStop');
+            if (startBtn) startBtn.disabled = d.running;
+            if (stopBtn) stopBtn.disabled = !d.running;
+            updateSchedCountdown();
+        }
+    } catch(e) {}
+}
+
+function updateSchedCountdown() {
+    const el = document.getElementById('schedCountdown');
+    if (!el) return;
+    if (!_schedRunning || !_nextCycleAt) { el.textContent = ''; return; }
+    const left = _nextCycleAt - Date.now();
+    if (left <= 0) { el.textContent = 'running now…'; return; }
+    const m = Math.floor(left / 60000);
+    const s = Math.floor((left % 60000) / 1000);
+    el.textContent = 'next in ' + m + 'm ' + s + 's';
+}
+
+async function runIntelligenceCycle() {
+    const btn = document.getElementById('btnRunIntelligence');
+    const statusEl = document.getElementById('intelStatus');
+    const body = document.getElementById('intelBody');
+    if (btn) { btn.disabled = true; btn.textContent = '⟳ Probing market…'; }
+    if (statusEl) statusEl.textContent = 'running…';
+    if (body) body.innerHTML = '<div class="empty-state"><div class="ei">🔬</div><div class="et">Research cycle running — the market is being interviewed…</div></div>';
+    try {
+        const r = await fetch('/api/intelligence/brief');
+        const d = await r.json();
+        if (d.status === 'ok' && d.brief) {
+            renderAgentTeam(null, d.brief);
+            addLog('🤖 Cycle ' + d.brief.cycle_id + ': ' + d.brief.probe_count + ' probes, ' +
+                   (d.brief.themes || []).length + ' themes, ' +
+                   (d.brief.top_opportunities || []).length + ' opportunities prioritized', 'success');
+            showToast('Research cycle complete', 'success');
+            loadDeployments();              // a cycle may have auto-proposed a deployment
+            loadMarketView();               // the cycle produced a fresh consensus
+            loadExecutionGuard();           // refresh kill-switch status
+            fillLLMTiles(d.brief.narrative_layer);
+            loadScheduler();
+        } else {
+            renderAgentTeamError('Engine error: ' + _esc(d.error || 'unknown error'));
+        }
+    } catch(e) {
+        renderAgentTeamError('Engine unreachable — start the Flask backend, then retry.');
+        addLog('⚠ Research cycle failed: ' + e.message, 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '▶ Run Research Cycle'; }
+        if (statusEl) statusEl.textContent = '—';
+    }
+}
+
+function renderAgentTeamError(msg) {
+    const body = document.getElementById('intelBody');
+    if (body) body.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div><div class="et">' + msg + '</div></div>';
+}
+
+function renderAgentTeam(ledger, brief) {
+    const body = document.getElementById('intelBody');
+    if (!body) return;
+    const team = (brief && brief.team) || [];
+    const themes = (brief && brief.themes) || (ledger && ledger.insights) || [];
+    const opportunities = (brief && brief.top_opportunities) || (ledger && ledger.opportunities) || [];
+    const instruments = (ledger && ledger.instruments) || [];
+    const probes = (ledger && ledger.probes) || [];
+    const statusEl = document.getElementById('intelStatus');
+    if (statusEl) statusEl.textContent = brief ? ('cycle ' + brief.cycle_id.slice(0, 8)) : (probes.length + ' probes');
+
+    if (!team.length && !themes.length && !opportunities.length) {
+        body.innerHTML = '<div class="empty-state"><div class="ei">🤖</div><div class="et">No research yet — click "Run Research Cycle" to have the agent team probe the market.</div></div>';
+        return;
+    }
+
+    const stats = [
+        ['Instruments', instruments.length || (brief && brief.instrument_count) || 0],
+        ['Probes', probes.length || (brief && brief.probe_count) || 0],
+        ['Alpha themes', themes.length],
+        ['Opportunities', opportunities.length],
+    ].map(function (x) {
+        return '<div class="intel-stat"><div class="intel-stat-l">' + x[0] + '</div><div class="intel-stat-v">' + x[1] + '</div></div>';
+    }).join('');
+
+    const corpus = (instruments && instruments.length)
+        ? '<div class="intel-corpus">Corpus: ' + instruments.map(function (i) {
+            return '<span>' + _esc(i.symbol) + ' · ' + i.coverage_bars + ' bars</span>';
+          }).join('') + '</div>'
+        : '';
+
+    // Strategist specs (allocation, Monte Carlo, risk gates) by opportunity id.
+    const specMap = {};
+    if (brief && brief.team) {
+        brief.team.forEach(function (m) {
+            const specs = m.findings && m.findings.specs;
+            if (Array.isArray(specs)) {
+                specs.forEach(function (sp) {
+                    if (sp && sp.opportunity_id) specMap[sp.opportunity_id] = sp;
+                });
+            }
+        });
+    }
+
+    const agentCards = team.length ? team.map(function (m) {
+        return '<div class="intel-agent">' +
+            '<div class="intel-agent-role">' + _esc(m.role) + '</div>' +
+            '<div class="intel-agent-replaces">replaces: ' + _esc(m.replaces) + '</div>' +
+            (m.primary_responsibility ? '<div class="intel-agent-resp">' + _esc(m.primary_responsibility) + '</div>' : '') +
+            '</div>';
+    }).join('') : '';
+
+    const themeRows = themes.length ? themes.map(function (t) {
+        const pct = Math.round((t.confidence || 0) * 100);
+        const flags = (t.risk_flags || []).map(function (f) {
+            return '<span class="intel-flag">' + _esc(f) + '</span>';
+        }).join('');
+        return '<div class="intel-theme">' +
+            '<div class="intel-theme-head"><span>' + _esc(t.title) + '</span><b>conf ' + pct + '%</b></div>' +
+            '<div class="intel-bar"><div class="intel-bar-fill" style="width:' + pct + '%"></div></div>' +
+            '<div class="intel-theme-text">' + _esc(t.theme) + '</div>' +
+            (flags ? '<div class="intel-flags">' + flags + '</div>' : '') +
+            '</div>';
+    }).join('') : '<div class="intel-none">No themes yet.</div>';
+
+    const oppRows = opportunities.length ? opportunities.map(function (o, i) {
+        const sp = specMap[o.id] || {};
+        const specLine = (sp.suggested_allocation_pct != null || sp.monte_carlo)
+            ? '<div class="intel-opp-meta" style="margin-top:2px;">' +
+              (sp.suggested_allocation_pct != null ? 'alloc ' + sp.suggested_allocation_pct + '% · ' : '') +
+              _esc(sp.monte_carlo || '') + '</div>'
+            : '';
+        return '<div class="intel-opp">' +
+            '<div class="intel-opp-rank' + (i === 0 ? ' rank-one' : '') + '">' + (i + 1) + '</div>' +
+            '<div class="intel-opp-main">' +
+                '<div class="intel-opp-name">' + _esc(o.strategy_key) + '<span class="intel-opp-status">' + _esc(o.status) + '</span></div>' +
+                '<div class="intel-opp-meta">effort ' + Math.round(o.effort_hours) + 'h · impact ' + Math.round((o.impact || 0) * 100) + '% · conf ' + Math.round((o.confidence || 0) * 100) + '%</div>' +
+                specLine +
+                (o.narrative ? '<div class="intel-opp-meta" style="margin-top:4px;color:var(--text-2);">' + _esc(o.narrative) + '</div>' : '') +
+            '</div>' +
+            '<div class="intel-opp-qrice"><b>' + (o.qrice || 0).toFixed(3) + '</b><span>qRICE</span>' +
+                '<button class="btn btn-ghost btn-xs" style="margin-top:6px;" onclick="proposeDeployment(\'' + _esc(o.strategy_key) + '\')">🛠 Deploy</button>' +
+            '</div>' +
+            '</div>';
+    }).join('') : '<div class="intel-none">No opportunities yet.</div>';
+
+    const narrative = (brief && brief.narrative)
+        ? '<div class="intel-narrative"><span class="lbl">CQO Narrative</span>' + _esc(brief.narrative) + '</div>'
+        : '';
+
+    body.innerHTML =
+        narrative +
+        '<div class="intel-stats">' + stats + '</div>' +
+        corpus +
+        (agentCards ? '<div class="intel-section-label">The team · quant professional replacements</div>' +
+                     '<div class="intel-agents">' + agentCards + '</div>' : '') +
+        '<div class="intel-cols">' +
+            '<div><div class="intel-section-label">Alpha themes · confidence Cₛ</div>' + themeRows + '</div>' +
+            '<div><div class="intel-section-label">Prioritized opportunities · qRICE</div>' + oppRows + '</div>' +
+        '</div>';
+}
+
+/* ── Deployment gate (human approval on the dashboard) ──────────── */
+
+async function loadDeployments() {
+    const body = document.getElementById('deploymentsBody');
+    const statusEl = document.getElementById('deployStatus');
+    try {
+        const r = await fetch('/api/intelligence/deployments');
+        const d = await r.json();
+        if (d.status === 'ok') {
+            _allDeployments = d.deployments || [];
+            renderDeployFilters();
+            renderDeployments(_allDeployments);
+            if (statusEl) statusEl.textContent = _allDeployments.length + ' records';
+        } else if (body) {
+            body.innerHTML = '<div class="intel-none">Engine error loading deployments.</div>';
+        }
+    } catch (e) {
+        if (body) body.innerHTML = '<div class="intel-none">Engine offline — cannot load deployments.</div>';
+        if (statusEl) statusEl.textContent = 'offline';
+    }
+}
+
+function renderDeployFilters() {
+    const wrap = document.getElementById('deployFilters');
+    if (!wrap) return;
+    const counts = { all: _allDeployments.length };
+    _allDeployments.forEach(function (dep) {
+        const st = dep.status || 'other';
+        counts[st] = (counts[st] || 0) + 1;
+    });
+    const labels = { all: 'All', proposed: 'Proposed', approved: 'Approved',
+                     blocked_by_gates: 'Blocked', voided: 'Voided',
+                     superseded: 'Superseded', rejected: 'Rejected', other: 'Other' };
+    const order = ['all', 'proposed', 'approved', 'blocked_by_gates', 'voided', 'superseded', 'rejected', 'other'];
+    wrap.innerHTML = order.filter(function (s) { return counts[s]; }).map(function (s) {
+        return '<span class="filter-chip' + (s === _deployFilter ? ' active' : '') + '" data-filter="' + s + '" onclick="setDeployFilter(\'' + s + '\')">' +
+            (labels[s] || s) + ' (' + counts[s] + ')</span>';
+    }).join('');
+}
+
+function renderDeployments(deployments) {
+    const body = document.getElementById('deploymentsBody');
+    if (!body) return;
+    const filtered = (deployments || []).filter(function (dep) {
+        if (_deployFilter === 'all') return true;
+        return (dep.status || 'other') === _deployFilter;
+    });
+    if (!filtered.length) {
+        body.innerHTML = '<div class="intel-none">No deployments match this filter.</div>';
+        return;
+    }
+    // Gate summary across ALL deployments (not just the filter).
+    let nPass = 0, nFail = 0, nTotal = 0;
+    deployments.forEach(function (dep) {
+        const q = dep.quality || {};
+        (q.gates || []).forEach(function (g) { nTotal++; if (g.passed) nPass++; else nFail++; });
+    });
+    const summaryEl = document.getElementById('gateSummary');
+    if (summaryEl) {
+        summaryEl.innerHTML = nTotal
+            ? '<div class="gate-summary">Quality gates across deployments: ' +
+              '<span class="n-pass">' + nPass + ' ✓ pass</span> · ' +
+              '<span class="n-fail">' + nFail + ' ✗ fail</span> · ' + nTotal + ' gates evaluated</div>'
+            : '';
+    }
+    const newest = filtered.slice().reverse();   // newest first
+    body.innerHTML = newest.map(function (dep) {
+        const status = dep.status || '?';
+        const params = Object.entries(dep.params || {}).map(function (p) { return p[0] + '=' + p[1]; }).join(', ');
+        const cycles = dep.consistent_cycles ? ' · ' + dep.consistent_cycles + ' cycles' : '';
+        const approvedBy = dep.approved_by ? ' · approved by ' + _esc(dep.approved_by) : '';
+        let gates = '';
+        const q = dep.quality || {};
+        if (q.gates && q.gates.length) {
+            gates = '<div style="margin-top:6px;">' + q.gates.map(function (g) {
+                const ok = !!g.passed;
+                return '<span class="gate-chip ' + (ok ? 'ok' : 'bad') + '">' + _esc(g.gate) + ' ' +
+                    (g.value == null ? '?' : (typeof g.value === 'number' ? Number(g.value).toFixed(3) : g.value)) +
+                    ' vs ' + g.threshold + ' ' + (ok ? '✓' : '✗') + '</span>';
+            }).join(' ') + '</div>';
+        } else if (status === 'blocked_by_gates' || status === 'proposed') {
+            gates = '<div style="margin-top:6px;"><span class="gate-chip bad">quality not yet evaluated by this server</span></div>';
+        }
+        let actions = '';
+        if (status === 'proposed' || status === 'blocked_by_gates') {
+            actions = '<button class="btn btn-green btn-xs" onclick="approveDeployment(\'' + dep.id + '\')">✓ Approve</button>' +
+                      '<button class="btn btn-amber btn-xs" onclick="confirmAction(\'Force-approve deployment?\', \'Force-approve bypasses the hard quality gates and is recorded as an auditable override (' + _esc(dep.id.slice(0, 8)) + ').\', function(){ forceApproveDeployment(\'' + dep.id + '\'); })">⚠ Force</button>' +
+                      '<button class="btn btn-red btn-xs" onclick="rejectDeployment(\'' + dep.id + '\')">✕ Reject</button>';
+        }
+        if (status === 'approved') {
+            actions = '<button class="btn btn-blue btn-xs" onclick="runShadowTest(\'' + dep.id + '\')">🧪 Shadow Test</button>' +
+                      '<button class="btn btn-ghost btn-xs" onclick="confirmAction(\'Void deployment?\', \'Voiding retires this deployment forever — it will never be applied by the engine (' + _esc(dep.id.slice(0, 8)) + ').\', function(){ voidDeployment(\'' + dep.id + '\'); })">🗑 Void</button>';
+        }
+        const note = dep.note ? '<div style="font-size:0.58rem;color:var(--text-3);margin-top:5px;font-style:italic;">' + _esc(dep.note) + '</div>' : '';
+        return '<div class="intel-deploy">' +
+            '<span class="status ' + _esc(status) + '">' + _esc(status) + '</span>' +
+            '<div class="meta"><b>' + _esc(dep.strategy_key) + '</b> · ' + _esc(dep.id) +
+            '<br>params: ' + _esc(params) +
+            '<br>qRICE ' + (dep.qrice || 0).toFixed(3) + cycles + approvedBy + '</div>' +
+            gates + note +
+            '<div class="actions">' + actions + '</div>' +
+            '</div>';
+    }).join('');
+}
+
+async function proposeDeployment(strategyKey) {
+    const body = document.getElementById('deploymentsBody');
+    if (body) body.innerHTML = '<div class="intel-none">Proposing ' + (strategyKey || 'top') + ' opportunity…</div>';
+    try {
+        const r = await fetch('/api/intelligence/deploy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(strategyKey
+                ? { action: 'propose', strategy_key: strategyKey }
+                : { action: 'propose' }),
+        });
+        const d = await r.json();
+        if (d.status === 'ok' && d.deployment) {
+            const st = d.deployment.status || 'proposed';
+            if (st === 'blocked_by_gates') {
+                const failed = (d.deployment.quality && d.deployment.quality.failed || []).join(', ');
+                showToast('🚫 Proposal blocked by quality gates: ' + (failed || 'gates failed'));
+                addLog('🛠 Proposed deployment ' + d.deployment.id + ' for ' +
+                       d.deployment.strategy_key + ' blocked by gates: ' + failed, 'error');
+            } else {
+                showToast('Deployment proposed — awaiting approval', 'success');
+                addLog('🛠 Proposed deployment ' + d.deployment.id + ' for ' +
+                       d.deployment.strategy_key + ' (' + d.deployment.status + ')', 'success');
+            }
+        } else {
+            showToast('Propose failed: ' + (d.error || 'unknown') + ' — restart the dashboard to load new endpoints');
+        }
+    } catch (e) {
+        showToast('Propose failed: ' + e.message + ' — restart the dashboard to load new endpoints');
+    }
+    loadDeployments();
+}
+
+async function approveDeployment(id) {
+    try {
+        const r = await fetch('/api/intelligence/deploy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'approve', deployment_id: id }),
+        });
+        const d = await r.json();
+        if (d.status === 'ok') {
+            showToast('Deployment approved — applied on next bot start', 'success');
+            addLog('✅ Approved deployment ' + id, 'success');
+        } else if (d.status === 'blocked') {
+            showToast('🚫 Blocked by quality gates: ' + ((d.message || '').replace('Deployment BLOCKED by quality gates: ', '') || 'gates failed'));
+            addLog('🚫 Approve blocked by quality gates for ' + id + ': ' + ((d.deployment && d.deployment.quality && d.deployment.quality.failed || []).join(', ')), 'error');
+        } else {
+            showToast('Approve failed: ' + (d.message || d.error || 'unknown'));
+        }
+    } catch (e) { showToast('Approve failed: ' + e.message); }
+    loadDeployments();
+}
+
+async function rejectDeployment(id) {
+    try {
+        const r = await fetch('/api/intelligence/deploy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'reject', deployment_id: id }),
+        });
+        const d = await r.json();
+        if (d.status === 'ok') {
+            showToast('Deployment rejected');
+            addLog('✕ Rejected deployment ' + id, 'warn');
+        } else {
+            showToast('Reject failed: ' + (d.message || d.error || 'unknown') + ' — restart the dashboard to load new endpoints');
+        }
+    } catch (e) { showToast('Reject failed: ' + e.message + ' — restart the dashboard to load new endpoints'); }
+    loadDeployments();
+}
+
+async function forceApproveDeployment(id) {
+    try {
+        const r = await fetch('/api/intelligence/deploy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'force_approve', deployment_id: id }),
+        });
+        const d = await r.json();
+        if (d.status === 'ok') {
+            showToast('Deployment FORCE-approved (auditable override)', 'success');
+            addLog('⚠ Force-approved deployment ' + id + ' (' + (d.deployment && d.deployment.approved_by) + ')', 'warn');
+        } else {
+            showToast('Force-approve failed: ' + (d.message || d.error || 'unknown'));
+        }
+    } catch (e) { showToast('Force-approve failed: ' + e.message); }
+    loadDeployments();
+}
+
+async function voidDeployment(id) {
+    try {
+        const r = await fetch('/api/intelligence/deploy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'void', deployment_id: id, reason: 'voided from gridbot dashboard' }),
+        });
+        const d = await r.json();
+        if (d.status === 'ok') {
+            showToast('Deployment voided — never applied by the engine', 'success');
+            addLog('🗑️ Voided deployment ' + id, 'warn');
+        } else {
+            showToast('Void failed: ' + (d.message || d.error || 'unknown'));
+        }
+    } catch (e) { showToast('Void failed: ' + e.message); }
+    loadDeployments();
+}
+
+async function runShadowTest(id) {
+    const el = document.getElementById('shadowBody');
+    if (el) el.innerHTML = '<div class="shadow-report"><b>🧪 Shadow forward-test running…</b> (re-running the real backtest engine on a held-out recent window)</div>';
+    try {
+        const r = await fetch('/api/intelligence/shadow', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ deployment_id: id }),
+        });
+        const d = await r.json();
+        if (d.status === 'ok' && d.report) {
+            const rep = d.report;
+            const gates = (rep.gates || []).map(function (g) {
+                return '<span class="gate-chip ' + (g.passed ? 'ok' : 'bad') + '">' + _esc(g.gate) + ' ' +
+                    (g.value == null ? '?' : g.value) + ' vs ' + g.threshold + ' ' + (g.passed ? '✓' : '✗') + '</span>';
+            }).join(' ');
+            if (el) el.innerHTML = '<div class="shadow-report"><b>🧪 Shadow forward-test #' + _esc(String(rep.id).slice(0, 8)) + ':</b> ' +
+                _esc(rep.status) + ' · ' + (rep.window_bars || '?') + ' bars · ' + _esc(rep.reason || '') +
+                '<div style="margin-top:6px;">' + gates + '</div></div>';
+            showToast('Shadow test: ' + rep.status, rep.status === 'promoted' ? 'success' : '');
+            addLog('🧪 Shadow test for ' + id + ': ' + rep.status + ' — ' + (rep.reason || ''), rep.status === 'promoted' ? 'success' : 'warn');
+            loadShadowHistory();
+        } else {
+            if (el) el.innerHTML = '<div class="shadow-report"><b>Shadow test failed:</b> ' + _esc((d && d.error) || 'unknown') + '</div>';
+        }
+    } catch (e) {
+        if (el) el.innerHTML = '<div class="shadow-report"><b>Shadow test failed:</b> ' + _esc(e.message) + '</div>';
+    }
+}
+
+// ── v3: Consensus Market View + Trade Execution Advisor ───────────────
+async function loadMarketView() {
+    const body = document.getElementById('consensusBody');
+    try {
+        const r = await fetch('/api/intelligence/market_view');
+        const d = await r.json();
+        if (d.status === 'ok') {
+            _conHistory = (d.history || []).map(function (h) { return Number(h.direction_value || 0); });
+            if (d.market_view) renderMarketView(d.market_view);
+            else if (body) body.innerHTML = '<div class="con-none">No consensus market view yet — run a research cycle so Kronos / RF / backtests can vote.</div>';
+        } else if (body) {
+            body.innerHTML = '<div class="con-none">Engine error loading consensus.</div>';
+        }
+    } catch (e) {
+        if (body) body.innerHTML = '<div class="con-none">Engine offline — cannot load consensus.</div>';
+    }
+}
+
+let _conHistory = [];        // direction_value series for the sparkline
+let _execMaxRisk = 0.02;     // advisor max risk (from execution guard)
+let _deployFilter = 'all';   // deployment list filter
+
+function _sparkline(values) {
+    if (!values || values.length < 2) return '';
+    const min = Math.min.apply(null, values);
+    const max = Math.max.apply(null, values);
+    const span = (max - min) || 1;
+    const w = 100, h = 44, pad = 3;
+    const pts = values.map(function (v, i) {
+        const x = (i / (values.length - 1)) * (w - 2 * pad) + pad;
+        const y = h - pad - ((v - min) / span) * (h - 2 * pad);
+        return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+    const zeroY = h - pad - ((0 - min) / span) * (h - 2 * pad);
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' +
+        '<line x1="' + pad + '" y1="' + zeroY.toFixed(1) + '" x2="' + (w - pad) + '" y2="' + zeroY.toFixed(1) + '" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="3 3"/>' +
+        '<polyline points="' + pts + '" fill="none" stroke="var(--cyan)" stroke-width="2"/>' +
+        '</svg>';
+}
+
+function renderMarketView(mv) {
+    const body = document.getElementById('consensusBody');
+    if (!body) return;
+    const dir = String(mv.direction || 'RANGING').toLowerCase();
+    const dirCls = dir === 'bull' ? 'bull' : dir === 'bear' ? 'bear' : 'ranging';
+    const dval = Number(mv.direction_value || 0);
+
+    // Consensus meter: BEAR=-1 (left, 0%) → BULL=+1 (right, 100%)
+    const meterPos = Math.max(0, Math.min(100, ((dval + 1) / 2) * 100));
+    const meter = '<div class="con-meter"><div class="marker" style="left:' + meterPos.toFixed(1) + '%"></div>' +
+        '<div class="scale"><span>BEAR</span><span>RANGING</span><span>BULL</span></div></div>' +
+        '<div class="con-meter-labels"><span>value ' + dval.toFixed(2) + '</span><span>consensus</span></div>';
+
+    const agree = Math.round((mv.agreement_index || 0) * 100);
+    const strength = Math.round((mv.consensus_strength || 0) * 100);
+    const dual = '<div class="dual-bars">' +
+        '<div class="dbar"><div class="lbl"><span>Agreement</span><span>' + agree + '%</span></div><div class="track">' +
+        '<div class="fill ' + (agree >= 60 ? 'green' : agree >= 40 ? 'amber' : 'red') + '" style="width:' + agree + '%"></div></div></div>' +
+        '<div class="dbar"><div class="lbl"><span>Consensus strength</span><span>' + strength + '%</span></div><div class="track">' +
+        '<div class="fill ' + (strength >= 40 ? 'green' : strength >= 20 ? 'amber' : 'red') + '" style="width:' + strength + '%"></div></div></div>' +
+        '</div>';
+
+    // Diverging per-source contribution bars (signed).
+    const contribRows = (mv.contributions || []).map(function (c) {
+        const contrib = Number(c.contribution || 0);
+        const pos = contrib >= 0;
+        const width = Math.min(100, Math.abs(contrib) * 100).toFixed(1);
+        const ev = c.evidence && Object.keys(c.evidence).length
+            ? '<div class="src-expand" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'block\'?\'none\':\'block\'">view evidence ▾</div>' +
+              '<div class="src-ev-full">' + _esc(JSON.stringify(c.evidence, null, 2)) + '</div>'
+            : '';
+        return '<div class="contrib-row">' +
+            '<span class="src">' + _esc(c.source) + '</span>' +
+            '<div class="bar"><div class="fill ' + (pos ? 'green' : 'red') + '" style="width:' + width + '%;float:' + (pos ? 'left' : 'right') + '"></div></div>' +
+            '<span class="val">' + (pos ? '+' : '') + contrib.toFixed(3) + '</span>' +
+            '</div>' +
+            '<div style="margin-left:98px;font-size:0.6rem;color:var(--text-3);padding-bottom:6px;">' +
+            '<b>' + _esc(c.direction || '?') + '</b> · strength ' + Math.round((c.strength || 0) * 100) + '% · conf ' + Math.round((c.confidence || 0) * 100) + '%' +
+            (c.note ? ' · ' + _esc(c.note) : '') + ev + '</div>';
+    }).join('');
+    const contribsHtml = contribRows || '<div class="con-none">No signals yet — run a research cycle.</div>';
+
+    const trend = (_conHistory && _conHistory.length >= 2)
+        ? '<div class="con-trend"><div class="t-label">Consensus direction history (recent cycles)</div>' + _sparkline(_conHistory) + '</div>'
+        : '';
+
+    const dissent = (mv.disagreements || []).length
+        ? '<div class="con-dissent"><b>⚠ Dissenting voices:</b> ' +
+          mv.disagreements.map(function (d) { return _esc(d.source) + ' (' + _esc(d.direction || '?') + ')'; }).join(' · ') +
+          '</div>' : '';
+
+    let llm = '';
+    if (mv.llm_verdict) {
+        const v = mv.llm_verdict;
+        const risks = Array.isArray(v.key_risks) && v.key_risks.length ? ' · risks: ' + _esc(String(v.key_risks).slice(0, 160)) : '';
+        const f = mv.llm_fact_check;
+        const fc = f ? '<div class="' + (f.passed ? 'ok' : 'fail') + '">fact-check: ' +
+            (f.passed ? 'PASS — every cited number verified against the evidence bundle' : 'FAIL on ' + (f.flagged || []).length + ' citation(s)') +
+            '</div>' : '';
+        llm = '<div class="con-llm"><b>LLM cross-validation:</b> direction ' + _esc(v.direction || '—') +
+            ' · confidence ' + Math.round(Number(v.confidence || 0) * 100) + '%' + risks + fc + '</div>';
+    }
+
+    const gen = mv.generated_at
+        ? '<div class="con-generated">generated ' + _esc(String(mv.generated_at).replace('T', ' ').replace('Z', ' UTC')) +
+          (mv.cycle_id ? ' · cycle ' + _esc(String(mv.cycle_id).slice(0, 8)) : '') + '</div>'
+        : '';
+
+    body.innerHTML =
+        '<div class="con-direction ' + dirCls + '">' + _esc(mv.direction || 'RANGING') + '</div>' +
+        meter + dual +
+        '<div class="intel-section-label" style="margin:8px 0 4px;">Per-source contribution</div>' + contribsHtml +
+        trend + dissent + llm + gen;
+}
+
+async function runAdvisor() {
+    const btn = document.getElementById('btnAdvise');
+    const statusEl = document.getElementById('adviseStatus');
+    const body = document.getElementById('advisorBody');
+    if (btn) btn.disabled = true;
+    if (statusEl) statusEl.textContent = 'fusing…';
+    try {
+        const r = await fetch('/api/intelligence/advise', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ price: null, equity: 10000 }),
+        });
+        const d = await r.json();
+        if (d.status === 'ok') {
+            renderMarketView(d.market_view);
+            renderAdvisor(d.recommendation);
+        } else if (body) {
+            body.innerHTML = '<div class="advisor-block">Engine error: ' + _esc((d && d.error) || 'unknown') + '</div>';
+        }
+    } catch (e) {
+        if (body) body.innerHTML = '<div class="advisor-block">Engine unreachable — ' + _esc(e.message) + '</div>';
+    } finally {
+        if (btn) btn.disabled = false;
+        if (statusEl) statusEl.textContent = '—';
+    }
+}
+
+function renderAdvisor(rec) {
+    const body = document.getElementById('advisorBody');
+    if (!body) return;
+    const actionCls = rec.action === 'trade' ? ('trade-' + (rec.side || 'buy')) : 'hold';
+    const steps = (rec.reason_chain || []).map(function (s) {
+        return '<div class="reason-step"><b>' + _esc(s.step) + '</b> · ' + _esc(s.detail) + '</div>';
+    }).join('');
+    const conf = Math.round((rec.confidence || 0) * 100);
+    const risk = Math.round((rec.risk_fraction || 0) * 100);
+    const maxRisk = Math.round((_execMaxRisk || 0.02) * 100);
+    const riskPct = Math.min(100, Math.round((risk / (maxRisk || 1)) * 100));
+    const gates = (rec.gates || []).map(function (g) {
+        let pct = 0;
+        if (typeof g.value === 'number' && g.threshold) {
+            pct = Math.min(100, Math.round((g.value / g.threshold) * 100));
+        }
+        return '<div style="margin:4px 0;">' +
+            '<div style="display:flex;justify-content:space-between;font-size:0.6rem;color:var(--text-3);">' +
+            '<span>' + _esc(g.gate) + '</span>' +
+            '<span>' + (g.value == null ? 'n/a' : (typeof g.value === 'number' ? Number(g.value).toFixed(3) : g.value)) +
+            ' vs ' + g.threshold + ' ' + (g.passed ? '✓' : '✗') + '</span></div>' +
+            '<div style="height:6px;background:var(--bg-base);border:1px solid var(--border);border-radius:3px;overflow:hidden;">' +
+            '<div class="fill ' + (g.passed ? 'green' : 'red') + '" style="width:' + pct + '%"></div></div>' +
+            '</div>';
+    }).join(' ');
+    body.innerHTML = '<div class="advisor-block">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">' +
+        '<div class="advisor-action ' + actionCls + '">' + _esc(rec.action.toUpperCase()) + ' ' + _esc(rec.side || '') + '</div>' +
+        '<span style="font-size:0.7rem;color:var(--text-3);">conf ' + conf + '% · lot ≈ ' + (rec.suggested_lot || 0) + '</span>' +
+        '</div>' +
+        '<div class="dbar" style="margin-top:8px;"><div class="lbl"><span>Risk per trade</span><span>' + risk + '% / ' + maxRisk + '% max</span></div>' +
+        '<div class="track"><div class="fill ' + (risk >= maxRisk ? 'red' : 'green') + '" style="width:' + riskPct + '%"></div></div></div>' +
+        '<div style="margin-top:8px;">' + steps + '</div>' +
+        '<div class="intel-section-label" style="margin:10px 0 4px;">Gates</div>' + gates +
+        '</div>';
+}
+
+// ── v3: Execution Guard (kill-switches + hot-apply) ───────────────────
+async function loadExecutionGuard() {
+    const body = document.getElementById('execGuardBody');
+    try {
+        const r = await fetch('/api/intelligence/execution');
+        const d = await r.json();
+        if (d.status === 'ok') {
+            _execMaxRisk = Number((d.current && d.current.advisor_max_risk_per_trade) || 0.02);
+            renderExecutionGuard(d);
+        } else if (body) {
+            body.innerHTML = '<div class="con-none">Engine error loading execution guard.</div>';
+        }
+    } catch (e) {
+        if (body) body.innerHTML = '<div class="con-none">Engine offline — cannot load execution guard.</div>';
+    }
+}
+
+function _guardTile(label, value, cls, sub, barPct, barCls) {
+    return '<div class="guard-tile"><div class="l">' + label + '</div>' +
+        '<div class="v ' + (cls || '') + '">' + value + '</div>' +
+        (sub ? '<div class="sub">' + sub + '</div>' : '') +
+        (barPct != null ? '<div class="bar"><div class="fill ' + (barCls || 'green') + '" style="width:' + Math.min(100, barPct) + '%"></div></div>' : '') +
+        '</div>';
+}
+
+function renderExecutionGuard(d) {
+    const body = document.getElementById('execGuardBody');
+    if (!body) return;
+    const kill = d.kill || {};
+    const cur = d.current || {};
+    const hot = d.hot_applied || [];
+
+    const dd = Number(cur.drawdown_pct || 0);
+    const ddThresh = Number(kill.max_drawdown_pct || 0);
+    const ddPct = ddThresh ? Math.round((dd / ddThresh) * 100) : 0;
+    const ddCls = dd >= ddThresh ? 'crit' : dd >= ddThresh * 0.7 ? 'warn' : 'ok';
+
+    const cs = Number(cur.consensus_strength || 0);
+    const csFloor = Number(kill.consensus_floor || 0);
+    const csPct = Math.round(cs * 100);
+    const csCls = (kill.consensus_collapse_armed && cs < csFloor) ? 'crit' : cs >= 0.35 ? 'ok' : 'warn';
+
+    const tiles = '<div class="guard-grid">' +
+        _guardTile('Drawdown (live)', dd.toFixed(2) + '%', ddCls,
+                   'kill at ' + ddThresh.toFixed(1) + '%', ddPct, dd >= ddThresh ? 'red' : 'green') +
+        _guardTile('Consensus strength', csPct + '%', csCls,
+                   'kill floor ' + csFloor.toFixed(2),
+                   csPct, cs < csFloor ? 'red' : 'green') +
+        _guardTile('Direction', _esc(cur.direction || 'RANGING'), 'ok',
+                   kill.regime_flip_armed ? 'regime-flip kill armed' : 'regime-flip kill off', null, '') +
+        _guardTile('Advisor bar', 'min conf ' + Math.round(Number(cur.advisor_min_consensus_strength || 0) * 100) + '%',
+                   'ok', 'max risk ' + Math.round(Number(cur.advisor_max_risk_per_trade || 0) * 100) + '%', null, '') +
+        '</div>';
+
+    const triggered = cur.kill_triggered
+        ? '<div class="con-dissent"><b>🛑 KILL-SWITCH ACTIVE:</b> ' +
+          (cur.kill_reasons || []).map(function (x) { return _esc(x); }).join(' · ') + '</div>'
+        : '';
+
+    const hotHtml = hot.length
+        ? '<div class="hot-list">' + hot.slice().reverse().map(function (h) {
+            const params = Object.entries(h.params || {}).map(function (p) { return p[0] + '=' + p[1]; }).join(', ');
+            return '<div class="hot-item"><span><b>' + _esc(h.strategy_key || '?') + '</b> · ' + _esc(String(h.deployment_id || '').slice(0, 8)) +
+                   (params ? ' · ' + _esc(params) : '') + '</span>' +
+                   '<span class="applied">' + (h.applied || []).join(', ') + '</span></div>';
+          }).join('') + '</div>'
+        : '<div class="con-none">No deployments hot-applied to the running bot yet.</div>';
+
+    body.innerHTML = tiles + triggered +
+        '<div class="intel-section-label" style="margin:10px 0 4px;">Hot-applied deployments (live bot)</div>' + hotHtml;
+}
+
+// ── Shadow test history ───────────────────────────────────────────────
+async function loadShadowHistory() {
+    const body = document.getElementById('shadowHistory');
+    try {
+        const r = await fetch('/api/intelligence/shadow');
+        const d = await r.json();
+        if (d.status === 'ok') {
+            const reports = d.reports || [];
+            if (!reports.length) {
+                if (body) body.innerHTML = '';
+                return;
+            }
+            if (body) body.innerHTML = '<div style="font-size:0.58rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Shadow forward-test history</div>' +
+                reports.map(function (rep) {
+                    return '<div class="shadow-item"><span class="st ' + _esc(rep.status) + '">' + _esc(rep.status) + '</span>' +
+                        '<span>' + _esc(String(rep.deployment_id || '').slice(0, 8)) + ' · ' + _esc(rep.strategy_key || '') + '</span>' +
+                        '<span>' + (rep.window_bars || '?') + ' bars</span>' +
+                        '<time>' + _esc(String(rep.run_at || '').replace('T', ' ').slice(0, 16)) + '</time></div>';
+                }).join('');
+        }
+    } catch (e) { /* silent */ }
+}
+
+// ── Scheduler control + filters + confirm modal ───────────────────────
+async function toggleScheduler(action) {
+    try {
+        const r = await fetch('/api/intelligence/scheduler', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action }),
+        });
+        const d = await r.json();
+        if (d.status === 'ok') {
+            showToast((action === 'start' ? 'Research loop started' : 'Research loop stopped'), action === 'start' ? 'success' : '');
+            addLog((action === 'start' ? '▶ Started' : '■ Stopped') + ' autonomous research loop', action === 'start' ? 'success' : 'warn');
+        } else {
+            showToast('Scheduler action failed: ' + ((d && d.error) || 'unknown'));
+        }
+    } catch (e) { showToast('Scheduler action failed: ' + e.message); }
+    loadScheduler();
+}
+
+let _allDeployments = [];
+function setDeployFilter(status) {
+    _deployFilter = status;
+    document.querySelectorAll('#deployFilters .filter-chip').forEach(function (c) {
+        c.classList.toggle('active', c.getAttribute('data-filter') === status);
+    });
+    renderDeployments(_allDeployments);
+}
+
+function confirmAction(title, bodyText, onConfirm) {
+    const overlay = document.getElementById('confirmModal');
+    if (!overlay) { onConfirm(); return; }
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmBody').textContent = bodyText;
+    const okBtn = document.getElementById('confirmOk');
+    okBtn.onclick = function () { closeConfirm(); onConfirm(); };
+    overlay.classList.add('show');
+}
+function closeConfirm() {
+    const overlay = document.getElementById('confirmModal');
+    if (overlay) overlay.classList.remove('show');
+}
+
+function safeRun(fn, name) {
+    try { fn(); } catch(e) { try { addLog('⚠ Init error in ' + name + ': ' + e.message, 'error'); } catch(_) {} }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    initChart();
-    loadEquityCurve();
-    loadPerformance();
-    loadTrades();
-    loadStrategies();
-    loadStrategyResults();
     addLog('Connected to dashboard server', 'success');
-    pollStatus();
+    safeRun(initChart, 'initChart');
+    safeRun(loadEquityCurve, 'loadEquityCurve');
+    safeRun(loadPerformance, 'loadPerformance');
+    safeRun(loadTrades, 'loadTrades');
+    safeRun(loadStrategies, 'loadStrategies');
+    safeRun(loadStrategyResults, 'loadStrategyResults');
+    safeRun(pollStatus, 'pollStatus');
+    safeRun(loadLogs, 'loadLogs');
+    safeRun(loadIntelligence, 'loadIntelligence');
+    safeRun(loadDeployments, 'loadDeployments');
+    safeRun(loadScheduler, 'loadScheduler');
+    safeRun(loadMarketView, 'loadMarketView');
+    safeRun(loadExecutionGuard, 'loadExecutionGuard');
+    safeRun(loadShadowHistory, 'loadShadowHistory');
     setInterval(pollStatus, 5000);
     setInterval(loadEquityCurve, 30000);
     setInterval(loadPerformance, 30000);
     setInterval(loadTrades, 15000);
     setInterval(loadStrategyResults, 60000);
+    setInterval(loadLogs, 4000);
+    setInterval(loadMarketView, 30000);       // consensus auto-refresh
+    setInterval(loadExecutionGuard, 30000);   // kill-switch status auto-refresh
+    setInterval(loadShadowHistory, 60000);    // shadow history auto-refresh
+    setInterval(loadScheduler, 15000);        // loop status + countdown
+    setInterval(updateSchedCountdown, 1000);  // live countdown tick
+});
+
+// Surface any uncaught JS error in the Event Log (easy debugging)
+window.addEventListener('error', (ev) => {
+    try { addLog('⚠ JS: ' + (ev.message || 'unknown error'), 'error'); } catch(_) {}
 });
 </script>
 </body>

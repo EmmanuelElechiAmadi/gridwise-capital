@@ -16,6 +16,7 @@ import logging
 
 # Make sure we can import from quant_env
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "quant_env"))
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger("RefreshData")
