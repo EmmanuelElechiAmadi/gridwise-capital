@@ -17,7 +17,7 @@ from analysis.walkforward import walkforward_analysis
 from analysis.trade_logger import TradeLogger
 from analysis.trade_matcher import match_trades
 from analysis.session_analyzer import session_performance, classify_session
-from analysis.monte_carlo import run_monte_carlo
+from analysis.monte_carlo import run_monte_carlo, possibility_cone
 from strategies.grid_strategy import GridStrategy
 
 
@@ -194,6 +194,33 @@ class TestMonteCarlo:
     def test_monte_carlo_empty_returns_none(self):
         result = run_monte_carlo([], num_sim=10, horizon=10, initial=10000)
         assert result == (None, {})
+
+
+class TestPossibilityCone:
+    """v4 #6 — forward Monte-Carlo possibility cone (#6)."""
+
+    def test_cone_percentiles_are_monotone(self):
+        _, stats = possibility_cone([50, -20, 30, 10, -5], num_sim=200,
+                                    horizon=40, initial=10000, seed=3)
+        assert len(stats["p5"]) == stats["horizon"] == 40
+        for a, b, c in zip(stats["p5"], stats["p50"], stats["p95"]):
+            assert a <= b <= c
+        assert 0.0 <= stats["prob_profit_pct"] <= 100.0
+        assert 0.0 <= stats["prob_ruin_pct"] <= 100.0
+        assert stats["initial"] == 10000.0
+        assert stats["num_sim"] == 200
+        assert stats["sample_size"] == 5
+
+    def test_cone_empty_returns_none(self):
+        curves, stats = possibility_cone([], num_sim=10, horizon=10)
+        assert curves is None and stats == {}
+
+    def test_cone_ruin_probability_detects_below_floor(self):
+        # Bleeding strategy: every trade loses money.
+        _, stats = possibility_cone([-10.0], num_sim=200, horizon=30,
+                                    initial=100.0, seed=1)
+        assert stats["prob_ruin_pct"] > 50.0
+        assert stats["prob_profit_pct"] == 0.0
 
 
 class TestSessionAnalyzer:

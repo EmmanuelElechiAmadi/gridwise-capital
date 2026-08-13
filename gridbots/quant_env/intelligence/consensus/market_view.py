@@ -9,6 +9,13 @@ A MarketView is what answers "what do all the models agree on, and why?":
     contributions: [per-source detail]      the "why" (attribution chain)
     disagreements: [source summaries]       the voices that dissent
     consensus_strength: 0..1                strength * agreement
+
+v4 additions (source-correlation penalty):
+
+    raw_agreement_index: 0..1               nominal-weight agreement (uncorrected)
+    effective_n: float                      independent votes (Kish effective size)
+    max_vif: float                          worst per-source variance inflation
+    diversity_penalty: 0..1                 effective_n / n_sources
 """
 
 import uuid
@@ -26,7 +33,9 @@ class MarketView:
                  agreement_index=0.0, consensus_strength=0.0,
                  contributions=None, disagreements=None,
                  horizon="medium", symbol="GC=F", sources=None,
-                 generated_at=None, cycle_id=None):
+                 generated_at=None, cycle_id=None,
+                 raw_agreement_index=None, effective_n=None,
+                 max_vif=1.0, diversity_penalty=1.0):
         self.id = uuid.uuid4().hex[:12]
         self.direction = str(direction or "RANGING").upper()
         self.direction_value = float(direction_value)
@@ -43,9 +52,16 @@ class MarketView:
         # Phase 2 additions (attached after fusion by the coordinator).
         self.llm_verdict = None
         self.llm_fact_check = None
+        # v4 source-correlation penalty fields.
+        self.raw_agreement_index = (
+            float(raw_agreement_index) if raw_agreement_index is not None
+            else self.agreement_index)
+        self.effective_n = effective_n
+        self.max_vif = max_vif
+        self.diversity_penalty = max(0.0, min(1.0, float(diversity_penalty)))
 
     def to_dict(self):
-        return {
+        d = {
             "id": self.id,
             "direction": self.direction,
             "direction_value": round(self.direction_value, 4),
@@ -61,7 +77,12 @@ class MarketView:
             "cycle_id": self.cycle_id,
             "llm_verdict": self.llm_verdict,
             "llm_fact_check": self.llm_fact_check,
+            "raw_agreement_index": round(self.raw_agreement_index, 4),
+            "effective_n": self.effective_n,
+            "max_vif": round(self.max_vif, 4),
+            "diversity_penalty": round(self.diversity_penalty, 4),
         }
+        return d
 
     def summary(self) -> str:
         return (

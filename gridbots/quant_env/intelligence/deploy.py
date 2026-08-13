@@ -38,6 +38,12 @@ DEPLOY_MIN_OOS_CONSISTENCY = float(os.getenv("DEPLOY_MIN_OOS_CONSISTENCY", "0.6"
 DEPLOY_MIN_MC_PROB_PROFIT = float(os.getenv("DEPLOY_MIN_MC_PROB_PROFIT", "60.0"))
 DEPLOY_MIN_Q_RICE = float(os.getenv("DEPLOY_MIN_Q_RICE", "0.03"))
 DEPLOY_MAX_DRAWDOWN_PCT = float(os.getenv("DEPLOY_MAX_DRAWDOWN_PCT", "20.0"))
+# Probability of Backtest Overfitting (PBO, Bailey et al. 2017) — a v4 gate.
+# Unlike the mandatory gates this one is *optional*: it is only enforced when
+# the probe corpus is rich enough to produce a PBO estimate (the gate spec
+# below is tagged ``GATE_OPTIONAL``). A PBO above this threshold means the
+# IS-best strategy is likely overfit.
+DEPLOY_MAX_PBO = float(os.getenv("DEPLOY_MAX_PBO", "0.5"))
 
 # Gates evaluation: name -> (metric_key_in_metrics, comparator, threshold).
 GATE_SPECS = [
@@ -50,7 +56,13 @@ GATE_SPECS = [
     ("min_qrice", "qrice", lambda v, t: v >= t, DEPLOY_MIN_Q_RICE),
     ("max_drawdown", "max_drawdown_pct",
      lambda v, t: v <= t, DEPLOY_MAX_DRAWDOWN_PCT),
+    ("max_pbo", "pbo",
+     lambda v, t: v <= t, DEPLOY_MAX_PBO),
 ]
+
+# Optional gates: missing metrics do NOT block approval, but are reported as
+# ``enforced=False`` so the UI is transparent about what could not be measured.
+GATE_OPTIONAL = {"max_pbo": True}
 
 
 def _metric(record, key):
@@ -100,11 +112,21 @@ def evaluate_quality(record):
     for name, key, cmp_, threshold in GATE_SPECS:
         v = _metric(record, key)
         if v is None:
+            if GATE_OPTIONAL.get(name):
+                # Could not be measured -> not enforced, but not blocking.
+                gates.append({"gate": name, "metric": key, "value": None,
+                              "threshold": threshold, "passed": True,
+                              "enforced": False})
+                missing.append(key)
+                continue
             gates.append({"gate": name, "metric": key, "value": None,
                           "threshold": threshold, "passed": False})
             failed.append(name)
             missing.append(key)
             continue
+        gates.append({"gate": name, "metric": key, "value": v,
+                      "threshold": threshold, "passed": bool(cmp_(v, threshold)),
+                      "enforced": True})
         ok = bool(cmp_(v, threshold))
         gates.append({"gate": name, "metric": key, "value": v,
                       "threshold": threshold, "passed": ok})

@@ -160,6 +160,13 @@ class Config:
     # ── Consensus engine (Phase 1 — common conclusion across brains) ──
     # Direction decided when |consensus value| exceeds this.
     CONSENSUS_DIRECTION_THRESHOLD = float(os.getenv("CONSENSUS_DIRECTION_THRESHOLD", "0.2"))
+    # v4 source-correlation penalty (#18): agreement uses independence-
+    # corrected weights (weight / VIF) so two correlated brains cannot
+    # double-count the same information.  The pairwise source correlations
+    # are JSON: {"backtest,trend_filter": 0.4, ...} — keys are case-
+    # insensitive and symmetric; unknown pairs fall back to 0.15.
+    CONSENSUS_DIVERSITY_ADJUST = os.getenv("CONSENSUS_DIVERSITY_ADJUST", "true").lower() == "true"
+    CONSENSUS_SOURCE_CORRELATIONS = os.getenv("CONSENSUS_SOURCE_CORRELATIONS", "")
 
     # ── Deployment quality gates (Phase 0) ────────────────────────────
     # A deployment cannot be approved unless every gate passes (or the human
@@ -170,6 +177,11 @@ class Config:
     DEPLOY_MIN_MC_PROB_PROFIT = float(os.getenv("DEPLOY_MIN_MC_PROB_PROFIT", "60.0"))
     DEPLOY_MIN_Q_RICE = float(os.getenv("DEPLOY_MIN_Q_RICE", "0.03"))
     DEPLOY_MAX_DRAWDOWN_PCT = float(os.getenv("DEPLOY_MAX_DRAWDOWN_PCT", "20.0"))
+    # v4 empirical gate (#16): Probability of Backtest Overfitting (PBO via
+    # CSCV, Bailey et al. 2017).  OPTIONAL — only enforced when the probe
+    # corpus yields a PBO estimate; above this the IS-best strategy is
+    # considered overfit and deployment is blocked.
+    DEPLOY_MAX_PBO = float(os.getenv("DEPLOY_MAX_PBO", "0.5"))
 
     # ── Execution layer (Phase 3 — safe auto-execution) ───────────────
     # Minimum consensus strength before the advisor can recommend a trade.

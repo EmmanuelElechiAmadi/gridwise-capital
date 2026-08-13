@@ -1,0 +1,115 @@
+{
+  "generated_at": "2026-08-13T19:02:12Z",
+  "toolkit": "intelligence.research_stats",
+  "matrix": {
+    "configs": [
+      "breakout_strategy",
+      "breakout_strategy"
+    ],
+    "windows": 8,
+    "bars_per_window": 63,
+    "sharpe_matrix": [
+      [
+        -2.84,
+        -2.6,
+        -0.52,
+        -3.05,
+        -2.85,
+        -2.31,
+        -2.02,
+        -1.76
+      ],
+      [
+        -2.84,
+        -2.5,
+        -0.52,
+        -3.0,
+        -2.85,
+        -2.31,
+        -2.02,
+        -1.76
+      ]
+    ],
+    "families_skipped_for_bridge_sleep": [
+      "grid_strategy"
+    ],
+    "source": "real BacktestEngine breakout runs on 509 bars of GC=F (gold_data.csv), windowed 8 ways"
+  },
+  "pbo": {
+    "pbo": 0.25,
+    "n_strategies": 2,
+    "n_periods": 8,
+    "n_splits": 16,
+    "relative_rank_mean": 0.25,
+    "relative_rank_median": 0.0,
+    "logit_mean": 13.8155,
+    "logit_std": 23.9292
+  },
+  "dsr": {
+    "dsr": 0.2284,
+    "sr0_period": 0.13815,
+    "sr0_annualized": 2.1931,
+    "num_trials": 4,
+    "num_periods": 30,
+    "skew": 0.0,
+    "kurtosis": 3.0,
+    "best_ann_sharpe": 0.0,
+    "n_probes": 12,
+    "n_distinct_configs": 4,
+    "walkforward_windows": 10,
+    "best_walkforward_sharpe": 11.82,
+    "walkforward_total_return_pct": -9.62,
+    "note": "trials = distinct (strategy, params) configs in the probe corpus; parameter-grid exploration would inflate the deflation."
+  },
+  "rf_calibration": {
+    "points": [
+      {
+        "bin": "0.00-0.20",
+        "count": 57,
+        "mean_predicted": 0.1496,
+        "fraction_positive": 0.4035
+      },
+      {
+        "bin": "0.20-0.40",
+        "count": 28,
+        "mean_predicted": 0.2723,
+        "fraction_positive": 0.6429
+      },
+      {
+        "bin": "0.40-0.60",
+        "count": 12,
+        "mean_predicted": 0.5016,
+        "fraction_positive": 0.5833
+      },
+      {
+        "bin": "0.60-0.80",
+        "count": 5,
+        "mean_predicted": 0.6285,
+        "fraction_positive": 0.6
+      }
+    ],
+    "brier_score": 0.30802,
+    "n": 102
+  },
+  "rf_hit_rate_pct": 51.96,
+  "rf_samples": 102,
+  "cpcv": {
+    "n_samples": 509,
+    "n_splits": 5,
+    "embargo_frac": 0.01,
+    "test_sizes": [
+      101,
+      101,
+      101,
+      101,
+      101
+    ],
+    "train_sizes": [
+      403,
+      398,
+      398,
+      398,
+      398
+    ]
+  }
+}

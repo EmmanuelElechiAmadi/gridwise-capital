@@ -2136,18 +2136,216 @@ def api_intelligence_execution():
 # ── Consensus / execution endpoints (Phase 1 + 3) ─────────────────────
 @app.route('/api/intelligence/market_view')
 def api_intelligence_market_view():
-    """Return the latest consensus MarketView + its attribution chain."""
+    """Return the latest consensus MarketView + its attribution chain.
+
+    When no cycle has persisted a view yet, a fresh consensus is fused on
+    demand from every currently-available source (Kronos / RF / trend filter /
+    backtest probes) so the dashboard is live from the first paint.
+    """
     try:
         from quant_env.intelligence.ledger import OpportunityLedger
+        from quant_env.intelligence.consensus import ConsensusEngine
+        from quant_env.intelligence.consensus.sources import collect_all_signals
+
         ledger = OpportunityLedger.load()
         views = list(ledger.market_views or [])
         latest = views[-1] if views else None
+        if latest is None:
+            symbol = getattr(Config, "RESEARCH_SYMBOLS", "GC=F").split(",")[0].strip() or "GC=F"
+            signals = collect_all_signals(
+                ctx={"max_bars": 600},
+                ledger=ledger,
+                project_root=_get_project_root(),
+                symbol=symbol)
+            latest = ConsensusEngine().fuse(
+                signals, symbol=symbol, cycle_id="dashboard-live").to_dict()
+            views = [latest]
         return jsonify({
             "status": "ok",
             "market_view": latest,
             "history": views[-20:],
             "count": len(views),
         })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/kill_drill')
+def api_intelligence_kill_drill():
+    """Kill-switch DRILL — replay the recent consensus history through the
+    kill conditions and report what WOULD have happened (no broker touch)."""
+    try:
+        from quant_env.intelligence.ledger import OpportunityLedger
+        from quant_env.intelligence.execution.live_apply import run_kill_drill
+
+        from quant_env.intelligence.consensus import ConsensusEngine
+        from quant_env.intelligence.consensus.sources import collect_all_signals
+
+        ledger = OpportunityLedger.load()
+        views = list(ledger.market_views or [])
+        if not views:
+            # Drill the LIVE consensus when no cycle has persisted a view yet.
+            symbol = getattr(Config, "RESEARCH_SYMBOLS", "GC=F").split(",")[0].strip() or "GC=F"
+            signals = collect_all_signals(ctx={"max_bars": 600}, ledger=ledger,
+                                          project_root=_get_project_root(),
+                                          symbol=symbol)
+            fresh = ConsensusEngine().fuse(signals, symbol=symbol,
+                                           cycle_id="dashboard-live")
+            views = [fresh.to_dict()]
+        try:
+            horizon = int(request.args.get("horizon", 12))
+        except (TypeError, ValueError):
+            horizon = 12
+        # Drawdown snapshot: best effort from the live account (engine App).
+        drawdown_pct = 0.0
+        try:
+            mgr = _get_manager()
+            for acct in mgr.account_manager.list_accounts():
+                bot = mgr.get_bot(acct.id)
+                if bot is not None:
+                    app = getattr(bot, "_app", None)
+                    dd = getattr(app, "_last_drawdown_pct", None) if app else None
+                    if dd is not None:
+                        drawdown_pct = max(drawdown_pct, float(dd))
+        except Exception:
+            pass
+        # What-if scenario sliders (advanced drill): override kill thresholds
+        # for this simulation WITHOUT touching the live guard's config.
+        overrides = {}
+        for key, qp in (("max_drawdown_pct", "drawdown_pct"),
+                        ("consensus_floor", "consensus_floor")):
+            raw = request.args.get(qp)
+            if raw:
+                try:
+                    overrides[key] = float(raw)
+                except (TypeError, ValueError):
+                    pass
+        for key, qp in (("consensus_collapse_armed", "collapse_armed"),
+                        ("regime_flip_armed", "flip_armed")):
+            raw = request.args.get(qp)
+            if raw is not None and str(raw).lower() in ("0", "1", "true", "false"):
+                overrides[key] = str(raw).lower() in ("1", "true")
+        drill = run_kill_drill(views, current_drawdown_pct=drawdown_pct,
+                               horizon=horizon, overrides=overrides or None)
+        # Advanced: the what-if threshold sensitivity grid (drill matrix).
+        if request.args.get("matrix", "0") == "1":
+            from quant_env.intelligence.execution.live_apply import run_kill_drill_matrix
+            try:
+                dd_range = [float(x) for x in
+                            str(request.args.get("dd_range", "5,10,15,20")).split(",") if x]
+                fl_range = [float(x) for x in
+                            str(request.args.get("floor_range", "0.05,0.15,0.3,0.5")).split(",") if x]
+                matrix = run_kill_drill_matrix(views, dd_grid=dd_range or (5, 10, 15, 20),
+                                               floor_grid=fl_range or (0.05, 0.15, 0.3, 0.5),
+                                               current_drawdown_pct=drawdown_pct,
+                                               horizon=horizon)
+                return jsonify({"status": "ok", "drill": drill, "matrix": matrix})
+            except Exception:
+                return jsonify({"status": "ok", "drill": drill})
+        return jsonify({"status": "ok", "drill": drill})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/consensus_history')
+def api_intelligence_consensus_history():
+    """Belief curve + per-source track record over persisted consensus views.
+
+    Every persisted MarketView is labeled with the realized outcome that
+    FOLLOWED it (forward return from the cached symbol history), so the desk
+    can see — source by source — who called it right and who called it wrong.
+    "Calibration beats accuracy": we score the direction of each vote against
+    the realized direction, not the strength.
+
+    Views whose forward window is not yet observable are returned unscored
+    ("pending") — the scorecard grows honestly as time passes and cycles run.
+    """
+    try:
+        from quant_env.intelligence.ledger import OpportunityLedger
+        from quant_env.intelligence.data import load_cached_history
+        import pandas as pd
+
+        from quant_env.intelligence.consensus import ConsensusEngine
+        from quant_env.intelligence.consensus.sources import collect_all_signals
+
+        ledger = OpportunityLedger.load()
+        views = list(ledger.market_views or [])
+        symbol = getattr(Config, "RESEARCH_SYMBOLS", "GC=F").split(",")[0].strip() or "GC=F"
+        # Always show the CURRENT belief as the newest (pending) point — the
+        # belief curve is never empty, and persisted cycles add scored history.
+        try:
+            signals = collect_all_signals(ctx={"max_bars": 600}, ledger=ledger,
+                                          project_root=_get_project_root(),
+                                          symbol=symbol)
+            live = ConsensusEngine().fuse(
+                signals, symbol=symbol, cycle_id="dashboard-live").to_dict()
+            live["current_live"] = True
+            views = views + [live]
+        except Exception:
+            pass
+        df = load_cached_history(_get_project_root(), symbol)
+        if df is not None and getattr(df.index, "tz", None) is not None:
+            df.index = df.index.tz_convert("UTC").tz_localize(None)
+
+        from quant_env.intelligence.research_stats import score_consensus_history
+        out, scorecard, scored = score_consensus_history(views, df)
+        return jsonify({
+            "status": "ok",
+            "views": out[-30:],
+            "count": len(out),
+            "scored": scored,
+            "scorecard": scorecard,
+            "note": ("Track records grow with every persisted research cycle; "
+                      "unscored views are pending forward data."),
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/risk_cone')
+def api_intelligence_risk_cone():
+    """Forward Monte-Carlo "possibility cone" from the current equity point:
+    5/50/95 percentile paths + P(ruin) + P(profit), bootstrapped from realized
+    trade PnL (falls back to the committed analytics snapshot)."""
+    try:
+        from quant_env.analysis.monte_carlo import possibility_cone
+        import numpy as np
+
+        live = _load_live_engine_data()
+        trades = live.get("trades") or []
+        pnls = [float(t.get("pnl", 0.0) or 0.0) for t in trades]
+        equity = live.get("equity") or []
+        initial = float(equity[-1]["equity"]) if equity else 10000.0
+        if not pnls and equity:
+            eqs = [float(e["equity"]) for e in equity]
+            pnls = [b - a for a, b in zip(eqs, eqs[1:])]
+        if not pnls:
+            snap_path = PROJECT_ROOT / "analytics_snapshot.json"
+            if snap_path.exists():
+                try:
+                    snap = json.load(open(snap_path))
+                    eqs = [float(e["equity"]) for e in (snap.get("equity_tail") or [])]
+                    if len(eqs) > 1:
+                        pnls = [b - a for a, b in zip(eqs, eqs[1:])]
+                        initial = float(eqs[-1])
+                except Exception:
+                    pass
+        try:
+            horizon = min(max(20, int(request.args.get("horizon", 120))), 500)
+        except (TypeError, ValueError):
+            horizon = 120
+        try:
+            initial_arg = float(request.args.get("initial", initial))
+            if initial_arg > 0:
+                initial = initial_arg
+        except (TypeError, ValueError):
+            pass
+        if not pnls:
+            return jsonify({"status": "ok", "cone": None,
+                            "error": "no realized trade or equity returns available"})
+        _, stats = possibility_cone(pnls, num_sim=1000, horizon=horizon,
+                                    initial=initial, seed=7)
+        return jsonify({"status": "ok", "cone": stats})
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
 

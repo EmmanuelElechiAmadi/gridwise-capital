@@ -988,6 +988,53 @@
         .src-ev-full { display: none; margin-top: 6px; font-size: 0.56rem; color: var(--text-3); font-family: 'JetBrains Mono', monospace; white-space: pre-wrap; word-break: break-all; line-height: 1.5; background: var(--bg-base); border: 1px solid var(--border); border-radius: 6px; padding: 8px; }
         .con-generated { font-size: 0.58rem; color: var(--text-3); margin-top: 4px; }
 
+        /* v4: Consensus Weather Radar */
+        .radar-wrap { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 10px 0 6px; padding: 10px 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .radar-svg { width: 196px; height: 196px; flex: 0 0 auto; }
+        .radar-svg svg { width: 100%; height: 100%; display: block; }
+        .radar-meta { flex: 1 1 220px; min-width: 200px; font-size: 0.62rem; color: var(--text-3); line-height: 1.7; }
+        .radar-meta .rm-row { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dashed var(--border); padding: 3px 0; }
+        .radar-meta .rm-row span { color: var(--text-3); }
+        .radar-meta .rm-row b { color: var(--text-1); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+        .radar-legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.58rem; margin-top: 4px; align-items: center; }
+        .radar-legend span { display: inline-flex; align-items: center; gap: 4px; color: var(--text-3); }
+        .sw { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+        /* v4: "Why" drawer */
+        .why-overlay { position: fixed; inset: 0; background: rgba(4,8,16,0.55); backdrop-filter: blur(2px); z-index: 990; display: none; }
+        .why-overlay.show { display: block; }
+        .why-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 460px; max-width: 94vw; background: var(--bg-surface); border-left: 1px solid var(--border-bright); z-index: 991; transform: translateX(102%); transition: transform 0.22s ease; display: flex; flex-direction: column; box-shadow: -12px 0 40px rgba(0,0,0,0.45); }
+        .why-drawer.show { transform: translateX(0); }
+        .why-head { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .why-head h4 { margin: 0; font-size: 0.85rem; }
+        .why-body { padding: 14px 16px; overflow-y: auto; font-size: 0.68rem; line-height: 1.65; }
+        .why-body .wb-label { font-size: 0.56rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin: 12px 0 4px; }
+        .why-ev { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--text-2); background: var(--bg-base); border: 1px solid var(--border); border-radius: 6px; padding: 8px; white-space: pre-wrap; word-break: break-all; max-height: 260px; overflow-y: auto; }
+        .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+        .why-grid .kv { display: flex; justify-content: space-between; gap: 8px; }
+        .why-grid .kv span:first-child { color: var(--text-3); }
+        .why-grid .kv b { font-family: 'JetBrains Mono', monospace; }
+        .why-src-path { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--blue); background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; display: inline-block; }
+        .contrib-why { cursor: pointer; border-radius: 6px; padding: 2px 4px; }
+        .contrib-why:hover { background: rgba(77,159,255,0.07); }
+        .contrib-why:hover .src { color: var(--blue); }
+
+        /* v4: kill-switch drill timeline */
+        .drill-block { margin-top: 10px; padding: 10px 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .drill-bar { display: flex; gap: 3px; align-items: flex-end; height: 30px; margin: 8px 0 6px; }
+        .drill-step { flex: 1; border-radius: 3px 3px 0 0; min-height: 5px; position: relative; }
+        .drill-step.fire { background: var(--red); box-shadow: 0 0 8px rgba(255,82,82,0.5); }
+        .drill-step.safe { background: var(--green); opacity: 0.5; }
+        .drill-step .ds-tip { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: var(--bg-base); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; font-size: 0.54rem; color: var(--text-2); white-space: nowrap; display: none; z-index: 5; }
+        .drill-step:hover .ds-tip { display: block; }
+        .drill-sum { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.6rem; color: var(--text-3); }
+        .drill-sum b { color: var(--text-1); font-family: 'JetBrains Mono', monospace; }
+
+        /* v4: possibility cone */
+        .cone-block { margin-top: 12px; padding: 10px 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .cone-svg { width: 100%; height: 140px; display: block; }
+        .cone-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 8px; }
+
         /* Execution Guard panel */
         .guard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 8px 0 10px; }
         .guard-tile { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
@@ -1056,6 +1103,16 @@
             <button class="btn btn-red btn-sm" id="confirmOk">Yes, do it</button>
         </div>
     </div>
+</div>
+
+<!-- v4: "Why" drawer — per-source attribution drill-down (#3) -->
+<div class="why-overlay" id="whyOverlay" onclick="closeWhy()"></div>
+<div class="why-drawer" id="whyDrawer">
+    <div class="why-head">
+        <h4 id="whyTitle">Why did this brain vote?</h4>
+        <button class="btn btn-ghost btn-xs" onclick="closeWhy()">✕ Close</button>
+    </div>
+    <div class="why-body" id="whyBody"></div>
 </div>
 
 <!-- Boot watchdog: shows ANY uncaught JS error (incl. parse errors in the
@@ -1560,9 +1617,17 @@
             <div class="con-block">
                 <div class="con-header">
                     <div class="intel-section-label" style="margin:0;">Consensus Market View — the common conclusion (Kronos + RF + backtests + LLM)</div>
-                    <button class="btn btn-ghost btn-sm" onclick="loadMarketView()">↻ Refresh</button>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <span id="histBadge" style="display:none;align-items:center;gap:8px;font-size:0.62rem;color:var(--amber);background:rgba(255,213,79,0.08);border:1px solid rgba(255,213,79,0.25);border-radius:100px;padding:3px 10px;">
+                            <span id="histBadgeLabel">replaying…</span>
+                            <a href="javascript:backToLive()" style="color:var(--cyan);text-decoration:underline;">↩ back to live</a>
+                        </span>
+                        <button class="btn btn-ghost btn-sm" onclick="loadMarketView()">↻ Refresh</button>
+                    </div>
                 </div>
                 <div id="consensusBody"><div class="con-none">Loading consensus…</div></div>
+                <div id="beliefBody"></div>
+                <div id="scorecardBody" style="margin-top:6px;"></div>
                 <div style="margin-top:10px;">
                     <button class="btn btn-blue btn-sm" id="btnAdvise" onclick="runAdvisor()">⚡ Get Trade Advice</button>
                     <span class="intel-status" id="adviseStatus">—</span>
@@ -1570,13 +1635,55 @@
                 <div id="advisorBody"></div>
             </div>
 
+            <!-- v4: Possibility cone (Monte-Carlo forward risk) -->
+            <div class="con-block">
+                <div class="con-header">
+                    <div class="intel-section-label" style="margin:0;">🎯 Possibility Cone — Monte-Carlo forward risk (5th/50th/95th percentile)</div>
+                    <button class="btn btn-ghost btn-sm" id="btnRiskCone" onclick="loadRiskCone()">⟳ Compute</button>
+                </div>
+                <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:6px;font-size:0.62rem;color:var(--text-3);">
+                    <label style="display:flex;align-items:center;gap:6px;">Horizon
+                        <input type="range" id="coneHorizon" min="20" max="300" step="10" value="120" onchange="document.getElementById('coneHorizonV').textContent=this.value;loadRiskCone()" style="width:120px;">
+                        <b id="coneHorizonV" style="color:var(--text-1);font-family:'JetBrains Mono',monospace;">120</b>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;">Capital
+                        <input type="number" id="coneCapital" value="10000" step="1000" min="100" onchange="loadRiskCone()" style="width:110px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--text-1);font-size:0.62rem;">
+                    </label>
+                    <span style="color:var(--text-3);">bootstrap from realized trade PnL · 1000 sims</span>
+                </div>
+                <div id="coneBody"><div class="con-none">The cone renders automatically — use the sliders to re-run the scenario.</div></div>
+            </div>
+
             <!-- v3: Execution Guard (kill-switches + hot-apply) -->
             <div class="con-block">
                 <div class="con-header">
                     <div class="intel-section-label" style="margin:0;">🛡 Execution Guard — kill-switches & hot-applied deployments</div>
-                    <button class="btn btn-ghost btn-sm" onclick="loadExecutionGuard()">↻ Refresh</button>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button class="btn btn-amber btn-sm" id="btnKillDrill" onclick="runKillDrill()">🧪 Run Kill Drill</button>
+                        <button class="btn btn-ghost btn-sm" onclick="loadExecutionGuard()">↻ Refresh</button>
+                    </div>
                 </div>
                 <div id="execGuardBody"><div class="con-none">Loading execution guard…</div></div>
+                <div id="drillCtrls" style="display:none;gap:14px;flex-wrap:wrap;align-items:center;margin:8px 0 4px;font-size:0.62rem;color:var(--text-3);">
+                    <label style="display:flex;align-items:center;gap:6px;">Drawdown kill
+                        <input type="range" id="drillDD" min="2" max="30" step="1" value="15" onchange="document.getElementById('drillDDV').textContent=this.value+'%';runKillDrill()" style="width:110px;">
+                        <b id="drillDDV" style="color:var(--text-1);font-family:'JetBrains Mono',monospace;">15%</b>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;">Consensus floor
+                        <input type="range" id="drillFloor" min="5" max="60" step="5" value="15" onchange="document.getElementById('drillFloorV').textContent=(this.value/100).toFixed(2);runKillDrill()" style="width:110px;">
+                        <b id="drillFloorV" style="color:var(--text-1);font-family:'JetBrains Mono',monospace;">0.15</b>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;">Snapshots
+                        <input type="range" id="drillHorizon" min="2" max="24" step="1" value="12" onchange="document.getElementById('drillHorizonV').textContent=this.value;runKillDrill()" style="width:110px;">
+                        <b id="drillHorizonV" style="color:var(--text-1);font-family:'JetBrains Mono',monospace;">12</b>
+                    </label>
+                    <span>what-if thresholds — live guard config untouched</span>
+                </div>
+                <div id="drillBody"></div>
+                <div style="margin-top:8px;">
+                    <button class="btn btn-ghost btn-sm" id="btnMatrix" onclick="runDrillMatrix()">📊 Sensitivity matrix</button>
+                </div>
+                <div id="matrixBody"></div>
             </div>
 
             <!-- Deployment gate · human approval -->
@@ -2475,6 +2582,7 @@ async function runIntelligenceCycle() {
             loadDeployments();              // a cycle may have auto-proposed a deployment
             loadMarketView();               // the cycle produced a fresh consensus
             loadExecutionGuard();           // refresh kill-switch status
+            loadConsensusHistory();      // the cycle persisted a view -> scorecard/belief grow
             fillLLMTiles(d.brief.narrative_layer);
             loadScheduler();
         } else {
@@ -2840,7 +2948,133 @@ async function runShadowTest(id) {
 }
 
 // ── v3: Consensus Market View + Trade Execution Advisor ───────────────
+// ── v4 advanced: belief-curve replay, scorecard, drill matrix ───────────
+let _viewHistory = [];
+let _viewingHistIdx = null;
+let _lastConfusionMsg = '';
+
+async function loadConsensusHistory() {
+    try {
+        const r = await fetch('/api/intelligence/consensus_history');
+        const d = await r.json();
+        if (d.status === 'ok') {
+            _viewHistory = d.views || [];
+            renderBeliefCurve(d);
+        }
+    } catch (e) { /* silent */ }
+}
+
+function renderBeliefCurve(d) {
+    const body = document.getElementById('beliefBody');
+    if (!body) return;
+    const views = d.views || [];
+    if (!views.length) { body.innerHTML = ''; return; }
+    const W = 560, H = 88, pad = 8;
+    const vals = views.map(function (v) { return Number(v.direction_value || 0); });
+    const lo = Math.min.apply(null, vals.concat([0])) - 0.1;
+    const hi = Math.max.apply(null, vals.concat([0])) + 0.1;
+    const span = (hi - lo) || 1;
+    const X = function (i) { return pad + (i / (views.length - 1 || 1)) * (W - 2 * pad); };
+    const Y = function (v) { return H - pad - ((v - lo) / span) * (H - 2 * pad); };
+    const line = vals.map(function (v, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ');
+    const zeroY = Y(0);
+    const pts = views.map(function (v, i) {
+        const dir = String(v.direction || 'RANGING').toUpperCase();
+        const col = v.realized ? (v.realized === 'BULL' ? '#00e676' : v.realized === 'BEAR' ? '#ff5252' : '#ffd54f')
+            : (dir === 'BULL' ? '#00e676' : dir === 'BEAR' ? '#ff5252' : '#ffd54f');
+        const r = v.current_live ? 5 : 3.5;
+        return '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(vals[i]).toFixed(1) + '" r="' + r + '" fill="' + col + '" stroke="#fff" stroke-width="' + (v.current_live ? 1.6 : 0.6) + '" onclick="replayView(' + i + ')" style="cursor:pointer"><title>' + (v.generated_at || '').replace('T', ' ').slice(0, 16) + ' · ' + _esc(dir) + ' · value ' + Number(v.direction_value || 0).toFixed(2) + (v.realized ? ' · realized ' + v.realized : ' · pending') + '</title></circle>';
+    }).join('');
+    body.innerHTML =
+        '<div class="con-trend" style="margin-top:8px;">' +
+        '<div class="t-label">Belief curve — what the desk believed over time' + (d.scored ? ' · ' + d.scored + ' resolved' : '') + '</div>' +
+        '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" style="width:100%;height:88px;display:block;">' +
+        '<line x1="' + pad + '" y1="' + zeroY.toFixed(1) + '" x2="' + (W - pad) + '" y2="' + zeroY.toFixed(1) + '" stroke="rgba(255,255,255,0.2)" stroke-dasharray="3 3"/>' +
+        '<polyline points="' + line + '" fill="none" stroke="var(--cyan)" stroke-width="2"/>' + pts + '</svg>' +
+        '<div style="font-size:0.55rem;color:var(--text-3);margin-top:2px;">click a dot to replay what the desk believed · dot color = realized outcome (green BULL / red BEAR / amber RANGING) · white-ringed = current live view · grey = pending forward data</div>' +
+        '</div>';
+    renderScorecard(d.scorecard || []);
+}
+
+function renderScorecard(sc) {
+    const body = document.getElementById('scorecardBody');
+    if (!body) return;
+    if (!sc.length) {
+        body.innerHTML = '<div class="con-none" style="padding:10px 0;">📊 No resolved votes yet — run research cycles to build each source&#39;s track record. <i>Calibration beats accuracy:</i> this shows who calls it right over time, not who is loudest.</div>';
+        return;
+    }
+    body.innerHTML = '<div class="guard-grid" style="margin-top:6px;">' + sc.map(function (s) {
+        const hr = s.hit_rate_pct;
+        const cls = hr == null ? '' : hr >= 60 ? 'ok' : hr >= 40 ? 'warn' : 'crit';
+        const fr = hr == null ? '—' : hr.toFixed(0) + '%';
+        return '<div class="guard-tile"><div class="l">' + _esc(s.source) + ' · hit-rate</div>' +
+            '<div class="v ' + cls + '">' + fr + '</div>' +
+            '<div class="sub">' + s.correct + '/' + s.votes + ' right · B ' + s.bull + ' / Bn ' + s.bear + ' / R ' + s.ranging + '</div></div>';
+    }).join('') + '</div>';
+}
+
+function replayView(i) {
+    const v = _viewHistory[i];
+    if (!v) return;
+    _viewingHistIdx = i;
+    const badge = document.getElementById('histBadge');
+    if (badge) {
+        badge.style.display = 'inline-flex';
+        document.getElementById('histBadgeLabel').textContent = 'replaying ' + (v.generated_at || '').replace('T', ' ').slice(0, 16) + (v.realized ? ' · realized ' + v.realized : ' · pending forward data');
+    }
+    renderMarketView(v);
+    const el = document.getElementById('consensusBody');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function backToLive() {
+    _viewingHistIdx = null;
+    const badge = document.getElementById('histBadge');
+    if (badge) badge.style.display = 'none';
+    loadMarketView();
+}
+
+async function runDrillMatrix() {
+    const body = document.getElementById('matrixBody');
+    const btn = document.getElementById('btnMatrix');
+    if (btn) btn.disabled = true;
+    if (body) body.innerHTML = '<div class="con-none">computing sensitivity grid…</div>';
+    const hz = document.getElementById('drillHorizon');
+    try {
+        const r = await fetch('/api/intelligence/kill_drill?matrix=1&horizon=' + (hz ? hz.value : 12));
+        const d = await r.json();
+        if (d.status === 'ok' && d.matrix) renderDrillMatrix(d.matrix);
+        else if (body) body.innerHTML = '';
+    } catch (e) { if (body) body.innerHTML = ''; }
+    finally { if (btn) btn.disabled = false; }
+}
+
+function renderDrillMatrix(m) {
+    const body = document.getElementById('matrixBody');
+    if (!body) return;
+    const floors = m.floor_grid || [];
+    if (!floors.length) { body.innerHTML = ''; return; }
+    const head = '<div style="display:grid;grid-template-columns:112px repeat(' + floors.length + ',1fr);gap:3px;font-size:0.55rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.4px;">' +
+        '<span>dd \ floor</span>' + floors.map(function (f) { return '<span style="text-align:center;">' + Number(f).toFixed(2) + '</span>'; }).join('') + '</div>';
+    const rows = (m.rows || []).map(function (row) {
+        return '<div style="display:grid;grid-template-columns:112px repeat(' + floors.length + ',1fr);gap:3px;margin-top:3px;">' +
+            '<span style="font-size:0.56rem;color:var(--text-2);align-self:center;">' + Number(row.drawdown_pct).toFixed(0) + '%</span>' +
+            (row.cells || []).map(function (cell) {
+                const firedPct = m.horizon ? Math.round(cell.fired / m.horizon * 100) : 0;
+                const bg = firedPct >= 50 ? 'rgba(255,82,82,0.20)' : firedPct >= 20 ? 'rgba(255,213,79,0.15)' : 'rgba(0,230,118,0.12)';
+                const col = firedPct >= 50 ? '#ff8aa0' : firedPct >= 20 ? '#ffd54f' : '#69f0ae';
+                return '<div style="text-align:center;font-size:0.62rem;padding:4px 0;border-radius:4px;background:' + bg + ';color:' + col + ';font-family:JetBrains Mono,monospace;" title="fired ' + cell.fired + '/' + m.horizon + ' snapshots under dd ' + Number(row.drawdown_pct).toFixed(0) + '% / floor ' + Number(cell.consensus_floor).toFixed(2) + '">' + firedPct + '%</div>';
+            }).join('') + '</div>';
+    }).join('');
+    body.innerHTML = '<div class="drill-block" style="margin-top:8px;">' +
+        '<div class="intel-section-label" style="margin:0 0 4px;">Kill sensitivity matrix — % of the last ' + m.horizon + ' snapshot(s) that would have fired</div>' +
+        head + rows +
+        '<div style="font-size:0.55rem;color:var(--text-3);margin-top:5px;">Each cell replays history under a different (drawdown, consensus-floor) pair — shows how close the system is to tripping. Red ≥ 50%, amber ≥ 20%, green &lt; 20%.</div>' +
+        '</div>';
+}
+
 async function loadMarketView() {
+    if (_viewingHistIdx != null) return;   // pause auto-refresh while replaying history
     const body = document.getElementById('consensusBody');
     try {
         const r = await fetch('/api/intelligence/market_view');
@@ -2901,23 +3135,21 @@ function renderMarketView(mv) {
         '<div class="fill ' + (strength >= 40 ? 'green' : strength >= 20 ? 'amber' : 'red') + '" style="width:' + strength + '%"></div></div></div>' +
         '</div>';
 
-    // Diverging per-source contribution bars (signed).
-    const contribRows = (mv.contributions || []).map(function (c) {
+    // v4: clickable per-source rows — each opens the "Why" attribution drawer.
+    const contribRows = (mv.contributions || []).map(function (c, i) {
         const contrib = Number(c.contribution || 0);
         const pos = contrib >= 0;
         const width = Math.min(100, Math.abs(contrib) * 100).toFixed(1);
-        const ev = c.evidence && Object.keys(c.evidence).length
-            ? '<div class="src-expand" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'block\'?\'none\':\'block\'">view evidence ▾</div>' +
-              '<div class="src-ev-full">' + _esc(JSON.stringify(c.evidence, null, 2)) + '</div>'
-            : '';
-        return '<div class="contrib-row">' +
-            '<span class="src">' + _esc(c.source) + '</span>' +
+        return '<div class="contrib-why" onclick="openWhy(' + i + ', window._currentMv)">' +
+            '<div class="contrib-row">' +
+            '<span class="src">' + _esc(c.source) + ' ↳</span>' +
             '<div class="bar"><div class="fill ' + (pos ? 'green' : 'red') + '" style="width:' + width + '%;float:' + (pos ? 'left' : 'right') + '"></div></div>' +
             '<span class="val">' + (pos ? '+' : '') + contrib.toFixed(3) + '</span>' +
             '</div>' +
             '<div style="margin-left:98px;font-size:0.6rem;color:var(--text-3);padding-bottom:6px;">' +
             '<b>' + _esc(c.direction || '?') + '</b> · strength ' + Math.round((c.strength || 0) * 100) + '% · conf ' + Math.round((c.confidence || 0) * 100) + '%' +
-            (c.note ? ' · ' + _esc(c.note) : '') + ev + '</div>';
+            (c.note ? ' · ' + _esc(c.note) : '') + '</div>' +
+            '</div>';
     }).join('');
     const contribsHtml = contribRows || '<div class="con-none">No signals yet — run a research cycle.</div>';
 
@@ -2947,11 +3179,342 @@ function renderMarketView(mv) {
           (mv.cycle_id ? ' · cycle ' + _esc(String(mv.cycle_id).slice(0, 8)) : '') + '</div>'
         : '';
 
-    body.innerHTML =
+    window._currentMv = mv;   // for the Why-drawer's inline onclick
+
+    // ── v4 advanced: regime-confusion alarm ──────────────────────────
+    // Dangerous disagreement = a high-confidence brain voting hard against
+    // the consensus, or strong-but-disagreed conviction.  Surface it as an
+    // alarm, not just a low number.
+    let confusionMsg = '';
+    const dirNow = String(mv.direction || 'RANGING').toUpperCase();
+    const agreeNow = Number(mv.agreement_index || 0);
+    const csNow = Number(mv.consensus_strength || 0);
+    for (let ci = 0; ci < (mv.contributions || []).length; ci++) {
+        const c = mv.contributions[ci];
+        const cd = String(c.direction || 'RANGING').toUpperCase();
+        if (cd !== 'RANGING' && cd !== dirNow && Number(c.confidence || 0) >= 0.7) {
+            confusionMsg = c.source + ' votes ' + cd + ' at ' + Math.round(Number(c.confidence) * 100) + '% confidence against consensus ' + dirNow;
+            break;
+        }
+    }
+    if (!confusionMsg && agreeNow < 0.4 && csNow >= 0.15) {
+        confusionMsg = 'agreement only ' + Math.round(agreeNow * 100) + '% at strength ' + Math.round(csNow * 100) + '% — the brains disagree dangerously';
+    }
+    if (confusionMsg) {
+        if (confusionMsg !== _lastConfusionMsg) {
+            _lastConfusionMsg = confusionMsg;
+            try { addLog('🚨 Regime confusion: ' + confusionMsg, 'error'); } catch (e) { /* noop */ }
+        }
+    }
+    const confusionBanner = confusionMsg
+        ? '<div class="con-dissent" style="border-color:rgba(255,82,82,0.4);background:rgba(255,82,82,0.08);"><b>🚨 REGIME CONFUSION:</b> ' + _esc(confusionMsg) + '</div>'
+        : '';
+
+    const radar = radarSvg(mv);
+    body.innerHTML = confusionBanner +
         '<div class="con-direction ' + dirCls + '">' + _esc(mv.direction || 'RANGING') + '</div>' +
         meter + dual +
-        '<div class="intel-section-label" style="margin:8px 0 4px;">Per-source contribution</div>' + contribsHtml +
+        (radar || '') +
+        '<div class="intel-section-label" style="margin:8px 0 4px;">Per-source contribution <span style="text-transform:none;color:var(--text-3);letter-spacing:0;">— click a source for the “why”</span></div>' + contribsHtml +
         trend + dissent + llm + gen;
+}
+
+// ── v4: Consensus Weather Radar (#1) ───────────────────────────────────
+function _dirColor(dir) {
+    const d = String(dir || '').toUpperCase();
+    return d === 'BULL' ? '#00e676' : d === 'BEAR' ? '#ff5252' : '#ffd54f';
+}
+
+function radarSvg(mv) {
+    const contribs = (mv && mv.contributions) || [];
+    if (!contribs.length) return '';
+    const size = 196, cx = size / 2, cy = size / 2, R = size / 2 - 27;
+    const maxAbs = Math.max.apply(null, contribs.map(function (c) { return Math.abs(Number(c.contribution) || 0); })) || 1;
+    const n = contribs.length;
+    let parts = '';
+    contribs.forEach(function (c, i) {
+        const ang = (i / n) * 2 * Math.PI - Math.PI / 2;
+        const len = Math.min(1, Math.abs(Number(c.contribution) || 0) / maxAbs) * R;
+        const xr = cx + Math.cos(ang) * R, yr = cy + Math.sin(ang) * R;
+        const x2 = cx + Math.cos(ang) * len, y2 = cy + Math.sin(ang) * len;
+        const col = _dirColor(c.direction);
+        const op = Math.max(0.25, Math.min(1, 0.35 + 0.65 * Number(c.confidence || 0)));
+        const tip = c.source + ': ' + (c.direction || '?') + ' · contribution ' + (Number(c.contribution) >= 0 ? '+' : '') + Number(c.contribution || 0).toFixed(3) +
+            ' · strength ' + Math.round((c.strength || 0) * 100) + '% · confidence ' + Math.round((c.confidence || 0) * 100) + '%';
+        parts += '<line x1="' + cx + '" y1="' + cy + '" x2="' + xr.toFixed(1) + '" y2="' + yr.toFixed(1) + '" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>' +
+            '<line x1="' + cx + '" y1="' + cy + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="' + col + '" stroke-width="3.5" stroke-linecap="round" opacity="' + op.toFixed(2) + '" onclick="openWhy(' + i + ', window._currentMv)" onmousemove="radarTip(event, ' + i + ')" onmouseleave="radarTipOut()" style="cursor:pointer"><title>' + tip + '</title></line>' +
+            '<circle cx="' + xr.toFixed(1) + '" cy="' + yr.toFixed(1) + '" r="3.2" fill="' + col + '" opacity="' + op.toFixed(2) + '" onclick="openWhy(' + i + ', window._currentMv)" onmousemove="radarTip(event, ' + i + ')" onmouseleave="radarTipOut()" style="cursor:pointer"><title>' + tip + '</title></circle>' +
+            '<text x="' + (cx + Math.cos(ang) * (R + 16)).toFixed(1) + '" y="' + (cy + Math.sin(ang) * (R + 16) + 3).toFixed(1) + '" text-anchor="middle" font-size="7.5" fill="rgba(255,255,255,0.72)" font-family="JetBrains Mono, monospace" onclick="openWhy(' + i + ', window._currentMv)" onmousemove="radarTip(event, ' + i + ')" onmouseleave="radarTipOut()" style="cursor:pointer">' + _esc(c.source) + '</text>';
+    });
+    let rings = '';
+    [0.33, 0.66, 1].forEach(function (f) {
+        rings += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (R * f).toFixed(1) + '" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>';
+    });
+    // Storm ring — agreement_index as a dashed radius.
+    const agree = Math.max(0, Math.min(1, Number(mv.agreement_index || 0)));
+    if (agree > 0) {
+        rings += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (agree * R).toFixed(1) + '" fill="none" stroke="#ffd54f" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.75"/>';
+    }
+    // Compass needle — consensus direction_value (-1 BEAR left … +1 BULL right).
+    const dval = Math.max(-1, Math.min(1, Number(mv.direction_value || 0)));
+    const nAng = Math.PI - dval * Math.PI;
+    const nlen = R * 0.5;
+    const nx = cx + Math.cos(nAng) * nlen, ny = cy + Math.sin(nAng) * nlen;
+    const nCol = dval > 0.05 ? '#00e676' : dval < -0.05 ? '#ff5252' : '#ffd54f';
+    parts += '<line x1="' + cx + '" y1="' + cy + '" x2="' + nx.toFixed(1) + '" y2="' + ny.toFixed(1) + '" stroke="' + nCol + '" stroke-width="2" opacity="0.95"/>' +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="3" fill="' + nCol + '"/>';
+    const effN = mv.effective_n, maxVif = mv.max_vif, divPen = mv.diversity_penalty;
+    const meta = '<div class="radar-meta">' +
+        '<div class="rm-row"><span>Effective independent votes (n_eff)</span><b>' + (effN == null ? '—' : Number(effN).toFixed(2)) + '</b></div>' +
+        '<div class="rm-row"><span>Worst variance inflation (max VIF)</span><b>' + (maxVif == null ? '—' : Number(maxVif).toFixed(2)) + '</b></div>' +
+        '<div class="rm-row"><span>Diversity penalty</span><b>' + (divPen == null ? '—' : (Number(divPen) * 100).toFixed(0) + '%') + '</b></div>' +
+        '<div class="radar-legend"><span><i class="sw" style="background:#00e676"></i>BULL</span>' +
+        '<span><i class="sw" style="background:#ff5252"></i>BEAR</span>' +
+        '<span><i class="sw" style="background:#ffd54f"></i>RANGING</span>' +
+        '<span style="margin-left:auto">dashed ring = agreement ' + Math.round(agree * 100) + '%</span></div></div>';
+    return '<div class="radar-wrap"><div class="radar-svg"><svg viewBox="0 0 ' + size + ' ' + size + '">' + rings + parts + '</svg></div>' + meta + '</div>';
+}
+
+// ── v4: "Why" drawer (#3) ─────────────────────────────────────────────
+let _currentMv = null;
+function _sourceModule(source) {
+    const map = {
+        'kronos': 'ml/kronos/ — KronosRegimeAdapter / KronosPricePredictor',
+        'rf_regime': 'ml/regime_model.py — RegimeClassifier.predict_with_confidence',
+        'backtest': 'intelligence/consensus/sources.py — collect_backtest + Signal.from_backtest',
+        'trend_filter': 'intelligence/consensus/sources.py — collect_trend_filter',
+        'llm': 'intelligence/llm.py — cross_validate / fact_check_verdict',
+    };
+    return map[source] || 'intelligence/consensus/sources.py';
+}
+
+function openWhy(i, mv) {
+    if (!mv || !(mv.contributions || []).length) return;
+    const c = mv.contributions[i];
+    if (!c) return;
+    const ov = document.getElementById('whyOverlay');
+    const dr = document.getElementById('whyDrawer');
+    if (!ov || !dr) return;
+    const pos = Number(c.contribution || 0) >= 0;
+    const ev = c.evidence && Object.keys(c.evidence).length ? JSON.stringify(c.evidence, null, 2) : '(no raw evidence recorded)';
+    document.getElementById('whyTitle').textContent = String(c.source).toUpperCase() + ' — the “why” behind this vote';
+    document.getElementById('whyBody').innerHTML =
+        '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
+        '<span class="con-direction ' + String(c.direction || 'RANGING').toLowerCase() + '" style="font-size:0.72rem;padding:4px 10px;border-radius:6px;">' + _esc(c.direction || '?') + '</span>' +
+        '<span style="font-size:0.85rem;font-family:JetBrains Mono, monospace;color:' + (pos ? 'var(--green)' : 'var(--red)') + ';">' + (pos ? '+' : '') + Number(c.contribution || 0).toFixed(4) + '</span></div>' +
+        '<div class="wb-label">What this brain voted</div>' +
+        '<div class="why-grid">' +
+        '<div class="kv"><span>Direction</span><b>' + _esc(c.direction || '?') + '</b></div>' +
+        '<div class="kv"><span>Contribution</span><b>' + (pos ? '+' : '') + Number(c.contribution || 0).toFixed(4) + '</b></div>' +
+        '<div class="kv"><span>Strength</span><b>' + Math.round(Number(c.strength || 0) * 100) + '%</b></div>' +
+        '<div class="kv"><span>Confidence</span><b>' + Math.round(Number(c.confidence || 0) * 100) + '%</b></div>' +
+        '<div class="kv"><span>Base weight</span><b>' + Number(c.base_weight || 0).toFixed(2) + '</b></div>' +
+        '<div class="kv"><span>VIF (corr. penalty)</span><b>' + Number(c.vif || 1).toFixed(2) + '</b></div>' +
+        '<div class="kv"><span>Independent weight</span><b>' + Number(c.independent_weight || 0).toFixed(3) + '</b></div>' +
+        '</div>' +
+        (c.note ? '<div class="wb-label">Note</div><div>' + _esc(c.note) + '</div>' : '') +
+        '<div class="wb-label">Raw evidence this vote derived from</div>' +
+        '<div class="why-ev">' + _esc(ev) + '</div>' +
+        '<div class="wb-label">Implementation</div>' +
+        '<span class="why-src-path">' + _esc(_sourceModule(c.source)) + '</span>';
+    ov.classList.add('show');
+    dr.classList.add('show');
+}
+function closeWhy() {
+    const ov = document.getElementById('whyOverlay');
+    const dr = document.getElementById('whyDrawer');
+    if (ov) ov.classList.remove('show');
+    if (dr) dr.classList.remove('show');
+}
+
+document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') closeWhy();
+});
+
+// Floating radar tooltip (advanced hover) — mirrors the native <title>.
+function radarTip(ev, i) {
+    if (!window._currentMv) return;
+    const c = (window._currentMv.contributions || [])[i];
+    if (!c) return;
+    let tip = document.getElementById('radarTip');
+    if (!tip) {
+        tip = document.createElement('div');
+        tip.id = 'radarTip';
+        document.body.appendChild(tip);
+        tip.style.cssText = 'position:fixed;z-index:995;pointer-events:none;background:#0b1020;border:1px solid rgba(255,255,255,0.14);border-radius:8px;padding:6px 10px;font-size:0.62rem;box-shadow:0 6px 24px rgba(0,0,0,0.5);max-width:240px;color:var(--text-2);line-height:1.5;';
+    }
+    const dir = String(c.direction || '?').toUpperCase();
+    const col = _dirColor(c.direction);
+    tip.innerHTML = '<div style="font-weight:700;color:' + col + ';">' + _esc(c.source) + '</div>' +
+        '<div>' + _esc(dir) + ' · contribution ' + (Number(c.contribution) >= 0 ? '+' : '') + Number(c.contribution || 0).toFixed(3) + '</div>' +
+        '<div>strength ' + Math.round((c.strength || 0) * 100) + '% · confidence ' + Math.round((c.confidence || 0) * 100) + '%' + (c.vif ? ' · VIF ' + Number(c.vif).toFixed(2) : '') + '</div>';
+    tip.style.left = (ev.clientX + 14) + 'px';
+    tip.style.top = (ev.clientY + 10) + 'px';
+    tip.style.display = 'block';
+}
+function radarTipOut() {
+    const tip = document.getElementById('radarTip');
+    if (tip) tip.style.display = 'none';
+}
+
+// ── v4: Kill-switch drill (#5) ─────────────────────────────────────────
+async function runKillDrill() {
+    const body = document.getElementById('drillBody');
+    const btn = document.getElementById('btnKillDrill');
+    if (btn) { btn.disabled = true; btn.textContent = 'rehearsing…'; }
+    const dd = document.getElementById('drillDD');
+    const fl = document.getElementById('drillFloor');
+    const hz = document.getElementById('drillHorizon');
+    let url = '/api/intelligence/kill_drill?horizon=' + (hz ? hz.value : 12);
+    if (dd) url += '&drawdown_pct=' + dd.value;
+    if (fl) url += '&consensus_floor=' + (Number(fl.value) / 100).toFixed(2);
+    try {
+        const r = await fetch(url);
+        const d = await r.json();
+        if (d.status === 'ok') renderKillDrill(d.drill);
+        else if (body) body.innerHTML = '<div class="con-none">Drill failed: ' + _esc((d && d.error) || 'unknown') + '</div>';
+    } catch (e) {
+        if (body) body.innerHTML = '<div class="con-none">Engine offline — cannot run drill.</div>';
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '🧪 Run Kill Drill'; }
+    }
+}
+
+function renderKillDrill(dr) {
+    const body = document.getElementById('drillBody');
+    if (!body || !dr) return;
+    const steps = dr.steps || [];
+    if (!steps.length) { body.innerHTML = '<div class="con-none">No consensus history to rehearse against yet.</div>'; return; }
+    const bar = steps.map(function (s) {
+        const tip = (s.generated_at ? String(s.generated_at).replace('T', ' ').slice(5, 16) + ' · ' : '') +
+            _esc(s.direction || '?') + ' · strength ' + Math.round(Number(s.consensus_strength || 0) * 100) + '%' +
+            (s.reasons && s.reasons.length ? ' · ' + _esc(s.reasons.join('; ')) : '');
+        return '<div class="drill-step ' + (s.kill_triggered ? 'fire' : 'safe') + '" title="' + tip.replace(/"/g, '&quot;') + '"><div class="ds-tip">' + tip + '</div></div>';
+    }).join('');
+    const firedFrac = Math.round(Number(dr.fired_fraction || 0) * 100);
+    const reasons = Object.keys(dr.reason_histogram || {}).map(function (k) {
+        return '<span>' + _esc(k) + ' ×' + dr.reason_histogram[k] + '</span>';
+    }).join(' ');
+    const cfg = dr.config || {};
+    const ctrl = document.getElementById('drillCtrls');
+    if (ctrl) { ctrl.style.display = 'flex'; }
+    body.innerHTML =
+        '<div class="drill-block">' +
+        '<div class="intel-section-label" style="margin:0 0 4px;">🧪 Kill-switch rehearsal — last ' + dr.simulated_steps + ' consensus snapshot(s)</div>' +
+        '<div class="drill-bar">' + bar + '</div>' +
+        '<div class="drill-sum">' +
+        '<span>fired <b>' + dr.fired_steps + '/' + dr.simulated_steps + '</b></span>' +
+        '<span>fired fraction <b>' + firedFrac + '%</b></span>' +
+        '<span>first fired at step <b>' + (dr.first_fired_index == null ? '—' : dr.first_fired_index) + '</b></span>' +
+        (reasons ? '<span style="color:var(--text-3);">' + reasons + '</span>' : '') +
+        '</div>' +
+        '<div style="font-size:0.55rem;color:var(--text-3);margin-top:5px;">Simulation only — no broker orders placed. Config: drawdown ≥ ' + cfg.max_drawdown_pct + '%, consensus floor ' + cfg.consensus_floor + ', collapse ' + (cfg.consensus_collapse_armed ? 'armed' : 'off') + ', regime-flip ' + (cfg.regime_flip_armed ? 'armed' : 'off') + '.</div>' +
+        '</div>';
+}
+
+// ── v4: Possibility cone (#6) ──────────────────────────────────────────
+async function loadRiskCone() {
+    const body = document.getElementById('coneBody');
+    const btn = document.getElementById('btnRiskCone');
+    if (btn) btn.disabled = true;
+    const hz = document.getElementById('coneHorizon');
+    const cap = document.getElementById('coneCapital');
+    let url = '/api/intelligence/risk_cone?horizon=' + (hz ? hz.value : 120);
+    if (cap && Number(cap.value) > 0) url += '&initial=' + cap.value;
+    try {
+        const r = await fetch(url);
+        const d = await r.json();
+        if (d.status === 'ok' && d.cone) renderRiskCone(d.cone);
+        else if (body) body.innerHTML = '<div class="con-none">' + _esc(((d && d.error) || 'no realized returns yet')) + '</div>';
+    } catch (e) {
+        if (body) body.innerHTML = '<div class="con-none">Engine offline — cannot compute cone.</div>';
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+function renderRiskCone(cone) {
+    const body = document.getElementById('coneBody');
+    if (!body || !cone) return;
+    const W = 520, H = 130, pad = 8;
+    const xs = cone.p5 || [];
+    const n = xs.length;
+    if (n < 2) { body.innerHTML = '<div class="con-none">Cone has too few points.</div>'; return; }
+    let min = Infinity, max = -Infinity;
+    ['p5', 'p50', 'p95'].forEach(function (k) {
+        (cone[k] || []).forEach(function (v) { if (v < min) min = v; if (v > max) max = v; });
+    });
+    const span = (max - min) || 1;
+    const X = function (i) { return pad + (i / (n - 1)) * (W - 2 * pad); };
+    const Y = function (v) { return H - pad - ((v - min) / span) * (H - 2 * pad); };
+    const path = function (key) {
+        return (cone[key] || []).map(function (v, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ');
+    };
+    const p5path = path('p5'), p50path = path('p50'), p95path = path('p95');
+    const area = p5path + ' ' + (cone.p95 || []).map(function (v, i) { return 'L' + X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).reverse().join(' ') + ' Z';
+    const last = n - 1;
+    const ini = Number(cone.initial || 0);
+    const readout = '<div style="display:flex;justify-content:space-between;gap:8px;font-size:0.58rem;color:var(--text-3);font-family:JetBrains Mono,monospace;margin-bottom:4px;flex-wrap:wrap;">' +
+        '<span id="coneReadout">step 0 · move the cursor over the cone to read percentiles</span>' +
+        '<span>' + cone.sample_size + ' realized PnLs · ' + cone.num_sim + ' sims</span></div>';
+    const svg =
+        '<svg id="coneSvg" class="cone-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" onmousemove="coneHover(event)" onmouseleave="coneHoverOut()">' +
+        '<path d="' + area + '" fill="rgba(0,230,118,0.12)" stroke="none"/>' +
+        '<path d="' + p5path + '" fill="none" stroke="#ff8aa0" stroke-width="1.5"/>' +
+        '<path d="' + p95path + '" fill="none" stroke="#69f0ae" stroke-width="1.5"/>' +
+        '<path d="' + p50path + '" fill="none" stroke="#e0e0e0" stroke-width="2"/>' +
+        '<line x1="' + X(0).toFixed(1) + '" y1="' + Y(ini).toFixed(1) + '" x2="' + X(last).toFixed(1) + '" y2="' + Y(ini).toFixed(1) + '" stroke="rgba(255,255,255,0.25)" stroke-dasharray="3 3"/>' +
+        '</svg>';
+    const pProfit = Number(cone.prob_profit_pct || 0);
+    const pRuin = Number(cone.prob_ruin_pct || 0);
+    const tiles =
+        '<div class="cone-tiles">' +
+        '<div class="guard-tile"><div class="l">P(profit) @ horizon</div><div class="v ' + (pProfit >= 60 ? 'ok' : pProfit >= 40 ? 'warn' : 'crit') + '">' + pProfit.toFixed(1) + '%</div><div class="sub">' + cone.horizon + ' steps ahead</div></div>' +
+        '<div class="guard-tile"><div class="l">P(ruin)</div><div class="v ' + (pRuin <= 5 ? 'ok' : pRuin <= 15 ? 'warn' : 'crit') + '">' + pRuin.toFixed(1) + '%</div><div class="sub">equity below zero</div></div>' +
+        '<div class="guard-tile"><div class="l">Expected equity</div><div class="v">$' + Number(cone.expected_equity || 0).toLocaleString() + '</div><div class="sub">from $' + Number(ini || 0).toLocaleString() + '</div></div>' +
+        '<div class="guard-tile"><div class="l">VaR 95</div><div class="v warn">$' + Number(cone.var_95 || 0).toLocaleString() + '</div><div class="sub">5th-percentile loss</div></div>' +
+        '<div class="guard-tile"><div class="l">Median max DD</div><div class="v">' + Number(cone.median_max_drawdown_pct || 0).toFixed(2) + '%</div><div class="sub">across ' + cone.num_sim + ' sims</div></div>' +
+        '</div>';
+    body.innerHTML = readout + svg + tiles +
+        '<div style="font-size:0.55rem;color:var(--text-3);margin-top:4px;">Bootstrap Monte-Carlo over ' + cone.sample_size + ' realized trade PnLs · shaded band = 5th–95th percentile · center = median. Past performance is not indicative of future results.</div>';
+    _coneData = cone;
+}
+
+let _coneData = null;
+function coneHover(ev) {
+    if (!_coneData) return;
+    const svg = document.getElementById('coneSvg');
+    if (!svg) return;
+    const n = (_coneData.p5 || []).length;
+    if (n < 2) return;
+    const rect = svg.getBoundingClientRect();
+    const frac = Math.max(0, Math.min(1, (ev.clientX - rect.left) / (rect.width || 1)));
+    const step = Math.round(frac * (n - 1));
+    const r = document.getElementById('coneReadout');
+    if (r) {
+        r.textContent = 'step ' + step + ' · 5% $' + Number(_coneData.p5[step]).toLocaleString() +
+            ' · 50% $' + Number(_coneData.p50[step]).toLocaleString() +
+            ' · 95% $' + Number(_coneData.p95[step]).toLocaleString();
+    }
+    let line = document.getElementById('coneCross');
+    if (!line) {
+        const NS = 'http://www.w3.org/2000/svg';
+        line = document.createElementNS(NS, 'line');
+        line.setAttribute('id', 'coneCross');
+        line.setAttribute('stroke', 'rgba(255,255,255,0.35)');
+        line.setAttribute('stroke-width', '1');
+        svg.appendChild(line);
+    }
+    line.setAttribute('x1', (frac * 520).toFixed(1));
+    line.setAttribute('x2', (frac * 520).toFixed(1));
+    line.setAttribute('y1', '0');
+    line.setAttribute('y2', '130');
+}
+function coneHoverOut() {
+    const line = document.getElementById('coneCross');
+    if (line) line.remove();
+    const r = document.getElementById('coneReadout');
+    if (r) r.textContent = 'step 0 · move the cursor over the cone to read percentiles';
 }
 
 async function runAdvisor() {
@@ -3173,6 +3736,9 @@ document.addEventListener('DOMContentLoaded', () => {
     safeRun(loadDeployments, 'loadDeployments');
     safeRun(loadScheduler, 'loadScheduler');
     safeRun(loadMarketView, 'loadMarketView');
+    safeRun(loadConsensusHistory, 'loadConsensusHistory');
+    safeRun(loadRiskCone, 'loadRiskCone');
+    safeRun(runKillDrill, 'runKillDrill');
     safeRun(loadExecutionGuard, 'loadExecutionGuard');
     safeRun(loadShadowHistory, 'loadShadowHistory');
     setInterval(pollStatus, 5000);

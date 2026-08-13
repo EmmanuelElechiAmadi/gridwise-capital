@@ -68,6 +68,50 @@ seek quant/
   the top opportunity (`auto_deploy_top` / `launcher.py research --deploy` /
   dashboard `POST /api/intelligence/deploy`); a human approves it
   (`--approve <id>` / dashboard); `main.py` then applies the approved params to
+
+- **NEW (v4) — self-aware consensus + risk rehearsal + empirical benchmark**
+  (`RESEARCH/INSIGHTFORGE_QUANT_V4.md`):
+  - **Source-correlation penalty** (`intelligence/consensus/engine.py`): VIF-
+    based independence correction — `agreement_index` now measures the share
+    of *independent* evidence (backtest ↔ trend filter double-counting is
+    punished); MarketView gains `effective_n`, `max_vif`, `diversity_penalty`,
+    `raw_agreement_index`; per-source `vif`/`independent_weight` recorded.
+  - **Kill-switch drill** (`intelligence/execution/live_apply.py` +
+    `/api/intelligence/kill_drill`): replay the last N consensus snapshots
+    through the live kill conditions — what WOULD have fired, no broker touch.
+  - **Possibility cones** (`analysis/monte_carlo.py` +
+    `/api/intelligence/risk_cone`): bootstrap Monte-Carlo forward 5/50/95
+    percentile cone from realized trade PnL + P(profit)/P(ruin)/VaR tiles.
+  - **Phase-4 empirical toolkit** (`intelligence/research_stats.py`):
+    PBO/CSCV, Deflated Sharpe, calibration curves, CPCV splits, and a
+    benchmark runner producing `intelligence/output/benchmark_report.json`
+    from real artifacts (PBO 0.25 on a thin 2×8 breakout matrix; DSR 0.23,
+    SR0 2.19; live RF Brier 0.308 / 52% hit-rate; CPCV 5×101).
+  - **7th deployment gate** `DEPLOY_MAX_PBO` (optional — enforced only when
+    the corpus yields a PBO estimate; missing ⇒ `enforced=false`, non-blocking).
+  - **Dashboard**: Consensus Weather Radar (polar plot), click-to-open “Why”
+    attribution drawer, one-click 🧪 Kill Drill timeline, 🎯 Possibility Cone
+    block — all in the 🤖 Agent Team tab.
+  - **Single UI — the Flask engine dashboard only**: the v4 war-room lives
+    entirely in `dashboard/templates/dashboard.html` (🤖 Agent Team tab):
+    interactive weather radar (floating hover tooltips + click-through to the
+    why-drawer), per-source attribution drawer, scenario-capable kill drill
+    (what-if drawdown/floor/snapshot sliders) and a tunable possibility cone
+    (horizon/capital controls + hover crosshair readout).  The Next.js webapp
+    is intentionally untouched — no duplicate/divergent features.
+  - **Advanced interactivity**: kill-switch overrides are evaluated server-side
+    (`evaluate_kill_switches(overrides=...)`) so drill scenarios never touch the
+    live guard config; `/api/intelligence/kill_drill` accepts `drawdown_pct` /
+    `consensus_floor`, `/api/intelligence/risk_cone` accepts `initial` capital.
+  - **Advanced (v4.1) — the desk confronts its own track record**: interactive
+    **belief curve** (time-travel replay — click any past view to re-see what
+    the desk believed, colored by realized outcome), a per-source **hit-rate
+    scorecard** (calibration beats accuracy: who calls it right, not who is
+    loudest), a **regime-confusion alarm** (high-confidence brain voting hard
+    against consensus → visual banner + log), and a **kill sensitivity matrix**
+    (fired % per drawdown×floor threshold grid via
+    `/api/intelligence/kill_drill?matrix=1`). Realized-outcome scoring lives in
+    `intelligence/research_stats.py::score_consensus_history`.
   the live strategy on next start. Nothing reaches the engine without approval.
 - **NEW — deployment gate on the dashboard UI**: the 🤖 Agent Team tab now has a
   full approval panel — 🛠 Propose Top Opportunity, per-opportunity 🛠 Deploy
@@ -193,10 +237,11 @@ seek quant/
    features (the new Consensus + Execution panels are Professional-tier).
 5. **Infrastructure**: Docker for engine + webapp, CI pipeline, monitoring
    (health/alerting on consensus disagreement spikes + kill-switch firings).
-6. **Research (paper v3 → v4)**: run the empirical benchmark — PBO/DSR on the
-   probe corpus, LLM fact-check hit-rate, Kronos-vs-RF-vs-blend regime
-   accuracy, shadow-forward-test results — and fold the numbers into
-   `RESEARCH/INSIGHTFORGE_QUANT_V3.md`.
+6. ~~Research v3 → v4~~ **DONE** — empirical benchmark shipped in
+   `RESEARCH/INSIGHTFORGE_QUANT_V4.md` with real numbers (PBO/CSCV, DSR,
+   live RF calibration, CPCV). **Next**: enrich the probe corpus (more configs)
+   so PBO becomes statistically meaningful; batch the LLM fact-check hit-rate
+   once an API key is configured; benchmark Kronos once the HF model is downloaded.
 
 ## How to run
 

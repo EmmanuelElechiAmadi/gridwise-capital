@@ -739,6 +739,38 @@ class TestDeploymentQualityGates:
         assert rec["status"] == "blocked_by_gates"
         assert dm.approved_for("grid_strategy") is None
 
+    def test_pbo_gate_is_optional_but_enforced_when_measured(self, tmp_path):
+        from intelligence.deploy import evaluate_quality, DEPLOY_MAX_PBO
+        # No PBO metric on the record -> gate not enforced, not blocking.
+        rec = {"qrice": 0.05, "metrics": {"num_trades": 50,
+                                             "sharpe_ratio": 1.2,
+                                             "max_drawdown_pct": 8.0}}
+        q = evaluate_quality(rec)
+        pbo_gate = next(g for g in q["gates"] if g["gate"] == "max_pbo")
+        assert pbo_gate["enforced"] is False
+        assert pbo_gate["passed"] is True
+        assert "pbo" in q["missing_metrics"]
+        assert "max_pbo" not in q["failed"]
+        # With a PBO metric above the threshold -> enforced and blocking.
+        rec2 = {"qrice": 0.05, "metrics": {"num_trades": 50,
+                                              "sharpe_ratio": 1.2,
+                                              "max_drawdown_pct": 8.0,
+                                              "pbo": DEPLOY_MAX_PBO + 0.2}}
+        q2 = evaluate_quality(rec2)
+        pbo2 = next(g for g in q2["gates"] if g["gate"] == "max_pbo")
+        assert pbo2["enforced"] is True
+        assert pbo2["passed"] is False
+        assert "max_pbo" in q2["failed"]
+        # A passing PBO clears the gate.
+        rec3 = {"qrice": 0.05, "metrics": {"num_trades": 50,
+                                              "sharpe_ratio": 1.2,
+                                              "max_drawdown_pct": 8.0,
+                                              "pbo": 0.1}}
+        q3 = evaluate_quality(rec3)
+        pbo3 = next(g for g in q3["gates"] if g["gate"] == "max_pbo")
+        assert pbo3["passed"] is True and pbo3["enforced"] is True
+        assert "max_pbo" not in q3["failed"]
+
 
 class TestCoordinatorAutoDeploy:
     def test_auto_propose_top(self, tmp_path):
@@ -974,6 +1006,77 @@ class TestConsensus:
         assert bad["passed"] is False
         assert len(bad["failed_citations"]) == 1
 
+    def test_source_correlation_penalty_effective_n(self):
+        """v4 #18 — correlated brains cannot double-count in agreement."""
+        from intelligence.consensus import ConsensusEngine
+        from intelligence.consensus.signals import Signal
+        # backtest + trend_filter are correlated (both derived from the same
+        # bars); kronos is an independent brain.
+        signals = [
+            Signal("kronos", "BULL", strength=0.8, confidence=0.8),
+            Signal("backtest", "BULL", strength=0.8, confidence=0.8),
+            Signal("trend_filter", "BULL", strength=0.8, confidence=0.8),
+        ]
+        view = ConsensusEngine().fuse(signals)
+        # All three agree, so the (uncorrected) agreement is 1.0 — but the
+        # independence-corrected agreement and effective sample size reflect
+        # the redundancy: effective_n < 3 and diversity_penalty < 1.
+        assert view.raw_agreement_index == 1.0
+        assert view.effective_n is not None and view.effective_n < 3.0
+        assert 0.0 < view.diversity_penalty < 1.0
+        assert view.max_vif >= 1.0
+        # Per-source VIFs are recorded on the attribution chain.
+        for c in view.contributions:
+            assert c["vif"] >= 1.0
+            assert c["independent_weight"] <= c["base_weight"]
+
+    def test_correlation_penalty_does_not_change_nominal_votes(self):
+        """The correction affects agreement/strength, not the direction."""
+        from intelligence.consensus import ConsensusEngine
+        from intelligence.consensus.signals import Signal
+        signals = [
+            Signal("kronos", "BULL", strength=1.0, confidence=0.9),
+            Signal("rf_regime", "BULL", strength=0.8, confidence=0.8),
+            Signal("backtest", "BULL", strength=0.6, confidence=0.7),
+        ]
+        adj = ConsensusEngine(diversity_adjust=True).fuse(signals)
+        raw = ConsensusEngine(diversity_adjust=False).fuse(signals)
+        assert adj.direction == raw.direction == "BULL"
+        assert adj.raw_agreement_index == raw.agreement_index == 1.0
+        # Corrected agreement never exceeds the nominal one.
+        assert adj.agreement_index <= raw.agreement_index + 1e-9
+        assert adj.consensus_strength <= raw.consensus_strength + 1e-9
+
+    def test_correlation_penalty_differentiates_correlated_vs_independent(self):
+        from intelligence.consensus import ConsensusEngine
+        from intelligence.consensus.signals import Signal
+        # Panel A: independent brains (kronos + llm).
+        a = ConsensusEngine().fuse([
+            Signal("kronos", "BULL", 0.8, 0.8),
+            Signal("llm", "BULL", 0.8, 0.8),
+        ])
+        # Panel B: the same two votes, but one is a redundant bar-derived vote.
+        b = ConsensusEngine().fuse([
+            Signal("backtest", "BULL", 0.8, 0.8),
+            Signal("trend_filter", "BULL", 0.8, 0.8),
+        ])
+        assert a.diversity_penalty > b.diversity_penalty
+        assert a.effective_n > b.effective_n
+
+    def test_market_view_roundtrips_v4_fields(self, tmp_path):
+        from intelligence.consensus import ConsensusEngine
+        from intelligence.consensus.signals import Signal
+        from intelligence.ledger import OpportunityLedger
+        path = os.path.join(str(tmp_path), "ledger.json")
+        ledger = OpportunityLedger(path=path)
+        view = ConsensusEngine().fuse([Signal("kronos", "BULL", 0.5, 0.5)])
+        ledger.add_market_view(view)
+        ledger.save()
+        loaded = OpportunityLedger.load(path)
+        mv = loaded.market_views[0]
+        assert "effective_n" in mv and "max_vif" in mv
+        assert "diversity_penalty" in mv and "raw_agreement_index" in mv
+
 
 # ── Trade advisor + shadow + kill-switch (Phase 3) ─────────────────────
 
@@ -1065,6 +1168,99 @@ class TestKillSwitches:
         assert flatten is False
         assert reasons == []
 
+    def test_kill_drill_replays_history_without_broker(self):
+        from intelligence.execution.live_apply import run_kill_drill
+        from intelligence.consensus import MarketView
+        # Three healthy snapshots then one consensus collapse.
+        views = [
+            MarketView(direction="BULL", strength=0.5, agreement_index=0.8,
+                       consensus_strength=0.4).to_dict(),
+            MarketView(direction="BULL", strength=0.5, agreement_index=0.8,
+                       consensus_strength=0.4).to_dict(),
+            MarketView(direction="BULL", strength=0.5, agreement_index=0.8,
+                       consensus_strength=0.4).to_dict(),
+            MarketView(direction="BULL", strength=0.1, agreement_index=0.2,
+                       consensus_strength=0.05).to_dict(),
+        ]
+        drill = run_kill_drill(views, horizon=12)
+        assert drill["drill"] is True
+        assert drill["simulated_steps"] == 4
+        assert drill["fired_steps"] == 1
+        assert drill["first_fired_index"] == 3
+        assert drill["reason_histogram"]
+        assert drill["config"]["max_drawdown_pct"] > 0
+        # Every step carries the direction + strength the guard would see.
+        assert all("direction" in s and "kill_triggered" in s
+                   for s in drill["steps"])
+
+    def test_kill_drill_empty_history(self):
+        from intelligence.execution.live_apply import run_kill_drill
+        drill = run_kill_drill([], horizon=5)
+        assert drill["simulated_steps"] == 0
+        assert drill["fired_steps"] == 0
+        assert drill["fired_fraction"] == 0.0
+
+    def test_kill_drill_drawdown_condition(self):
+        from intelligence.execution.live_apply import run_kill_drill
+        from intelligence.consensus import MarketView
+        healthy = MarketView(direction="BULL", strength=0.5,
+                             agreement_index=0.8,
+                             consensus_strength=0.4).to_dict()
+        drill = run_kill_drill([healthy], current_drawdown_pct=30.0)
+        assert drill["fired_steps"] == 1
+        assert any("drawdown" in r for r in drill["steps"][0]["reasons"])
+
+    def test_kill_drill_matrix_sensitivity(self):
+        """v4 advanced: the what-if grid shows fired counts per threshold pair."""
+        from intelligence.execution.live_apply import run_kill_drill_matrix
+        from intelligence.consensus import MarketView
+        views = [
+            MarketView(direction="BULL", strength=0.5, agreement_index=0.8,
+                       consensus_strength=0.4).to_dict(),
+            MarketView(direction="BULL", strength=0.1, agreement_index=0.2,
+                       consensus_strength=0.04).to_dict(),   # weak -> collapse
+        ]
+        m = run_kill_drill_matrix(views, dd_grid=(5, 20),
+                                  floor_grid=(0.05, 0.5), horizon=12)
+        assert m["drill_matrix"] is True
+        assert len(m["rows"]) == 2 and len(m["rows"][0]["cells"]) == 2
+        # Stricter floor (0.5) fires at least as often as a lax floor (0.05).
+        strict = m["rows"][0]["cells"][1]["fired"]
+        lax = m["rows"][0]["cells"][0]["fired"]
+        assert strict >= lax
+        # The weak view trips the consensus-collapse kill under both floors.
+        assert m["rows"][0]["cells"][0]["fired"] >= 1
+
+    def test_kill_drill_matrix_empty_history(self):
+        from intelligence.execution.live_apply import run_kill_drill_matrix
+        m = run_kill_drill_matrix([], horizon=6)
+        assert m["horizon"] == 0
+        assert all(cell["fired"] == 0
+                   for row in m["rows"] for cell in row["cells"])
+
+    def test_kill_drill_scenario_overrides(self):
+        """v4 advanced: what-if thresholds without touching the live guard."""
+        from intelligence.execution.live_apply import run_kill_drill, evaluate_kill_switches
+        from intelligence.consensus import MarketView
+        # A 5% drawdown with the default 15% threshold is safe...
+        flatten, reasons = evaluate_kill_switches(current_drawdown_pct=5.0)
+        assert flatten is False
+        # ...but under a stricter scenario it fires.
+        flatten2, reasons2 = evaluate_kill_switches(
+            current_drawdown_pct=5.0,
+            overrides={"max_drawdown_pct": 4.0})
+        assert flatten2 is True
+        assert any("drawdown" in r for r in reasons2)
+        # A consensus floor override makes a borderline view kill.
+        mv = MarketView(direction="BULL", strength=0.4, agreement_index=0.5,
+                        consensus_strength=0.2).to_dict()
+        loose = run_kill_drill([mv], overrides={"consensus_floor": 0.05})
+        strict = run_kill_drill([mv], overrides={"consensus_floor": 0.5})
+        assert loose["fired_steps"] == 0
+        assert strict["fired_steps"] == 1
+        # The drill reports the *effective* (overridden) config.
+        assert strict["config"]["consensus_floor"] == 0.5
+        assert strict["config"]["max_drawdown_pct"] == 15.0
 
 
 class TestLiveApplyPersistence:
