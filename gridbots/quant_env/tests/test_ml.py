@@ -258,6 +258,36 @@ class TestKronosPredictorHorizonTrim:
         assert len(features["forecast_close"]) == pred_mod.KRONOS_PRED_LEN
         assert features["regime_label"] in ("BULL", "BEAR", "RANGING")
 
+    def test_predict_with_raw_drops_dirty_rows(self, monkeypatch):
+        """Live feeds can contain NaN/Inf rows (market-closed hours) — they
+        must be cleaned before reaching the model, not crash the forecast."""
+        import ml.kronos.predictor as pred_mod
+        from ml.kronos.predictor import KronosPricePredictor
+
+        class _FakeInfer:
+            max_context = 512
+            device = "cpu"
+            tokenizer = object()
+            model = object()
+
+        def fake_inference(tokenizer, model, x, x_stamp, y_stamp, max_context,
+                           pred_len, **kwargs):
+            return _fake_inference_outputs(context=max_context, pred_len=pred_len)
+
+        import ml.kronos.kronos as kronos_mod
+        monkeypatch.setattr(kronos_mod, "auto_regressive_inference", fake_inference)
+
+        df = _make_ohlcv(120)
+        # Poison 40 rows with NaN/Inf in the close column (dirty live feed).
+        df.loc[df.index[40:80], ["open", "high", "low", "close"]] = np.nan
+        df.loc[df.index[90], ["close"]] = np.inf
+        predictor = KronosPricePredictor()
+        predictor._predictor = _FakeInfer()
+        forecast_df, raw = predictor._predict_with_raw(df)
+        assert len(forecast_df) == pred_mod.KRONOS_PRED_LEN
+        assert raw.shape == (pred_mod.KRONOS_SAMPLE_COUNT,
+                             pred_mod.KRONOS_PRED_LEN, 6)
+
 
 class TestKronosSpotAnchoring:
     """Live signal paths must be spot-denominated (XAU/USD), not futures."""

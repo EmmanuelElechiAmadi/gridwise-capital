@@ -17,6 +17,8 @@ This module provides:
 
 import time
 
+import numpy as np
+
 _spot_cache = {"ts": 0.0, "data": None}
 
 
@@ -57,8 +59,10 @@ def is_gold_symbol(symbol):
 def reanchor_to_spot(df, spot_price=None):
     """Shift an OHLCV frame so its last close equals the live XAU/USD spot.
 
-    Returns the shifted copy — or the ORIGINAL frame when no spot is
-    available / the frame is unusable (never breaks the caller).
+    NaN/Inf rows (market-closed hours from live feeds) are dropped first so
+    the shift and every downstream model never see dirty values.  Returns the
+    shifted copy — or the ORIGINAL frame when no spot is available / the frame
+    is unusable (never breaks the caller).
     """
     if df is None or df.empty or "close" not in df.columns:
         return df
@@ -67,6 +71,9 @@ def reanchor_to_spot(df, spot_price=None):
     if not spot_price:
         return df
     try:
+        df = df.replace([np.inf, -np.inf], np.nan).dropna(subset=["close"])
+        if df.empty:
+            return df
         last_close = float(df["close"].iloc[-1])
         if last_close <= 0:
             return df

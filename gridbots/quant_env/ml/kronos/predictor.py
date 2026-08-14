@@ -202,6 +202,21 @@ class KronosPricePredictor:
         if inferred_freq is None:
             inferred_freq = pd.Timedelta(hours=1)
 
+        # ── Data hygiene: never feed NaN/Inf rows into the model.  Live
+        # feeds (yfinance) and spot re-anchoring can leave NaT/NaN rows for
+        # market-closed hours — they corrupt normalization and can surface as
+        # cryptic model errors (e.g. "Tensor * NoneType").
+        df = df.copy()
+        price_cols_in = [c for c in ("open", "high", "low", "close") if c in df.columns]
+        if len(price_cols_in) >= 4:
+            df = df.replace([np.inf, -np.inf], np.nan).dropna(subset=price_cols_in)
+            if len(df) < max(20, pred_len * 2):
+                raise ValueError(
+                    f"insufficient clean bars for Kronos forecast: {len(df)}")
+        else:
+            raise ValueError("Kronos forecast requires open/high/low/close columns")
+        x_timestamp = df.index
+
         y_timestamp = pd.date_range(
             start=x_timestamp[-1] + (x_timestamp[-1] - x_timestamp[-2]),
             periods=pred_len,
