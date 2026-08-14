@@ -187,3 +187,131 @@ class TestRegimeAdapter:
         })
         adapter = RegimeAdapter(config)
         assert adapter.regime_name == "unknown"
+
+# ── Kronos predictor / breakout enhancer (Phase: live-engine bugfix) ─────
+
+def _fake_inference_outputs(context=512, pred_len=20, sample_count=5):
+    """Mimic real auto_regressive_inference: it decodes the LAST max_context
+    tokens (context + forecasts), so the returned blocks are wider than the
+    requested horizon until trimmed."""
+    return (np.zeros((1, context, 6), dtype=np.float32),
+            np.zeros((1, sample_count, context, 6), dtype=np.float32))
+
+
+class TestKronosPredictorHorizonTrim:
+    """Regression for the live 'Shape of passed values is (512, 6), indices
+    imply (20, 6)' error: _predict_with_raw must trim the autoregressive
+    decode to pred_len before building the forecast frame."""
+
+    def test_predict_with_raw_trims_to_pred_len(self, monkeypatch):
+        import ml.kronos.predictor as pred_mod
+        from ml.kronos.predictor import KronosPricePredictor
+
+        class _FakeInfer:
+            max_context = 512
+            device = "cpu"
+            tokenizer = object()
+            model = object()
+
+        def fake_inference(tokenizer, model, x, x_stamp, y_stamp, max_context,
+                           pred_len, **kwargs):
+            return _fake_inference_outputs(context=max_context, pred_len=pred_len)
+
+        # predictor.py imports this locally inside _predict_with_raw, so patch
+        # the source module (ml.kronos.kronos) — the local import resolves there.
+        import ml.kronos.kronos as kronos_mod
+        monkeypatch.setattr(kronos_mod, "auto_regressive_inference", fake_inference)
+
+        df = _make_ohlcv(512)  # exactly the case that crashed the live engine
+        predictor = KronosPricePredictor()
+        predictor._predictor = _FakeInfer()   # bypass _lazy_load / model download
+        forecast_df, raw_samples = predictor._predict_with_raw(df)
+        assert len(forecast_df) == pred_mod.KRONOS_PRED_LEN
+        assert raw_samples.shape == (pred_mod.KRONOS_SAMPLE_COUNT,
+                                     pred_mod.KRONOS_PRED_LEN, 6)
+        # Forecast frame is indexed by the forecast timestamps (not the context).
+        assert len(forecast_df.index) == pred_mod.KRONOS_PRED_LEN
+
+    def test_get_forecast_features_works_with_long_context(self, monkeypatch):
+        """The full feature pipeline (used by collect_kronos / enhancer /
+        adapter) must survive a > (max_context - pred_len) input window."""
+        import ml.kronos.predictor as pred_mod
+        from ml.kronos.predictor import KronosPricePredictor
+
+        class _FakeInfer:
+            max_context = 512
+            device = "cpu"
+            tokenizer = object()
+            model = object()
+
+        def fake_inference(tokenizer, model, x, x_stamp, y_stamp, max_context,
+                           pred_len, **kwargs):
+            return _fake_inference_outputs(context=max_context, pred_len=pred_len)
+
+        import ml.kronos.kronos as kronos_mod
+        monkeypatch.setattr(kronos_mod, "auto_regressive_inference", fake_inference)
+
+        df = _make_ohlcv(700)
+        predictor = KronosPricePredictor()
+        predictor._predictor = _FakeInfer()
+        features = predictor.get_forecast_features(df)
+        assert len(features["forecast_close"]) == pred_mod.KRONOS_PRED_LEN
+        assert features["regime_label"] in ("BULL", "BEAR", "RANGING")
+
+
+class TestKronosBreakoutEnhancerFallback:
+    """Broker symbols (XAUUSD.r) don't exist on Yahoo — the enhancer must fall
+    back through YAHOO_SYMBOL / gold aliases / cached gold history."""
+
+    def test_fetch_data_walks_fallback_chain(self, monkeypatch):
+        import sys as _sys
+        from ml.kronos.breakout_enhancer import KronosBreakoutEnhancer
+
+        class _Cfg:
+            SYMBOL = "XAUUSD.r"
+            YAHOO_SYMBOL = "GC=F"
+
+        class _Log:
+            def info(self, *a): pass
+            def warning(self, *a): pass
+            def error(self, *a): pass
+
+        calls = []
+
+        class _EmptyTicker:
+            def __init__(self, sym):
+                calls.append(sym)
+            def history(self, **kw):
+                return pd.DataFrame()
+
+        class _FakeYF:
+            Ticker = _EmptyTicker
+
+        monkeypatch.setitem(_sys.modules, "yfinance", _FakeYF())
+
+        cached = _make_ohlcv(300)
+        enhancer = KronosBreakoutEnhancer(_Cfg(), _Log())
+        monkeypatch.setattr(enhancer, "_load_cached_gold", lambda: cached)
+        df = enhancer._fetch_data()
+        assert df is cached
+        # YAHOO_SYMBOL first, then gold aliases, before the CSV fallback.
+        assert calls == ["XAUUSD.r", "GC=F", "XAUUSD", "XAUUSD=F"]
+
+    def test_load_cached_gold_returns_clean_ohlcv(self, tmp_path):
+        from ml.kronos.breakout_enhancer import KronosBreakoutEnhancer
+
+        csv_path = str(tmp_path / "gold_data.csv")
+        _make_ohlcv(200).to_csv(csv_path)
+
+        class _Cfg:
+            SYMBOL = "XAUUSD.r"
+
+        class _Log:
+            def info(self, *a): pass
+            def warning(self, *a): pass
+            def error(self, *a): pass
+
+        enhancer = KronosBreakoutEnhancer(_Cfg(), _Log())
+        df = enhancer._load_cached_gold(candidates=[csv_path])
+        assert df is not None and len(df) == 200
+        assert {"open", "high", "low", "close", "volume"} <= set(df.columns)

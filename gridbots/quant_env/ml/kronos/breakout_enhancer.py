@@ -29,6 +29,7 @@ Usage::
 """
 
 import logging
+import os
 import threading
 import time
 from typing import List, Optional, Tuple
@@ -350,32 +351,101 @@ class KronosBreakoutEnhancer:
             self._predictor = KronosPricePredictor(device=device)
 
     def _fetch_data(self) -> Optional[pd.DataFrame]:
-        """Fetch OHLCV data for the configured symbol via yfinance."""
-        interval = getattr(self.config, "KRONOS_INTERVAL", KRONOS_DEFAULT_INTERVAL)
-        period = KRONOS_FETCH_PERIOD
+        """Fetch OHLCV data for the configured symbol via yfinance.
 
-        self.logger.info(
-            f"KronosBreakoutEnhancer: downloading {self._symbol} ({interval}, {period})"
-        )
+        Broker symbols such as ``XAUUSD.r`` do not exist on Yahoo Finance, so
+        the enhancer walks a fallback chain instead of silently starving:
+
+            1. the configured broker symbol (e.g. XAUUSD.r)
+            2. ``YAHOO_SYMBOL`` config when set (e.g. GC=F)
+            3. known gold aliases (XAUUSD, XAUUSD=F, GC=F)
+            4. the engine's cached gold history (gold_data.csv)
+
+        Never raises; returns ``None`` when every source fails.
+        """
         import yfinance as yf
 
-        try:
-            ticker = yf.Ticker(self._symbol)
-            df = ticker.history(period=period, interval=interval)
-            if df.empty:
-                self.logger.warning(f"KronosBreakoutEnhancer: no data for {self._symbol}")
-                return None
-            df.columns = [c.lower() for c in df.columns]
-            for col in ["open", "high", "low", "close"]:
-                if col not in df.columns:
-                    self.logger.error(f"KronosBreakoutEnhancer: missing column '{col}'")
-                    return None
-            if "volume" not in df.columns:
-                df["volume"] = 0
-            return df
-        except Exception as e:
-            self.logger.error(f"KronosBreakoutEnhancer: yfinance error ({e})")
-            return None
+        interval = getattr(self.config, "KRONOS_INTERVAL", KRONOS_DEFAULT_INTERVAL)
+        period = KRONOS_FETCH_PERIOD
+        candidates = [self._symbol]
+        yahoo = str(getattr(self.config, "YAHOO_SYMBOL", "") or "").strip()
+        if yahoo:
+            candidates.append(yahoo)
+        for alias in ("XAUUSD", "XAUUSD=F", "GC=F"):
+            if alias not in candidates:
+                candidates.append(alias)
+
+        for sym in candidates:
+            try:
+                self.logger.info(
+                    f"KronosBreakoutEnhancer: downloading {sym} ({interval}, {period})")
+                df = yf.Ticker(sym).history(period=period, interval=interval)
+                if df.empty:
+                    self.logger.warning(f"KronosBreakoutEnhancer: no data for {sym}")
+                    continue
+                df.columns = [c.lower() for c in df.columns]
+                for col in ["open", "high", "low", "close"]:
+                    if col not in df.columns:
+                        self.logger.error(f"KronosBreakoutEnhancer: missing column '{col}'")
+                        break
+                else:
+                    if "volume" not in df.columns:
+                        df["volume"] = 0
+                    if sym != self._symbol:
+                        self.logger.info(
+                            f"KronosBreakoutEnhancer: using {sym} as the Yahoo alias "
+                            f"for {self._symbol}")
+                    return df
+            except Exception as e:
+                self.logger.warning(
+                    f"KronosBreakoutEnhancer: yfinance error for {sym} ({e})")
+
+        # Last resort: the engine's cached gold history (gold_data.csv).
+        cached = self._load_cached_gold()
+        if cached is not None:
+            self.logger.info(
+                "KronosBreakoutEnhancer: using cached gold history (gold_data.csv)")
+            return cached
+        self.logger.warning(f"KronosBreakoutEnhancer: no data for {self._symbol}")
+        return None
+
+    def _load_cached_gold(self, candidates=None) -> Optional[pd.DataFrame]:
+        """Best-effort load of the engine's cached gold OHLCV history.
+
+        Searches ``<project-root>/gold_data.csv`` then
+        ``<quant_env>/gold_data.csv`` (override with ``candidates``).
+        Never raises.
+        """
+        if not candidates:
+            here = os.path.dirname(os.path.abspath(__file__))       # .../ml/kronos
+            quant_env_root = os.path.dirname(os.path.dirname(here))  # .../quant_env
+            candidates = [
+                os.path.join(os.path.dirname(quant_env_root), "gold_data.csv"),
+                os.path.join(quant_env_root, "gold_data.csv"),
+            ]
+        for path in candidates:
+            if not os.path.exists(path):
+                continue
+            try:
+                df = pd.read_csv(path, index_col=0, parse_dates=True)
+                df = df.rename(columns={"Open": "open", "High": "high",
+                                        "Low": "low", "Close": "close",
+                                        "Volume": "volume"})
+                df.index = pd.to_datetime(df.index, errors="coerce")
+                df = df.sort_index()
+                for col in ("open", "high", "low", "close"):
+                    if col not in df.columns:
+                        return None
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
+                df = df.dropna(subset=["open", "high", "low", "close"])
+                if df.empty:
+                    continue
+                if "volume" not in df.columns:
+                    df["volume"] = 0
+                return df
+            except Exception:
+                continue
+        return None
 
     def _refresh_loop(self):
         """Background loop: refresh forecast periodically."""

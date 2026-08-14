@@ -256,6 +256,13 @@ class KronosPricePredictor:
             verbose=verbose,
             return_raw=True,
         )
+        # auto_regressive_inference decodes the LAST max_context tokens, which
+        # include the trailing input context whenever len(df) + pred_len >
+        # max_context.  Trim both the mean forecast and every raw sample to the
+        # requested horizon so shapes line up with y_timestamp (pred_len, ...).
+        # (This mirrors the `preds[:, -pred_len:, :]` trim in `generate()`.)
+        preds = preds[:, -pred_len:, :]
+        raw = raw[:, :, -pred_len:, :]
         # preds: (1, pred_len, 6), raw: (1, sample_count, pred_len, 6)
         preds = preds.squeeze(0) * (x_std + 1e-5) + x_mean
         raw_samples = raw.squeeze(0) * (x_std + 1e-5) + x_mean  # (sample_count, pred_len, 6)
