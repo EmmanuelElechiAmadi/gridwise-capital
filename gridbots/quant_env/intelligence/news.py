@@ -32,7 +32,6 @@ DEFAULT_OUTLETS = [
     {"name": "MarketWatch", "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories", "tier": "wire"},
     {"name": "CNBC Markets", "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html", "tier": "wire"},
     {"name": "Yahoo Finance", "url": "https://finance.yahoo.com/news/rssindex", "tier": "wire"},
-    {"name": "Kitco Gold News", "url": "https://www.kitco.com/rss/", "tier": "desk"},
     {"name": "ForexLive", "url": "https://www.forexlive.com/feed/", "tier": "desk"},
     {"name": "FXStreet News", "url": "https://www.fxstreet.com/rss/news", "tier": "desk"},
 ]
@@ -95,18 +94,49 @@ def load_outlets(outlets=None):
     return list(DEFAULT_OUTLETS)
 
 
+# Browser-like UA — several feed hosts reject non-browser clients.
+_BROWSER_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+               "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36")
+
+
+def _parse_feed(content):
+    """Parse RSS 2.0 / Atom XML into a list of field dicts.
+
+    Pure stdlib (``xml.etree``) — there is deliberately NO feedparser
+    dependency, so the News Desk works on any install.
+    """
+    import xml.etree.ElementTree as ET
+    root = ET.fromstring(content)
+    items = []
+    for el in root.iter():
+        tag = el.tag.split("}")[-1]  # strip XML namespace
+        if tag not in ("item", "entry"):
+            continue
+        fields = {}
+        for child in el:
+            ctag = child.tag.split("}")[-1]
+            if ctag in ("title", "link", "pubDate", "published", "updated",
+                        "description", "summary"):
+                text = (child.text or "").strip()
+                if ctag == "link" and not text:
+                    text = child.get("href") or ""
+                if text and ctag not in fields:
+                    fields[ctag] = text
+        if fields.get("title"):
+            items.append(fields)
+    return items
+
+
 # ── Fetchers (fail-safe) ────────────────────────────────────────────────
 def fetch_news(symbols=None, max_items=20, outlets=None, timeout=8.0):
-    """Fetch trading news from the public RSS outlet registry.
+    """Fetch trading news from the outlet registry (RSS/Atom via stdlib).
 
-    Fail-safe: returns ``[]`` on any failure (offline, feedparser missing,
-    dead feeds). ``symbols`` only guides relevance ranking, never the fetch.
+    Falls back to Yahoo Finance news when the RSS outlets return nothing
+    (many hosts block datacenter/scripted networks).  Fail-safe: returns
+    ``[]`` on any failure. ``symbols`` only guides relevance ranking.
     """
-    try:
-        import requests
-        import feedparser
-    except Exception:
-        return []
+    import requests
+
     outlet_list = load_outlets(outlets)
     symbols = symbols or ["GC=F"]
     articles = []
@@ -115,21 +145,68 @@ def fetch_news(symbols=None, max_items=20, outlets=None, timeout=8.0):
             break
         try:
             r = requests.get(outlet["url"], timeout=timeout,
-                             headers={"User-Agent": "insightforge-quant-news/1.0"})
+                             headers={"User-Agent": _BROWSER_UA})
             if r.status_code != 200:
                 continue
-            parsed = feedparser.parse(r.content)
-            for entry in parsed.get("entries", []):
-                title = (entry.get("title") or "").strip()
+            for entry in _parse_feed(r.content):
+                title = entry.get("title", "")
                 if not title:
                     continue
-                published = entry.get("published") or entry.get("updated") or ""
-                summary = re.sub(r"<[^>]+>", "", entry.get("summary", "") or "")
+                published = (entry.get("pubDate") or entry.get("published")
+                             or entry.get("updated") or "")
+                summary = re.sub(r"<[^>]+>", "",
+                                 entry.get("description") or entry.get("summary") or "")
                 summary = re.sub(r"\s+", " ", summary).strip()[:400]
                 articles.append(Article(
                     source=outlet["name"], title=title,
                     url=entry.get("link", ""), published_at=published,
                     summary=summary, tier=outlet.get("tier", "desk")))
+        except Exception:
+            continue
+    ranked = rank_articles(dedupe_articles(articles), symbols, max_items)
+    if not ranked:
+        # RSS blocked/dark — Yahoo Finance news is usually reachable and is
+        # directly symbol-relevant (e.g. "Gold prices must overcome...").
+        ranked = fetch_yfinance_news(symbols=symbols, max_items=max_items)
+    return ranked
+
+
+def fetch_yfinance_news(symbols=None, max_items=15, timeout=8.0):
+    """Gold-relevant headlines from Yahoo Finance (works where RSS is blocked).
+
+    Uses the same Yahoo endpoint as the rest of the repo (yfinance), so it
+    shares the machine's existing network reachability.  Fail-safe: ``[]``.
+    """
+    try:
+        import yfinance as yf
+    except Exception:
+        return []
+    symbols = symbols or ["GC=F"]
+    articles = []
+    for sym in symbols[:2]:
+        try:
+            for item in (yf.Ticker(sym).news or [])[: max_items * 3]:
+                content = item.get("content", {}) or {}
+                title = (content.get("title") or item.get("title") or "").strip()
+                if not title:
+                    continue
+                ts = (item.get("providerPublishTime")
+                      or content.get("providerPublishTime")
+                      or content.get("pubDate"))
+                published = ""
+                if ts:
+                    try:
+                        from datetime import datetime, timezone
+                        published = datetime.fromtimestamp(
+                            int(ts), tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    except (TypeError, ValueError):
+                        published = ""
+                summary = (content.get("summary") or content.get("description") or "")[:400]
+                cj = content.get("canonicalUrl", {}) or {}
+                url = cj.get("url") or item.get("link") or ""
+                articles.append(Article(
+                    source="Yahoo Finance", title=title, url=str(url),
+                    published_at=published, summary=summary, tier="wire"))
         except Exception:
             continue
     return rank_articles(dedupe_articles(articles), symbols, max_items)

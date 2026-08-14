@@ -85,6 +85,63 @@ class CoordinatorAgent(BaseAgent):
         brief = self._narrate(brief, results)
         return brief, ledger
 
+    # ── News Desk (Phase 5) ─────────────────────────────────────────────
+    def run_news_desk(self):
+        """Fast News Desk cycle — fetch headlines, Sonnet verdict, Kronos/RF
+        confirmation.  NO probes/backtests, so it returns in seconds.
+
+        Attaches ``news_analysis`` to the latest persisted market view (or a
+        bare view when none exists yet) and returns ``(report, news_analysis)``.
+        """
+        from .agents.news_analyst import NewsResearchAnalystAgent
+        from .consensus import MarketView
+        from .consensus.signals import Signal
+        from .consensus.sources import collect_news, compute_news_confirmation
+
+        symbol = str(self.ctx.get("consensus_symbol") or "GC=F")
+        agent = NewsResearchAnalystAgent(self.ctx)
+        report = agent.run(self.ledger)
+        articles = report.get("articles") or []
+        news_verdict = None
+        if articles:
+            news_verdict = self.narrator.analyze_news(articles, symbol=symbol)
+            report["news_verdict"] = news_verdict
+        news_sig = collect_news(report, symbol=symbol)
+
+        # Confirmation vs the model brains from the latest market view.
+        latest = self.ledger.market_views[-1] if self.ledger.market_views else None
+        model_signals = []
+        if latest:
+            for c in (latest.get("contributions") or []):
+                if c.get("source") in ("kronos", "rf_regime"):
+                    try:
+                        model_signals.append(Signal(
+                            c["source"], c.get("direction", "RANGING"),
+                            c.get("strength", 0.0), c.get("confidence", 0.0)))
+                    except Exception:
+                        pass
+        confirmation = compute_news_confirmation(news_sig, model_signals)
+
+        news_analysis = None
+        if articles:
+            news_analysis = {
+                "status": report.get("status"),
+                "article_count": report.get("article_count", len(articles)),
+                "outlets": report.get("outlets", []),
+                "news_verdict": news_verdict,
+                "confirmation": confirmation,
+            }
+        if latest is not None and isinstance(latest, dict):
+            latest["news_analysis"] = news_analysis
+        else:
+            mv = MarketView(symbol=symbol)
+            mv.news_analysis = news_analysis
+            self.ledger.add_market_view(mv)
+        self.ledger.save()
+        self.log(f"News Desk (fast): {len(articles)} headlines -> "
+                 f"{news_verdict and news_verdict['direction'] or 'no grounded verdict'}")
+        return report, news_analysis
+
     def _build_market_view(self, ledger, results):
         """Fuse all evidence sources into one attributed MarketView.
 

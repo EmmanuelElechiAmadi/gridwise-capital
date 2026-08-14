@@ -131,6 +131,13 @@ seek quant/
   outlets, grounded citations, confirmation badge) → `/api/intelligence/news`
   → benchmark `news_confirmation_stats` (confirmation share + grounding pass
   rate). Fail-safe everywhere: offline ⇒ "no news this cycle", never a blocker.
+  - **Dependency-free fetch**: RSS/Atom is parsed with the STDLIB
+    (`xml.etree` — no `feedparser` required) with a browser UA, and falls back
+    to **Yahoo Finance news** (`yfinance` — already a dependency) when RSS
+    hosts block the network. The dashboard has a **⚡ Fetch News Now** button
+    (`POST /api/intelligence/news/refresh`) that runs the fast news-only path
+    (`CoordinatorAgent.run_news_desk` — no probes/backtests) so headlines +
+    a grounded Sonnet verdict appear immediately.
   the live strategy on next start. Nothing reaches the engine without approval.
 - **NEW — deployment gate on the dashboard UI**: the 🤖 Agent Team tab now has a
   full approval panel — 🛠 Propose Top Opportunity, per-opportunity 🛠 Deploy

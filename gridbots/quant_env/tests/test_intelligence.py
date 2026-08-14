@@ -1392,12 +1392,53 @@ class TestNewsCorpus:
             raise RuntimeError("no network")
 
         monkeypatch.setattr("requests.get", boom)
+        monkeypatch.setattr("yfinance.Ticker", lambda *a, **k: boom)
         assert fetch_news(["GC=F"], 5) == []
         assert news_mod.fetch_news_api(["GC=F"], 5) == []
 
     def test_fetch_news_api_requires_key(self, monkeypatch):
         monkeypatch.delenv("NEWS_API_KEY", raising=False)
         assert news_mod.fetch_news_api(["GC=F"], 5) == []
+
+    def test_parse_feed_stdlib_rss(self):
+        rss = ("<rss version='2.0'><channel><item>"
+               "<title>Gold steadies ahead of CPI</title>"
+               "<link>https://example.com/gold-cpi</link>"
+               "<pubDate>Fri, 14 Aug 2026 10:00:00 GMT</pubDate>"
+               "<description>Bullion holds range.</description>"
+               "</item></channel></rss>")
+        items = news_mod._parse_feed(rss)
+        assert len(items) == 1
+        assert items[0]["title"] == "Gold steadies ahead of CPI"
+        assert items[0]["link"] == "https://example.com/gold-cpi"
+
+    def test_parse_feed_stdlib_atom(self):
+        atom = ("<feed xmlns='http://www.w3.org/2005/Atom'><entry>"
+                "<title>Silver rallies on demand</title>"
+                "<link href='https://example.com/silver'/>"
+                "<updated>2026-08-14T10:00:00Z</updated>"
+                "</entry></feed>")
+        items = news_mod._parse_feed(atom)
+        assert len(items) == 1
+        assert items[0]["title"] == "Silver rallies on demand"
+        assert items[0]["link"] == "https://example.com/silver"
+
+    def test_fetch_news_parses_rss_with_stdlib(self, monkeypatch):
+        rss = ("<rss version='2.0'><channel><item>"
+               "<title>Gold hits record high on haven demand</title>"
+               "<link>https://example.com/gold</link>"
+               "<pubDate>Fri, 14 Aug 2026 10:00:00 GMT</pubDate>"
+               "<description>Safe-haven flows.</description>"
+               "</item></channel></rss>")
+
+        class _Resp:
+            status_code = 200
+            content = rss.encode()
+
+        monkeypatch.setattr("requests.get", lambda *a, **k: _Resp())
+        monkeypatch.setattr("yfinance.Ticker", lambda *a, **k: None)  # avoid fallback
+        arts = fetch_news(["GC=F"], max_items=5, timeout=5)
+        assert arts and any("record high" in a.title for a in arts)
 
 
 class TestNewsResearchAgent:
@@ -1636,4 +1677,23 @@ class TestNewsInCoordinator:
         assert brief.get("news_analysis") is None
         assert all(c.get("source") != "news"
                    for c in (brief.get("market_view") or {}).get("contributions", []))
+
+    def test_run_news_desk_fast_path(self, tmp_path):
+        # The dashboard "⚡ Fetch News Now" path — no probes/backtests.
+        from intelligence.ledger import OpportunityLedger
+        path = os.path.join(str(tmp_path), "ledger.json")
+        ledger = OpportunityLedger(path=path)
+        articles = _fake_articles(4)
+        fake = _FakeLLMClient(text=_news_verdict_json(articles[0].title))
+        narrator = LLMNarrator({"llm_enabled": True}, client=fake)
+        ctx = {"ledger_path": path, "news_enabled": True,
+               "news_fetcher": lambda symbols=None, max_items=20: articles}
+        coord = CoordinatorAgent(ctx, narrator=narrator)
+        report, na = coord.run_news_desk()
+        assert na and na["status"] == "fetched"
+        assert na["article_count"] == 4
+        assert na["news_verdict"]["direction"] == "BULL"
+        # Persisted onto the (bare) market view so /api/intelligence/news serves it.
+        loaded = OpportunityLedger.load(path)
+        assert loaded.market_views and loaded.market_views[-1]["news_analysis"]
 

@@ -1643,9 +1643,12 @@
             <div class="con-block">
                 <div class="con-header">
                     <div class="intel-section-label" style="margin:0;">📰 News Desk — headlines → Claude Sonnet verdict → verified against Kronos + RF</div>
-                    <button class="btn btn-ghost btn-sm" onclick="renderNewsDesk(true)">↻ Refresh</button>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button class="btn btn-purple btn-sm" onclick="fetchNewsNow()">⚡ Fetch News Now</button>
+                        <button class="btn btn-ghost btn-sm" onclick="renderNewsDesk()">↻ Refresh</button>
+                    </div>
                 </div>
-                <div id="newsBody"><div class="con-none">News Desk idle — run a research cycle to fetch the day's trading headlines.</div></div>
+                <div id="newsBody"><div class="con-none">News Desk idle — run a research cycle (or ⚡ Fetch News Now) to fetch the day's trading headlines.</div></div>
                 <div id="newsNarrative" style="margin-top:8px;"></div>
             </div>
 
@@ -3117,6 +3120,25 @@ async function loadMarketView() {
 }
 
 // ── Phase 5: News Desk — headlines → Claude Sonnet verdict → Kronos/RF check ──
+async function fetchNewsNow() {
+    const body = document.getElementById('newsBody');
+    const narr = document.getElementById('newsNarrative');
+    if (!body) return;
+    body.innerHTML = '<div class="con-none">⏳ Fetching trading headlines + Claude Sonnet verdict…</div>';
+    if (narr) narr.innerHTML = '';
+    try {
+        const r = await fetch('/api/intelligence/news/refresh', { method: 'POST' });
+        const d = await r.json();
+        if (d.status === 'ok') {
+            renderNewsDesk();   // re-read the persisted analysis + narrative
+        } else {
+            body.innerHTML = '<div class="con-none">No headlines reachable right now — RSS + Yahoo news both returned nothing (offline?).</div>';
+        }
+    } catch (e) {
+        body.innerHTML = '<div class="con-none">Engine offline — cannot fetch news.</div>';
+    }
+}
+
 async function renderNewsDesk() {
     const body = document.getElementById('newsBody');
     const narr = document.getElementById('newsNarrative');

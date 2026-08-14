@@ -2151,6 +2151,35 @@ def api_intelligence_news():
         return jsonify({"status": "error", "error": str(e)}), 500
 
 
+@app.route('/api/intelligence/news/refresh', methods=['POST'])
+def api_intelligence_news_refresh():
+    """Fetch the News Desk NOW (fast path — no probes/backtests).
+
+    Runs: news agent fetch (RSS + Yahoo Finance fallback) -> Claude Sonnet
+    verdict -> Kronos/RF confirmation, attaches to the ledger, and returns the
+    analysis so the 📰 News Desk block populates immediately.
+    """
+    try:
+        from quant_env.intelligence.coordinator import CoordinatorAgent
+        ctx = {
+            "news_enabled": True,
+            "news_max_articles": int(getattr(Config, "RESEARCH_NEWS_MAX_ARTICLES", "20")),
+            "news_use_sample": bool(getattr(Config, "RESEARCH_NEWS_USE_SAMPLE", False)),
+            "llm_enabled": bool(getattr(Config, "RESEARCH_LLM_ENABLED", False)),
+            "symbols": getattr(Config, "RESEARCH_SYMBOLS", "GC=F"),
+        }
+        coord = CoordinatorAgent(ctx)
+        report, news_analysis = coord.run_news_desk()
+        return jsonify({
+            "status": "ok" if news_analysis else "no_news",
+            "news_analysis": news_analysis,
+            "article_count": (news_analysis or {}).get("article_count", 0),
+            "verdict_direction": ((news_analysis or {}).get("news_verdict") or {}).get("direction"),
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
 @app.route('/api/intelligence/scheduler', methods=['GET', 'POST'])
 def api_intelligence_scheduler():
     """Research-loop status + control.
