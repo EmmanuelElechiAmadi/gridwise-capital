@@ -1245,6 +1245,7 @@
         <div class="sidebar-section-label">Grid Status</div>
         <div class="grid-widget">
             <div class="grid-row"><span class="lbl">Price</span><span class="val" id="sidePrice">--</span></div>
+            <div class="grid-row" style="margin-top:-4px;"><span class="lbl"></span><span class="val" id="sidePriceSrc" style="font-size:0.55rem;color:var(--text-3);font-weight:normal;"></span></div>
             <div class="grid-row"><span class="lbl">Active Orders</span><span class="val" id="sideOrders">0</span></div>
             <div class="grid-row"><span class="lbl">Grid Spacing</span><span class="val" id="sideSpacing">--</span></div>
             <div class="grid-row"><span class="lbl">Grid Levels</span><span class="val" id="sideLevels">--</span></div>
@@ -2218,7 +2219,15 @@ function updateUI(d) {
         if (br.files_dir) { dirRow.style.display = 'flex'; $('connFiles').textContent = br.files_dir; }
         else dirRow.style.display = 'none';
     }
-    $('sidePrice').textContent   = d.latest_price > 0 ? '$' + d.latest_price.toFixed(2) : '--';
+    const livePrice = (d.current_price > 0) ? d.current_price : d.latest_price;
+    $('sidePrice').textContent = livePrice > 0 ? '$' + livePrice.toFixed(2) : '--';
+    const psEl = $('sidePriceSrc');
+    if (psEl) {
+        if (d.price_source) {
+            psEl.textContent = d.price_source + (d.futures_basis != null ? ' · futures basis $' + d.futures_basis.toFixed(2) : '');
+            psEl.style.display = '';
+        } else { psEl.style.display = 'none'; }
+    }
     $('sideOrders').textContent  = d.active_orders ?? d.num_orders ?? 0;
     $('sideSpacing').textContent = d.grid_spacing ?? '--';
     $('sideLevels').textContent  = d.grid_levels ?? '--';
