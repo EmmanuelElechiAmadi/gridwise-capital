@@ -377,6 +377,38 @@ def _fetch_live_spot(max_age=45.0):
     return data
 
 
+# Live GC=F FUTURES quote cache — the futures reference for the basis shift.
+_futures_cache = {'ts': 0.0, 'data': None}
+
+
+def _fetch_live_futures(max_age=45.0):
+    """Live GC=F futures price (Yahoo chart API).  Float or ``None``.
+
+    The futures-spot basis must be computed from the LIVE futures quote, not
+    the (possibly hours-old) cached OHLCV bar — otherwise the basis drifts as
+    the market moves between corpus refreshes.
+    """
+    global _futures_cache
+    now = time.time()
+    if _futures_cache['data'] is not None and (now - _futures_cache['ts']) < max_age:
+        return _futures_cache['data']
+    price = None
+    try:
+        r = http_requests.get(
+            'https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF',
+            timeout=6.0,
+            headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'})
+        if r.status_code == 200:
+            meta = (r.json().get('chart', {}).get('result') or [{}])[0].get('meta', {})
+            p = float(meta.get('regularMarketPrice') or 0.0)
+            if p > 0:
+                price = round(p, 2)
+    except Exception as e:
+        print(f"[Kronos] futures fetch failed: {e}")
+    _futures_cache = {'ts': now, 'data': price}
+    return price
+
+
 def _anchor_forecast_to_spot(k, futures_last=None):
     """Shift a futures-derived forecast dict to live XAU/USD spot (in place).
 
@@ -391,7 +423,8 @@ def _anchor_forecast_to_spot(k, futures_last=None):
         if not spot:
             return k
         if futures_last is None:
-            futures_last = k.get('last_price')
+            futures_last = (_fetch_live_futures()      # live GC=F quote (freshest)
+                            or k.get('last_price'))
         if futures_last is None:
             bars = _load_recent_bars()
             if bars is not None and len(bars):
@@ -399,8 +432,10 @@ def _anchor_forecast_to_spot(k, futures_last=None):
         if not futures_last:
             return k
         basis = futures_last - spot['price']
-        if not k.get('last_price'):
-            k['last_price'] = spot['price']
+        # ALWAYS re-anchor last_price to spot — a forecast that already
+        # carries a (futures) last_price must be overwritten, or the breakout
+        # Entry/SL/TP stay futures-denominated while everything else is spot.
+        k['last_price'] = spot['price']
         for key in ('price_min_forecast', 'price_max_forecast'):
             val = k.get(key)
             if val is not None:

@@ -1,7 +1,7 @@
 {
   "schema": "insightforge.quant.ledger/v3",
-  "created_at": "2026-08-14T07:04:17Z",
-  "updated_at": "2026-08-14T07:06:55Z",
+  "created_at": "2026-08-14T08:04:32Z",
+  "updated_at": "2026-08-14T08:04:32Z",
   "instruments": [
     {
       "symbol": "XAUUSD.r",
@@ -11,7 +11,7 @@
       "status": "sourced",
       "source_agent": "DataScout",
       "note": "cached history: 509 bars",
-      "sourced_at": "2026-08-14T07:04:17Z"
+      "sourced_at": "2026-08-14T08:04:32Z"
     },
     {
       "symbol": "GC=F",
@@ -21,7 +21,7 @@
       "status": "sourced",
       "source_agent": "DataScout",
       "note": "cached history: 509 bars",
-      "sourced_at": "2026-08-14T07:04:17Z"
+      "sourced_at": "2026-08-14T08:04:32Z"
     },
     {
       "symbol": "SI=F",
@@ -31,7 +31,7 @@
       "status": "sourced",
       "source_agent": "DataScout",
       "note": "cached history: 510 bars",
-      "sourced_at": "2026-08-14T07:04:17Z"
+      "sourced_at": "2026-08-14T08:04:32Z"
     },
     {
       "symbol": "CL=F",
@@ -41,12 +41,12 @@
       "status": "sourced",
       "source_agent": "DataScout",
       "note": "cached history: 510 bars",
-      "sourced_at": "2026-08-14T07:04:17Z"
+      "sourced_at": "2026-08-14T08:04:32Z"
     }
   ],
   "probes": [
     {
-      "id": "f19f8d4da0c6",
+      "id": "5731aeef503c",
       "strategy_key": "breakout_strategy",
       "symbol": "GC=F",
       "timeframe": "1m",
@@ -81,10 +81,10 @@
       "data_bars": 509,
       "source_agent": "MarketProber",
       "note": "live engine probe",
-      "probed_at": "2026-08-14T07:04:17Z"
+      "probed_at": "2026-08-14T08:04:32Z"
     },
     {
-      "id": "5cbb3ec84d4a",
+      "id": "e0f2c26d167e",
       "strategy_key": "breakout_strategy",
       "symbol": "GC=F",
       "timeframe": "1m",
@@ -119,10 +119,10 @@
       "data_bars": 509,
       "source_agent": "MarketProber",
       "note": "live engine probe",
-      "probed_at": "2026-08-14T07:04:17Z"
+      "probed_at": "2026-08-14T08:04:32Z"
     },
     {
-      "id": "be30d95ff0a1",
+      "id": "a99d2d6025af",
       "strategy_key": "grid_strategy",
       "symbol": "GC=F",
       "timeframe": "1m",
@@ -152,10 +152,10 @@
       "data_bars": 509,
       "source_agent": "MarketProber",
       "note": "live engine probe",
-      "probed_at": "2026-08-14T07:04:26Z"
+      "probed_at": "2026-08-14T08:04:32Z"
     },
     {
-      "id": "f0ab012b356d",
+      "id": "f59e974da8a0",
       "strategy_key": "grid_strategy",
       "symbol": "GC=F",
       "timeframe": "1m",
@@ -185,12 +185,12 @@
       "data_bars": 509,
       "source_agent": "MarketProber",
       "note": "live engine probe",
-      "probed_at": "2026-08-14T07:04:34Z"
+      "probed_at": "2026-08-14T08:04:32Z"
     }
   ],
   "insights": [
     {
-      "id": "5410d4cbbbbd",
+      "id": "ba1e2a82a495",
       "title": "Breakout Strategy Alpha Theme",
       "theme": "breakout_strategy shows best-observed Sharpe -1.32 on 2 trades (return -0.05%) with OOS consistency 30%. Regime context: ranging.",
       "evidence": [
@@ -215,10 +215,10 @@
         "breakout_strategy"
       ],
       "source_agent": "QuantAnalyst",
-      "created_at": "2026-08-14T07:04:34Z"
+      "created_at": "2026-08-14T08:04:32Z"
     },
     {
-      "id": "9cdce39ce7e6",
+      "id": "f958a4ac7f7e",
       "title": "Grid Strategy Alpha Theme",
       "theme": "grid_strategy shows best-observed Sharpe 0.00 on 5 trades (return +0.00%) with OOS consistency 30%. Regime context: ranging.",
       "evidence": [
@@ -242,10 +242,10 @@
         "grid_strategy"
       ],
       "source_agent": "QuantAnalyst",
-      "created_at": "2026-08-14T07:04:34Z"
+      "created_at": "2026-08-14T08:04:32Z"
     },
     {
-      "id": "76fc9c7d9efb",
+      "id": "58715190d9c2",
       "title": "Regime Model Insight",
       "theme": "The regime classifier identifies volatility, atr_ratio, bb_width, rsi, macd as the most predictive features of BULL/RANGING/BEAR regimes.",
       "evidence": [
@@ -264,12 +264,12 @@
       "risk_flags": [],
       "strategy_keys": [],
       "source_agent": "QuantAnalyst",
-      "created_at": "2026-08-14T07:04:34Z"
+      "created_at": "2026-08-14T08:04:32Z"
     }
   ],
   "opportunities": [
     {
-      "id": "9c3ba95ebd31",
+      "id": "80c4f02703b5",
       "title": "Breakout Strategy \u2014 production-grade strategy spec",
       "strategy_key": "breakout_strategy",
       "source_agent": "strategist",
@@ -305,10 +305,10 @@
       "effort_hours": 10.0,
       "qrice": 0.0,
       "status": "prioritized",
-      "created_at": "2026-08-14T07:04:34Z"
+      "created_at": "2026-08-14T08:04:32Z"
     },
     {
-      "id": "2ee40b9d791c",
+      "id": "dce727206491",
       "title": "Grid Strategy \u2014 production-grade strategy spec",
       "strategy_key": "grid_strategy",
       "source_agent": "strategist",
@@ -339,7 +339,7 @@
       "effort_hours": 6.0,
       "qrice": 0.1206,
       "status": "prioritized",
-      "created_at": "2026-08-14T07:04:34Z"
+      "created_at": "2026-08-14T08:04:32Z"
     }
   ],
   "market_views": [
@@ -542,7 +542,60 @@
       "effective_n": 2.7615,
       "max_vif": 1.4645,
       "diversity_penalty": 0.5523,
-      "news_analysis": null
+      "news_analysis": {
+        "status": "fetched",
+        "article_count": 20,
+        "outlets": [
+          "CNBC Markets",
+          "Yahoo Finance"
+        ],
+        "news_verdict": {
+          "direction": "RANGING",
+          "strength": 0.35,
+          "confidence": 0.45,
+          "horizon": "short",
+          "rationale": "The corpus lacks direct gold-specific commentary and instead reflects mixed macro signals: dovish inflation data and weak jobs reports support gold's safe-haven appeal, yet Fed rate-hike rhetoric from Governor Cook and a stronger dollar post-CPI create headwinds for bullion. Geopolitical tension (Iran-BRICS) and tech/commodity strength suggest competing narratives without clear directional consensus for precious metals.",
+          "key_themes": [
+            "Fed policy uncertainty and rate-hike debate",
+            "Inflation dynamics and labor market weakness",
+            "Dollar strength despite dovish CPI",
+            "Geopolitical risk (Iran-BRICS alliance)",
+            "Risk-on sentiment in equities and tech"
+          ],
+          "risks": [
+            "Unexpected Fed rate hike if inflation re-accelerates",
+            "Continued dollar strength eroding gold demand",
+            "Risk-on equity rally reducing safe-haven flows",
+            "Weak macro data may not sustain gold rally if growth concerns ease",
+            "Thin corpus with no direct gold price or sentiment analysis"
+          ],
+          "evidence_cited": [
+            "Odds the Fed will hike in September tumble following big July jobs miss",
+            "Fed Governor Cook says she's 'prepared to act' on rate hike to address inflation",
+            "Dollar Ends Higher Despite Dovish US CPI Report",
+            "Copper jumps to its highest level ever. What the metal is telling us",
+            "Iran looks to ramp up economic alliance with BRICS nations as war with U.S. drags on"
+          ],
+          "_fact_check": {
+            "passed": true,
+            "checked": 5,
+            "flagged": [],
+            "failed_citations": [],
+            "corpus_size": 20
+          }
+        },
+        "confirmation": {
+          "available": true,
+          "agrees": false,
+          "news_direction": "RANGING",
+          "model_direction": "BEAR",
+          "model_value": -1.0,
+          "model_sources": [
+            "rf_regime"
+          ],
+          "semantics": "news vote DIVERGES from the model brains \u2014 treat as a watch-out (mean-reversion setup or a regime break the models have not seen)"
+        }
+      }
     }
   ]
 }
