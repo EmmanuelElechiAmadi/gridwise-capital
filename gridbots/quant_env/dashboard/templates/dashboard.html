@@ -1610,6 +1610,9 @@
                 <div class="intel-stat"><div class="intel-stat-l">Next cycle</div><div class="intel-stat-v" id="schedNext">—</div><div class="countdown" id="schedCountdown"></div></div>
                 <div class="intel-stat"><div class="intel-stat-l">LLM layer</div><div class="intel-stat-v" id="llmLayer">—</div></div>
                 <div class="intel-stat"><div class="intel-stat-l">Answered by</div><div class="intel-stat-v" id="llmAnswered">—</div></div>
+                <div class="intel-stat"><div class="intel-stat-l">📰 News desk</div><div class="intel-stat-v" id="newsDesk">—</div>
+                    <div class="intel-stat-l" style="font-size:0.5rem;color:var(--text-3);" id="newsDeskModel">—</div>
+                </div>
                 <div class="intel-stat"><div class="intel-stat-l">Auto-approve</div><div class="intel-stat-v" id="autoApprove">—</div></div>
             </div>
 
@@ -2553,6 +2556,8 @@ async function loadScheduler() {
             set('autoApprove', (d.auto_approve_cycles || 0) > 0
                 ? (d.auto_approve_cycles + ' cycles')
                 : 'human only');
+            set('newsDesk', d.news_enabled ? 'on · ' + (d.news_max_articles || 0) + ' articles' : 'off');
+            set('newsDeskModel', d.news_model ? ('Sonnet tier: ' + d.news_model) : '—');
             const startBtn = document.getElementById('btnSchedStart');
             const stopBtn = document.getElementById('btnSchedStop');
             if (startBtn) startBtn.disabled = d.running;

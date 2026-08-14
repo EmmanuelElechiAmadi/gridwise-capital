@@ -2095,6 +2095,10 @@ def api_intelligence_scheduler():
             "enabled": bool(getattr(Config, "RESEARCH_ENABLED", False)),
             "auto_approve_cycles": int(getattr(Config, "RESEARCH_AUTO_APPROVE_CYCLES", "0")),
             "symbols": getattr(Config, "RESEARCH_SYMBOLS", "GC=F"),
+            "news_enabled": bool(getattr(Config, "RESEARCH_NEWS_ENABLED", False)),
+            "news_max_articles": int(getattr(Config, "RESEARCH_NEWS_MAX_ARTICLES", "20")),
+            "news_use_sample": bool(getattr(Config, "RESEARCH_NEWS_USE_SAMPLE", False)),
+            "news_model": getattr(Config, "LLM_NEWS_MODEL", "claude-sonnet-5"),
         })
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
