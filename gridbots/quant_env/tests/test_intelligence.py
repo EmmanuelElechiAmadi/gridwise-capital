@@ -8,6 +8,7 @@ replacement agent, and the full Coordinator research cycle.
 import json
 import os
 import sys
+import time
 
 import numpy as np
 import pandas as pd
@@ -816,6 +817,43 @@ class TestDataHelpers:
         df = data_mod.load_cached_history(root, "SI=F", max_bars=100)
         assert df is not None and len(df) == 100
         assert data_mod.load_cached_history(root, "CL=F") is None
+
+    def test_ensure_fresh_corpus_refreshes_stale_and_skips_fresh(self, tmp_path, monkeypatch):
+        # A stale gold_data.csv gets re-downloaded; a fresh one is skipped.
+        csv = tmp_path / "gold_data.csv"
+        _make_synthetic_history(length=50, csv_path=str(csv))
+        old = time.time() - 48 * 3600  # 48h old -> stale
+        os.utime(csv, (old, old))
+        root = str(tmp_path)
+
+        fake_df = _make_synthetic_history(length=200)
+        captured = []
+
+        class _FakeYF:
+            def download(self, sym, **kwargs):
+                captured.append(sym)
+                return fake_df
+
+        monkeypatch.setitem(sys.modules, "yfinance", _FakeYF())
+        res = data_mod.ensure_fresh_corpus(root, max_age_hours=6.0)
+        assert "GC=F" in captured
+        assert res["refreshed"]
+        assert data_mod.load_cached_history(root, "GC=F") is not None
+
+        # Second call: corpus is now fresh -> skipped, no download.
+        captured.clear()
+        res2 = data_mod.ensure_fresh_corpus(root, max_age_hours=6.0)
+        assert "GC=F" in str(res2["skipped"]) and not captured
+
+    def test_ensure_fresh_corpus_fails_safe_offline(self, tmp_path, monkeypatch):
+        root = str(tmp_path)
+
+        def boom(*a, **k):
+            raise RuntimeError("offline")
+
+        monkeypatch.setattr("yfinance.download", boom)
+        res = data_mod.ensure_fresh_corpus(root, max_age_hours=6.0)
+        assert isinstance(res, dict) and "skipped" in res
 
 
 class TestProberMultiSymbol:

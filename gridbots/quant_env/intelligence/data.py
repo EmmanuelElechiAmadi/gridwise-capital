@@ -69,3 +69,59 @@ def scan_cached_symbols(project_root):
             except Exception:
                 continue
     return found
+
+
+def ensure_fresh_corpus(project_root, symbols=None, max_age_hours=8.0,
+                        period="3mo", interval="1h", force=False):
+    """Keep the cached OHLCV corpus fresh enough for live signals.
+
+    The RF regime model, the trend filter, the Kronos adapter and the
+    breakout strategy all read the cached CSVs (``gold_data.csv`` etc.).
+    If the newest cached bar is older than ``max_age_hours`` (or ``force``),
+    re-download the corpus from Yahoo Finance.  Fail-safe: never raises,
+    returns ``{"refreshed": [...], "skipped": [...], "error": ...}``.
+    """
+    import time
+
+    import pandas as pd
+
+    symbols = symbols or list(DEFAULT_SYMBOLS)
+    result = {"refreshed": [], "skipped": [], "error": None}
+    try:
+        import yfinance as yf
+    except Exception as e:
+        result["error"] = f"yfinance unavailable: {e}"
+        return result
+
+    for sym in symbols:
+        path = symbol_csv_path(project_root, sym)
+        if os.path.exists(path):
+            try:
+                age_h = (time.time() - os.path.getmtime(path)) / 3600.0
+            except Exception:
+                age_h = 0.0
+            if not force and age_h <= max_age_hours:
+                result["skipped"].append(f"{sym} (fresh, {age_h:.1f}h old)")
+                continue
+        try:
+            df = yf.download(sym, period=period, interval=interval,
+                             progress=False, auto_adjust=False)
+            if df is None or df.empty:
+                result["skipped"].append(f"{sym} (yfinance returned no data)")
+                continue
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
+            df = df.rename(columns={"Open": "open", "High": "high",
+                                    "Low": "low", "Close": "close",
+                                    "Volume": "volume"})
+            df = df[["open", "high", "low", "close", "volume"]].dropna()
+            if df.empty:
+                result["skipped"].append(f"{sym} (no OHLCV rows)")
+                continue
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            df.to_csv(path)
+            result["refreshed"].append(
+                f"{sym} -> {len(df)} bars, last {df.index[-1]}")
+        except Exception as e:
+            result["skipped"].append(f"{sym} (error: {e})")
+    return result

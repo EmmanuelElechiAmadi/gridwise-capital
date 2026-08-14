@@ -371,22 +371,27 @@ def _load_regime_model():
     return _kronos_model
 
 
-def _load_recent_bars():
+def _load_recent_bars(max_age_hours=6.0):
     """Load recent OHLCV bars for the Kronos/RF forecast.
 
-    Order is chosen for SPEED and OFFLINE-SAFETY — this runs inside
-    /api/status (polled every 5 s) and must never block:
+    Runs inside /api/status (polled every 5 s) and must never block:
 
-      1) local ``gold_data.csv`` snapshot  (instant, no network)
-      2) broker bridge 1H bars            (3 s timeout)
-      3) live Yahoo Finance                (5 s timeout, last resort)
+      1) local ``gold_data.csv`` snapshot  (instant) — ONLY when FRESH.  A
+         stale snapshot (e.g. 3 days old) is what froze the dashboard's
+         price and every forecast "since yesterday night".
+      2) live Yahoo Finance                 (5 s timeout) — used when the
+         local snapshot is stale, so the forecast tracks the market NOW.
+      3) broker bridge 1H bars              (3 s timeout) — the instrument
+         actually traded (XAUUSD.r).
+      4) the stale local snapshot           (last resort — better than none)
 
     Never raises.
     """
     import pandas as pd
     bars = None
+    stale_bars = None
 
-    # 1) Local snapshot (fast, offline-safe)
+    # 1) Local snapshot (fast, offline-safe) — only when fresh.
     path = PROJECT_ROOT / "gold_data.csv"
     if path.exists():
         try:
@@ -398,11 +403,39 @@ def _load_recent_bars():
                 bars = df.tail(800)
         except Exception as e:
             print(f"[Kronos] local data load failed: {e}")
+        if bars is not None:
+            try:
+                age_h = (pd.Timestamp.now(tz='UTC') - bars.index[-1]).total_seconds() / 3600.0
+            except Exception:
+                age_h = 0.0
+            if age_h <= max_age_hours:
+                return bars
+            stale_bars = bars
+            bars = None
+
+    # 2) Live Yahoo Finance (GC=F gold futures) — try FIRST when the local
+    #    snapshot is stale so forecasts track the market, not last week.
+    try:
+        import yfinance as yf
+        df = yf.download("GC=F", period="1mo", interval="1h",
+                         progress=False, auto_adjust=False, timeout=5)
+        if df is not None and not df.empty:
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
+            df = df.rename(columns={'Open': 'open', 'High': 'high', 'Low': 'low',
+                                    'Close': 'close', 'Volume': 'volume'})
+            keep = [c for c in ('open', 'high', 'low', 'close', 'volume') if c in df.columns]
+            if len(keep) >= 5:
+                df = df[keep].dropna()
+                if len(df) > 40:
+                    bars = df.tail(800)
+    except Exception as e:
+        print(f"[Kronos] live fetch failed (will use local snapshot): {e}")
 
     if bars is not None:
         return bars
 
-    # 2) Broker's own 1H bars (XAUUSD.r spot) — the instrument actually traded
+    # 3) Broker's own 1H bars (XAUUSD.r spot) — the instrument actually traded
     try:
         r = http_requests.get(f"{_get_bridge_url()}/bars", timeout=3.0)
         if r.status_code == 200:
@@ -421,25 +454,8 @@ def _load_recent_bars():
     if bars is not None:
         return bars
 
-    # 3) Live Yahoo Finance (GC=F gold futures) — last resort, short timeout
-    try:
-        import yfinance as yf
-        df = yf.download("GC=F", period="1mo", interval="1h",
-                         progress=False, auto_adjust=False, timeout=5)
-        if df is not None and not df.empty:
-            if isinstance(df.columns, pd.MultiIndex):
-                df.columns = df.columns.get_level_values(0)
-            df = df.rename(columns={'Open': 'open', 'High': 'high', 'Low': 'low',
-                                    'Close': 'close', 'Volume': 'volume'})
-            keep = [c for c in ('open', 'high', 'low', 'close', 'volume') if c in df.columns]
-            if len(keep) >= 5:
-                df = df[keep].dropna()
-                if len(df) > 40:
-                    bars = df.tail(800)
-    except Exception as e:
-        print(f"[Kronos] live fetch failed (will use local snapshot): {e}")
-
-    return bars
+    # 4) Last resort: the stale local snapshot — better than nothing.
+    return stale_bars
 
 
 _kronos_pred_cache = {'obj': None, 'checked': False, 'loading': False}

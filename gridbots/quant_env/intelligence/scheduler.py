@@ -87,7 +87,22 @@ class ResearchScheduler:
 
     # ── Cycle ─────────────────────────────────────────────────────────
     def run_cycle_now(self):
-        """Run one full agent cycle synchronously.  Returns the brief."""
+        """Run one full agent cycle synchronously.  Returns the brief.
+
+        Refreshes the cached OHLCV corpus first (when it is stale) so every
+        brain — RF regime model, trend filter, Kronos adapter, news desk —
+        reads the market AS IT IS NOW, not the last manual refresh.
+        """
+        try:
+            from intelligence.data import ensure_fresh_corpus
+            project_root = self.ctx.get("project_root")
+            if project_root:
+                ensure_fresh_corpus(
+                    project_root,
+                    max_age_hours=float(self.ctx.get("corpus_max_age_hours", 6.0)),
+                )
+        except Exception:
+            pass  # fail-safe: a stale corpus is still better than no cycle
         from .coordinator import CoordinatorAgent
         coordinator = CoordinatorAgent(self.ctx)
         brief, _ = coordinator.run_cycle()
