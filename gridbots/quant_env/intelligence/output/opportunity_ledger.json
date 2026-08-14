@@ -1,86 +1,548 @@
 {
   "schema": "insightforge.quant.ledger/v3",
-  "created_at": "2026-08-14T07:54:42Z",
-  "updated_at": "2026-08-14T07:54:52Z",
-  "instruments": [],
-  "probes": [],
-  "insights": [],
-  "opportunities": [],
+  "created_at": "2026-08-14T07:04:17Z",
+  "updated_at": "2026-08-14T07:06:55Z",
+  "instruments": [
+    {
+      "symbol": "XAUUSD.r",
+      "timeframe": "1m",
+      "source": "MT5 bridge (raw ticks)",
+      "coverage_bars": 509,
+      "status": "sourced",
+      "source_agent": "DataScout",
+      "note": "cached history: 509 bars",
+      "sourced_at": "2026-08-14T07:04:17Z"
+    },
+    {
+      "symbol": "GC=F",
+      "timeframe": "1h",
+      "source": "Yahoo Finance",
+      "coverage_bars": 509,
+      "status": "sourced",
+      "source_agent": "DataScout",
+      "note": "cached history: 509 bars",
+      "sourced_at": "2026-08-14T07:04:17Z"
+    },
+    {
+      "symbol": "SI=F",
+      "timeframe": "1h",
+      "source": "Yahoo Finance",
+      "coverage_bars": 510,
+      "status": "sourced",
+      "source_agent": "DataScout",
+      "note": "cached history: 510 bars",
+      "sourced_at": "2026-08-14T07:04:17Z"
+    },
+    {
+      "symbol": "CL=F",
+      "timeframe": "1h",
+      "source": "Yahoo Finance",
+      "coverage_bars": 510,
+      "status": "sourced",
+      "source_agent": "DataScout",
+      "note": "cached history: 510 bars",
+      "sourced_at": "2026-08-14T07:04:17Z"
+    }
+  ],
+  "probes": [
+    {
+      "id": "f19f8d4da0c6",
+      "strategy_key": "breakout_strategy",
+      "symbol": "GC=F",
+      "timeframe": "1m",
+      "params": {
+        "lookback_4h_bars": 5,
+        "breakout_threshold_pct": 0.05,
+        "confirmation_bars_1h": 2,
+        "lot": 0.01,
+        "max_positions": 1,
+        "tp_dollars": "3,5,10",
+        "sl_dollars": 3,
+        "kronos_enabled": false
+      },
+      "metrics": {
+        "total_return_pct": -0.05,
+        "total_pnl": -5.19,
+        "sharpe_ratio": -1.32,
+        "max_drawdown_pct": 0.05,
+        "num_trades": 2,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.0,
+        "avg_loss": -2.09,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 26.0,
+          "mc_var_95_pct": -0.02,
+          "mc_median_max_dd_pct": 0.01
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 509,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-14T07:04:17Z"
+    },
+    {
+      "id": "5cbb3ec84d4a",
+      "strategy_key": "breakout_strategy",
+      "symbol": "GC=F",
+      "timeframe": "1m",
+      "params": {
+        "lookback_4h_bars": 7.0,
+        "breakout_threshold_pct": 0.05,
+        "confirmation_bars_1h": 2,
+        "lot": 0.01,
+        "max_positions": 1,
+        "tp_dollars": "3,5,10",
+        "sl_dollars": 3,
+        "kronos_enabled": false
+      },
+      "metrics": {
+        "total_return_pct": -0.05,
+        "total_pnl": -5.18,
+        "sharpe_ratio": -1.32,
+        "max_drawdown_pct": 0.05,
+        "num_trades": 2,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.0,
+        "avg_loss": -2.09,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 26.0,
+          "mc_var_95_pct": -0.02,
+          "mc_median_max_dd_pct": 0.01
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 509,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-14T07:04:17Z"
+    },
+    {
+      "id": "be30d95ff0a1",
+      "strategy_key": "grid_strategy",
+      "symbol": "GC=F",
+      "timeframe": "1m",
+      "params": {
+        "spacing": 0.1,
+        "levels": 5,
+        "lot": 1.0
+      },
+      "metrics": {
+        "total_return_pct": 0.0,
+        "total_pnl": 0.0,
+        "sharpe_ratio": 0,
+        "max_drawdown_pct": 0.0,
+        "num_trades": 5,
+        "win_rate_pct": 20.0,
+        "profit_factor": 0.06,
+        "avg_win": 0.1,
+        "avg_loss": -0.4,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 0.0,
+          "mc_var_95_pct": 0.0,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 509,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-14T07:04:26Z"
+    },
+    {
+      "id": "f0ab012b356d",
+      "strategy_key": "grid_strategy",
+      "symbol": "GC=F",
+      "timeframe": "1m",
+      "params": {
+        "spacing": 0.12000000000000001,
+        "levels": 5,
+        "lot": 1.0
+      },
+      "metrics": {
+        "total_return_pct": 0.0,
+        "total_pnl": 0.0,
+        "sharpe_ratio": 0,
+        "max_drawdown_pct": 0.0,
+        "num_trades": 5,
+        "win_rate_pct": 40.0,
+        "profit_factor": 0.29,
+        "avg_win": 0.18,
+        "avg_loss": -0.42,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 0.0,
+          "mc_var_95_pct": 0.0,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "oos": false,
+      "regime": "ranging",
+      "data_bars": 509,
+      "source_agent": "MarketProber",
+      "note": "live engine probe",
+      "probed_at": "2026-08-14T07:04:34Z"
+    }
+  ],
+  "insights": [
+    {
+      "id": "5410d4cbbbbd",
+      "title": "Breakout Strategy Alpha Theme",
+      "theme": "breakout_strategy shows best-observed Sharpe -1.32 on 2 trades (return -0.05%) with OOS consistency 30%. Regime context: ranging.",
+      "evidence": [
+        {
+          "probe_id": "f19f8d4da0c6",
+          "oos_probe_id": null,
+          "symbol": "GC=F",
+          "sharpe_ratio": -1.32,
+          "oos_sharpe_ratio": 0.30600000000000016,
+          "num_trades": 2,
+          "total_return_pct": -0.05,
+          "max_drawdown_pct": 0.05,
+          "oos_consistency": 0.3
+        }
+      ],
+      "confidence": 0.16451157096868382,
+      "risk_flags": [
+        "low-oos-consistency",
+        "thin-sample"
+      ],
+      "strategy_keys": [
+        "breakout_strategy"
+      ],
+      "source_agent": "QuantAnalyst",
+      "created_at": "2026-08-14T07:04:34Z"
+    },
+    {
+      "id": "9cdce39ce7e6",
+      "title": "Grid Strategy Alpha Theme",
+      "theme": "grid_strategy shows best-observed Sharpe 0.00 on 5 trades (return +0.00%) with OOS consistency 30%. Regime context: ranging.",
+      "evidence": [
+        {
+          "probe_id": "be30d95ff0a1",
+          "oos_probe_id": null,
+          "symbol": "GC=F",
+          "sharpe_ratio": 0.0,
+          "oos_sharpe_ratio": 0.30600000000000016,
+          "num_trades": 5,
+          "total_return_pct": 0.0,
+          "max_drawdown_pct": 0.0,
+          "oos_consistency": 0.3
+        }
+      ],
+      "confidence": 0.2895591917746058,
+      "risk_flags": [
+        "low-oos-consistency"
+      ],
+      "strategy_keys": [
+        "grid_strategy"
+      ],
+      "source_agent": "QuantAnalyst",
+      "created_at": "2026-08-14T07:04:34Z"
+    },
+    {
+      "id": "76fc9c7d9efb",
+      "title": "Regime Model Insight",
+      "theme": "The regime classifier identifies volatility, atr_ratio, bb_width, rsi, macd as the most predictive features of BULL/RANGING/BEAR regimes.",
+      "evidence": [
+        {
+          "ml_accuracy": null,
+          "top_features": [
+            "volatility",
+            "atr_ratio",
+            "bb_width",
+            "rsi",
+            "macd"
+          ]
+        }
+      ],
+      "confidence": 0.4,
+      "risk_flags": [],
+      "strategy_keys": [],
+      "source_agent": "QuantAnalyst",
+      "created_at": "2026-08-14T07:04:34Z"
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "9c3ba95ebd31",
+      "title": "Breakout Strategy \u2014 production-grade strategy spec",
+      "strategy_key": "breakout_strategy",
+      "source_agent": "strategist",
+      "params": {
+        "lookback_4h_bars": 5,
+        "breakout_threshold_pct": 0.05,
+        "confirmation_bars_1h": 2,
+        "lot": 0.01,
+        "max_positions": 1,
+        "tp_dollars": "3,5,10",
+        "sl_dollars": 3,
+        "kronos_enabled": false
+      },
+      "metrics": {
+        "total_return_pct": -0.05,
+        "total_pnl": -5.19,
+        "sharpe_ratio": -1.32,
+        "max_drawdown_pct": 0.05,
+        "num_trades": 2,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "avg_win": 0.0,
+        "avg_loss": -2.09,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 26.0,
+          "mc_var_95_pct": -0.02,
+          "mc_median_max_dd_pct": 0.01
+        }
+      },
+      "reach": 1.0,
+      "impact": 0.0,
+      "confidence": 0.16451157096868382,
+      "effort_hours": 10.0,
+      "qrice": 0.0,
+      "status": "prioritized",
+      "created_at": "2026-08-14T07:04:34Z"
+    },
+    {
+      "id": "2ee40b9d791c",
+      "title": "Grid Strategy \u2014 production-grade strategy spec",
+      "strategy_key": "grid_strategy",
+      "source_agent": "strategist",
+      "params": {
+        "spacing": 0.1,
+        "levels": 5,
+        "lot": 1.0
+      },
+      "metrics": {
+        "total_return_pct": 0.0,
+        "total_pnl": 0.0,
+        "sharpe_ratio": 0,
+        "max_drawdown_pct": 0.0,
+        "num_trades": 5,
+        "win_rate_pct": 20.0,
+        "profit_factor": 0.06,
+        "avg_win": 0.1,
+        "avg_loss": -0.4,
+        "monte_carlo": {
+          "mc_prob_profit_pct": 0.0,
+          "mc_var_95_pct": 0.0,
+          "mc_median_max_dd_pct": 0.0
+        }
+      },
+      "reach": 1.0,
+      "impact": 0.25,
+      "confidence": 0.2895591917746058,
+      "effort_hours": 6.0,
+      "qrice": 0.1206,
+      "status": "prioritized",
+      "created_at": "2026-08-14T07:04:34Z"
+    }
+  ],
   "market_views": [
     {
-      "id": "16b69935368c",
+      "id": "2887342bf075",
       "direction": "RANGING",
-      "direction_value": 0.0,
-      "strength": 0.0,
-      "agreement_index": 0.0,
-      "consensus_strength": 0.0,
-      "contributions": [],
-      "disagreements": [],
+      "direction_value": -0.0469,
+      "strength": 0.0469,
+      "agreement_index": 0.5484,
+      "consensus_strength": 0.0257,
+      "contributions": [
+        {
+          "source": "rf_regime",
+          "direction": "BEAR",
+          "strength": 0.5194,
+          "confidence": 0.5194,
+          "base_weight": 0.6,
+          "contribution": -0.1619,
+          "evidence": {
+            "regime": "bear",
+            "classifier_confidence": 0.5194
+          },
+          "note": "RandomForest regime classifier (37 features)",
+          "vif": 1.2677,
+          "independent_weight": 0.4733
+        },
+        {
+          "source": "trend_filter",
+          "direction": "RANGING",
+          "strength": 0.5,
+          "confidence": 0.6,
+          "base_weight": 0.4,
+          "contribution": 0.0,
+          "evidence": {
+            "trend": "ranging",
+            "strength": 0.5
+          },
+          "note": "deterministic trend filter (regime estimate from price path)",
+          "vif": 1.4645,
+          "independent_weight": 0.2731
+        },
+        {
+          "source": "backtest",
+          "direction": "BEAR",
+          "strength": 0.0068,
+          "confidence": 0.314,
+          "base_weight": 1.0,
+          "contribution": -0.0021,
+          "evidence": {
+            "strategy_key": "breakout_strategy",
+            "sharpe_ratio": -1.32,
+            "total_return_pct": -0.05,
+            "num_trades": 2.0,
+            "oos_consistency": 0.0,
+            "mc_prob_profit_pct": 26.0
+          },
+          "note": "backtest/walk-forward evidence for breakout_strategy",
+          "vif": 1.2049,
+          "independent_weight": 0.8299
+        },
+        {
+          "source": "backtest",
+          "direction": "RANGING",
+          "strength": 0.0063,
+          "confidence": 0.335,
+          "base_weight": 1.0,
+          "contribution": 0.0,
+          "evidence": {
+            "strategy_key": "grid_strategy",
+            "sharpe_ratio": 0.0,
+            "total_return_pct": 0.0,
+            "num_trades": 5.0,
+            "oos_consistency": 0.0,
+            "mc_prob_profit_pct": 0.0
+          },
+          "note": "backtest/walk-forward evidence for grid_strategy",
+          "vif": 1.2049,
+          "independent_weight": 0.8299
+        },
+        {
+          "source": "llm",
+          "direction": "RANGING",
+          "strength": 0.3,
+          "confidence": 0.35,
+          "base_weight": 0.5,
+          "contribution": 0.0,
+          "evidence": {
+            "direction": "RANGING",
+            "strength": 0.3,
+            "confidence": 0.35,
+            "horizon": "short",
+            "key_risks": [
+              "RF regime classifier confidence is barely above coin-flip at 0.5194, providing no actionable directional edge",
+              "Deterministic trend filter contradicts RF classifier: ranging vs bear \u2014 signals are conflicting",
+              "Extremely thin sample sizes: breakout_strategy had only 2 trades, grid_strategy had only 5 trades \u2014 statistically meaningless",
+              "Zero out-of-sample consistency (0.0) for both strategies, indicating no robust edge",
+              "Breakout strategy Sharpe of -1.32 with 0% win rate signals strategy is not viable in current regime",
+              "Grid strategy returned exactly 0.0% with profit_factor of 0.06 and win_rate of only 20% \u2014 no alpha",
+              "Monte Carlo probability of profit is 0% for grid and only 26% for breakout \u2014 both deeply unfavorable",
+              "No Kronos foundation-model forecast was provided, leaving a gap in the evidence bundle"
+            ],
+            "evidence_cited": [
+              "classifier_confidence: 0.5194",
+              "trend: ranging, strength: 0.5",
+              "sharpe_ratio: -1.32",
+              "total_return_pct: -0.05",
+              "num_trades: 2",
+              "oos_consistency: 0.0",
+              "mc_prob_profit_pct: 26.0",
+              "sharpe_ratio: 0.0",
+              "total_return_pct: 0.0",
+              "num_trades: 5",
+              "mc_prob_profit_pct: 0.0",
+              "win_rate_pct: 0.0",
+              "profit_factor: 0.06",
+              "win_rate_pct: 20.0"
+            ],
+            "_fact_check": {
+              "passed": true,
+              "checked": 14,
+              "flagged": [],
+              "failed_citations": []
+            }
+          },
+          "note": "LLM cross-validation verdict over the full evidence bundle",
+          "vif": 1.0432,
+          "independent_weight": 0.4793
+        }
+      ],
+      "disagreements": [
+        {
+          "source": "rf_regime",
+          "direction": "BEAR",
+          "contribution": -0.1619,
+          "message": "rf_regime votes BEAR (strength 52%, conf 52%) against the consensus"
+        },
+        {
+          "source": "backtest",
+          "direction": "BEAR",
+          "contribution": -0.0021,
+          "message": "backtest votes BEAR (strength 1%, conf 31%) against the consensus"
+        }
+      ],
       "horizon": "medium",
       "symbol": "GC=F",
-      "sources": [],
-      "generated_at": "2026-08-14T07:54:52Z",
-      "cycle_id": null,
-      "llm_verdict": null,
-      "llm_fact_check": null,
-      "raw_agreement_index": 0.0,
-      "effective_n": null,
-      "max_vif": 1.0,
-      "diversity_penalty": 1.0,
-      "news_analysis": {
-        "status": "fetched",
-        "article_count": 20,
-        "outlets": [
-          "CNBC Markets",
-          "MarketWatch",
-          "Yahoo Finance"
+      "sources": [
+        "rf_regime",
+        "trend_filter",
+        "backtest",
+        "backtest",
+        "llm"
+      ],
+      "generated_at": "2026-08-14T07:06:55Z",
+      "cycle_id": "096aaeaa1595",
+      "llm_verdict": {
+        "direction": "RANGING",
+        "strength": 0.3,
+        "confidence": 0.35,
+        "horizon": "short",
+        "key_risks": [
+          "RF regime classifier confidence is barely above coin-flip at 0.5194, providing no actionable directional edge",
+          "Deterministic trend filter contradicts RF classifier: ranging vs bear \u2014 signals are conflicting",
+          "Extremely thin sample sizes: breakout_strategy had only 2 trades, grid_strategy had only 5 trades \u2014 statistically meaningless",
+          "Zero out-of-sample consistency (0.0) for both strategies, indicating no robust edge",
+          "Breakout strategy Sharpe of -1.32 with 0% win rate signals strategy is not viable in current regime",
+          "Grid strategy returned exactly 0.0% with profit_factor of 0.06 and win_rate of only 20% \u2014 no alpha",
+          "Monte Carlo probability of profit is 0% for grid and only 26% for breakout \u2014 both deeply unfavorable",
+          "No Kronos foundation-model forecast was provided, leaving a gap in the evidence bundle"
         ],
-        "news_verdict": {
-          "direction": "RANGING",
-          "strength": 0.35,
-          "confidence": 0.4,
-          "horizon": "short",
-          "rationale": "The corpus contains minimal direct gold-specific content; instead it focuses on equities, Fed policy, and macro conditions. Dovish inflation data and weak jobs reports suggest lower rate-hike odds, which typically support gold, but offsetting signals include a stronger dollar despite dovish CPI and mixed Fed messaging on potential rate action. The geopolitical tension (Iran-BRICS) and economic uncertainty create conflicting directional pressures.",
-          "key_themes": [
-            "Fed rate-hike uncertainty and dovish inflation signals",
-            "Weak labor market reducing tightening pressure",
-            "Dollar strength despite dovish CPI",
-            "Geopolitical tensions (Iran-BRICS alliance)",
-            "Equity market strength on AI and tech optimism"
-          ],
-          "risks": [
-            "Fed Governor Cook signals readiness to hike if inflation persists",
-            "Dollar strength typically headwind for gold",
-            "Equity rally may reduce safe-haven demand",
-            "Warsh Fed leadership implementing structural changes creating volatility and uncertainty",
-            "Thin corpus with no direct gold price or gold-specific sentiment analysis"
-          ],
-          "evidence_cited": [
-            "Odds the Fed will hike in September tumble following big July jobs miss",
-            "Treasury Yields Slip as U.S. Inflation Meets Expectations",
-            "Dollar Ends Higher Despite Dovish US CPI Report",
-            "Fed Governor Cook says she's 'prepared to act' on rate hike to address inflation",
-            "Iran looks to ramp up economic alliance with BRICS nations as war with U.S. drags on",
-            "As Warsh and the Fed contemplate fewer meetings, markets brace for potential volatility ahead"
-          ],
-          "_fact_check": {
-            "passed": true,
-            "checked": 6,
-            "flagged": [],
-            "failed_citations": [],
-            "corpus_size": 20
-          }
-        },
-        "confirmation": {
-          "available": false,
-          "agrees": null,
-          "news_direction": "RANGING",
-          "model_direction": null,
-          "model_value": null,
-          "model_sources": [],
-          "semantics": "no Kronos/RF model read available to verify the news"
+        "evidence_cited": [
+          "classifier_confidence: 0.5194",
+          "trend: ranging, strength: 0.5",
+          "sharpe_ratio: -1.32",
+          "total_return_pct: -0.05",
+          "num_trades: 2",
+          "oos_consistency: 0.0",
+          "mc_prob_profit_pct: 26.0",
+          "sharpe_ratio: 0.0",
+          "total_return_pct: 0.0",
+          "num_trades: 5",
+          "mc_prob_profit_pct: 0.0",
+          "win_rate_pct: 0.0",
+          "profit_factor: 0.06",
+          "win_rate_pct: 20.0"
+        ],
+        "_fact_check": {
+          "passed": true,
+          "checked": 14,
+          "flagged": [],
+          "failed_citations": []
         }
-      }
+      },
+      "llm_fact_check": {
+        "passed": true,
+        "checked": 14,
+        "flagged": [],
+        "failed_citations": []
+      },
+      "raw_agreement_index": 0.5429,
+      "effective_n": 2.7615,
+      "max_vif": 1.4645,
+      "diversity_penalty": 0.5523,
+      "news_analysis": null
     }
   ]
 }

@@ -99,6 +99,20 @@ class CoordinatorAgent(BaseAgent):
         from .consensus.sources import collect_news, compute_news_confirmation
 
         symbol = str(self.ctx.get("consensus_symbol") or "GC=F")
+        # The coordinator starts with an EMPTY in-memory ledger (run_cycle
+        # rebuilds it each cycle).  A news-only refresh must never wipe the
+        # persisted research — hydrate from disk when the in-memory one is bare.
+        if not self.ledger.instruments and not self.ledger.market_views:
+            try:
+                from .ledger import OpportunityLedger
+                persisted = OpportunityLedger.load(self.ledger.path)
+                self.ledger.instruments = persisted.instruments
+                self.ledger.probes = persisted.probes
+                self.ledger.insights = persisted.insights
+                self.ledger.opportunities = persisted.opportunities
+                self.ledger.market_views = persisted.market_views
+            except Exception:
+                pass
         agent = NewsResearchAnalystAgent(self.ctx)
         report = agent.run(self.ledger)
         articles = report.get("articles") or []

@@ -1680,9 +1680,12 @@ class TestNewsInCoordinator:
 
     def test_run_news_desk_fast_path(self, tmp_path):
         # The dashboard "⚡ Fetch News Now" path — no probes/backtests.
-        from intelligence.ledger import OpportunityLedger
+        from intelligence.ledger import OpportunityLedger, Instrument, Probe
         path = os.path.join(str(tmp_path), "ledger.json")
         ledger = OpportunityLedger(path=path)
+        ledger.add_instrument(Instrument("GC=F", "1h", "Yahoo"))
+        ledger.add_probe(Probe("grid_strategy", metrics={"num_trades": 5}))
+        ledger.save()
         articles = _fake_articles(4)
         fake = _FakeLLMClient(text=_news_verdict_json(articles[0].title))
         narrator = LLMNarrator({"llm_enabled": True}, client=fake)
@@ -1693,7 +1696,9 @@ class TestNewsInCoordinator:
         assert na and na["status"] == "fetched"
         assert na["article_count"] == 4
         assert na["news_verdict"]["direction"] == "BULL"
-        # Persisted onto the (bare) market view so /api/intelligence/news serves it.
+        # A news-only refresh must NEVER wipe persisted research.
         loaded = OpportunityLedger.load(path)
+        assert len(loaded.instruments) == 1
+        assert len(loaded.probes) == 1
         assert loaded.market_views and loaded.market_views[-1]["news_analysis"]
 
