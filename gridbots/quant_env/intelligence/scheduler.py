@@ -44,6 +44,15 @@ class ResearchScheduler:
         self.ctx.setdefault("auto_approve_cycles",
                             int(getattr(self.config, "RESEARCH_AUTO_APPROVE_CYCLES", "0")))
         self.ctx.setdefault("llm_enabled", getattr(self.config, "RESEARCH_LLM_ENABLED", False))
+        # Phase 5 — News Desk knobs (fail-safe: offline news is simply "no_news").
+        # The REAL Config class defaults RESEARCH_NEWS_ENABLED to true; a bare
+        # dict/test config has no such attribute and stays disabled -> no network.
+        self.ctx.setdefault("news_enabled", getattr(self.config, "RESEARCH_NEWS_ENABLED", False))
+        self.ctx.setdefault("news_max_articles",
+                            int(getattr(self.config, "RESEARCH_NEWS_MAX_ARTICLES", 20)))
+        self.ctx.setdefault("news_use_sample",
+                            getattr(self.config, "RESEARCH_NEWS_USE_SAMPLE", False))
+        self.ctx.setdefault("news_fetcher", self.ctx.get("news_fetcher"))
         self.running = False
         self.thread = None
         self.cycles_run = 0

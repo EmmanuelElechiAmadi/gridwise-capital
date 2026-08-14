@@ -11,6 +11,8 @@ professional role*:
     Analyst     -> Quant Research Analyst  (synthesizes alpha themes)
     Strategist  -> Quant Strategist        (prioritizes + specs strategies)
     Coordinator -> Chief Quant Officer     (orchestrates the research loop)
+    NEW         -> News Research Analyst   (Phase 5 — curates trading news;
+                   Claude Sonnet drafts the direction; Kronos + RF verify it)
 
 The agents share a persistent ``OpportunityLedger`` (the "opportunity
 solution tree") and a cycle produces a ``research_brief.json`` for humans.
@@ -26,4 +28,4 @@ _QUANT_ENV_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _QUANT_ENV_ROOT not in sys.path:
     sys.path.insert(0, _QUANT_ENV_ROOT)
 
-__version__ = "3.0.0"
+__version__ = "4.0.0"

@@ -80,6 +80,35 @@ def _render(brief) -> str:
             lines.append("    dissenting voices:")
             for d in market_view.get("disagreements", []):
                 lines.append(f"      - {d.get('source')} ({d.get('direction')})")
+
+    news_analysis = brief.get("news_analysis")
+    if news_analysis:
+        lines.append("")
+        lines.append("  NEWS DESK (Phase 5 — trading headlines → Sonnet verdict → Kronos/RF check)")
+        verdict = news_analysis.get("news_verdict") or {}
+        conf = news_analysis.get("confirmation") or {}
+        lines.append(f"    status      : {news_analysis.get('status')}  "
+                     f"headlines={news_analysis.get('article_count', 0)}  "
+                     f"outlets={', '.join(news_analysis.get('outlets', []) or []) or '—'}")
+        lines.append(f"    news verdict: {verdict.get('direction', '—')}  "
+                     f"strength={float(verdict.get('strength', 0) or 0):.0%}  "
+                     f"confidence={float(verdict.get('confidence', 0) or 0):.0%}")
+        if verdict.get("key_themes"):
+            lines.append(f"    key themes  : {', '.join(verdict.get('key_themes', []))}")
+        if conf.get("available"):
+            status = "CONFIRMED" if conf.get("agrees") else "DIVERGES"
+            lines.append(f"    Kronos+RF   : {conf.get('model_direction')} "
+                         f"({conf.get('model_value', 0):+.2f}) — news {status}")
+        if verdict.get("evidence_cited"):
+            lines.append("    grounded on :")
+            for c in verdict.get("evidence_cited", []):
+                lines.append(f"      - {c}")
+
+    news_narrative = brief.get("news_narrative")
+    if news_narrative:
+        lines.append("")
+        lines.append("  NEWS DESK NARRATIVE")
+        lines.append(f"    {news_narrative}")
     mv_narrative = brief.get("market_view_narrative")
     if mv_narrative:
         lines.append("")
@@ -121,10 +150,18 @@ def main(argv=None):
     parser.add_argument("--llm", action="store_true",
                         help="enable the optional LLM narrative layer "
                              "(requires LLM_API_KEY / LLM_PROVIDER env vars)")
+    parser.add_argument("--news", action="store_true",
+                        help="enable the News Desk (fetches trading headlines "
+                             "from public RSS outlets)")
     parser.add_argument("--symbols", default="GC=F",
                         help="comma-separated symbol corpus to probe, e.g. GC=F,SI=F,CL=F")
     parser.add_argument("--deploy-top", action="store_true",
                         help="propose the top opportunity for human-gated deployment")
+    parser.add_argument("--news-use-sample", action="store_true",
+                        help="use the deterministic OFFLINE news corpus "
+                             "(air-gapped demos; clearly labelled sample)")
+    parser.add_argument("--news-max-articles", type=int, default=20,
+                        help="max curated headlines handed to Claude Sonnet")
     parser.add_argument("--models", action="store_true",
                         help="list the LLM models this key can access, then exit")
     parser.add_argument("--quiet", action="store_true",
@@ -153,6 +190,9 @@ def main(argv=None):
         "llm_enabled": args.llm,
         "symbols": args.symbols,
         "auto_deploy_top": args.deploy_top,
+        "news_enabled": args.news,
+        "news_use_sample": args.news_use_sample,
+        "news_max_articles": max(1, args.news_max_articles),
     }
     coordinator = CoordinatorAgent(ctx)
     brief, ledger = coordinator.run_cycle()

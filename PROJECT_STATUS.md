@@ -112,6 +112,25 @@ seek quant/
     (fired % per drawdown×floor threshold grid via
     `/api/intelligence/kill_drill?matrix=1`). Realized-outcome scoring lives in
     `intelligence/research_stats.py::score_consensus_history`.
+- **NEW (Phase 5) — News Desk** (`intelligence/news.py` + `agents/news_analyst.py`):
+  the agent team now *researches the news*. `NewsResearchAnalystAgent` (the 5th
+  team member, replacing a "Macro / News Research Analyst") curates trading
+  headlines from multiple outlets (MarketWatch / CNBC / Yahoo Finance / Kitco /
+  ForexLive / FXStreet RSS, plus optional NewsAPI.org via `NEWS_API_KEY`),
+  dedupes on normalized titles and ranks by symbol relevance + recency.
+  **Claude Sonnet** (`LLM_NEWS_MODEL`, default `claude-sonnet-5`) drafts a
+  market-direction verdict that MUST cite verbatim headlines
+  (`LLMNarrator.analyze_news` + `fact_check_news_verdict` hallucination guard —
+  a fabricated headline is flagged and the vote is dropped). The verdict is then
+  **verified against Kronos + the RandomForest regime model**: `compute_news_confirmation`
+  reports CONFIRMED vs DIVERGES; the news vote joins the consensus as a
+  deliberately modest `news` source (weight 0.35, correlation ρ≈0.05–0.10 —
+  the most INDEPENDENT brain in the panel, raising `effective_n`). Full
+  end-to-end: agent → Sonnet verdict → Kronos/RF check → fused MarketView →
+  dashboard **📰 News Desk** block (direction, strength, headline count,
+  outlets, grounded citations, confirmation badge) → `/api/intelligence/news`
+  → benchmark `news_confirmation_stats` (confirmation share + grounding pass
+  rate). Fail-safe everywhere: offline ⇒ "no news this cycle", never a blocker.
   the live strategy on next start. Nothing reaches the engine without approval.
 - **NEW — deployment gate on the dashboard UI**: the 🤖 Agent Team tab now has a
   full approval panel — 🛠 Propose Top Opportunity, per-opportunity 🛠 Deploy

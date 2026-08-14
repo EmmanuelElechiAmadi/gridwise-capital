@@ -583,6 +583,17 @@ def run_benchmark_report(project_root=None, out_path=None, n_windows=8,
                 "train_sizes": [len(tr) for tr, _ in splits],
             }
 
+        # ── News Desk record (Phase 5) ─────────────────────────────────
+        # How often Sonnet's news direction was CONFIRMED vs DIVERGED from
+        # the Kronos + RF model blend, plus the hallucination-guard (verbatim
+        # grounding) pass rate — honest numbers, published like everything else.
+        try:
+            news_stats = news_confirmation_stats(list(ledger.market_views or []))
+            if news_stats.get("views"):
+                report["news_desk"] = news_stats
+        except Exception:
+            pass
+
         # ── Persist ────────────────────────────────────────────────────
         out_path = out_path or os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "output",
@@ -656,3 +667,69 @@ def score_consensus_history(views, history_df, lookahead=24,
         s["source"] = src_name
         scorecard.append(s)
     return out, scorecard, sum(1 for v in out if v.get("realized"))
+
+
+def news_confirmation_stats(views):
+    """Aggregate the News Desk track record across persisted MarketViews.
+
+    For every view carrying a ``news_analysis`` block, tally:
+
+      - corpus size (headlines / distinct outlets),
+      - the distribution of Claude Sonnet's news directions,
+      - the share of verdicts CONFIRMED vs DIVERGED from the Kronos + RF
+        model blend (the verification step),
+      - the verbatim-grounding fact-check pass rate (hallucination guard).
+
+    Returns a dict (``{"views": 0, ...}`` when no News Desk analysis exists
+    yet).  Empty-panel safe: never raises.
+    """
+    out = {"views": 0, "articles": 0, "verdicts": 0,
+           "directions": {"BULL": 0, "BEAR": 0, "RANGING": 0},
+           "confirmations": {"confirmed": 0, "diverged": 0, "unverified": 0},
+           "grounding": {"passed": 0, "flagged": 0, "flag_samples": []},
+           "outlets": []}
+    for v in views or []:
+        na = v.get("news_analysis") or {}
+        if not na:
+            continue
+        out["views"] += 1
+        try:
+            out["articles"] += int(na.get("article_count", 0) or 0)
+        except (TypeError, ValueError):
+            pass
+        for o in na.get("outlets", []) or []:
+            if o not in out["outlets"]:
+                out["outlets"].append(o)
+
+        verdict = na.get("news_verdict") or {}
+        fc = verdict.get("_fact_check") or {}
+        if fc.get("passed"):
+            out["grounding"]["passed"] += 1
+        else:
+            out["grounding"]["flagged"] += 1
+            if len(out["grounding"]["flag_samples"]) < 5:
+                out["grounding"]["flag_samples"].extend(
+                    [str(f) for f in (fc.get("flagged") or [])][:5])
+        if verdict:
+            d = str(verdict.get("direction") or "").upper()
+            if d in out["directions"]:
+                out["directions"][d] += 1
+                out["verdicts"] += 1
+
+        conf = na.get("confirmation") or {}
+        if conf.get("available") and conf.get("agrees") is not None:
+            if conf["agrees"]:
+                out["confirmations"]["confirmed"] += 1
+            else:
+                out["confirmations"]["diverged"] += 1
+        else:
+            out["confirmations"]["unverified"] += 1
+
+    checked = out["confirmations"]["confirmed"] + out["confirmations"]["diverged"]
+    out["confirmed_share_pct"] = round(100.0 * out["confirmations"]["confirmed"] / checked, 1) \
+        if checked else None
+    out["grounding_pass_pct"] = round(
+        100.0 * out["grounding"]["passed"] / (out["grounding"]["passed"] + out["grounding"]["flagged"]), 1) \
+        if (out["grounding"]["passed"] + out["grounding"]["flagged"]) else None
+    out["outlets"] = sorted(out["outlets"])
+    return out

@@ -40,6 +40,11 @@ _ANTHROPIC_FAST_FALLBACKS = ["claude-haiku-4-5-20251001", "claude-3-5-haiku-late
 _ANTHROPIC_CAPABLE_FALLBACKS = ["claude-opus-4-8", "claude-sonnet-5",
                                 "claude-3-5-sonnet-latest"]
 _OPENAI_CAPABLE_FALLBACKS = ["gpt-4o", "gpt-4o-mini"]
+# News-desk tier -> Claude Sonnet: the best cost/capability tradeoff for
+# multi-outlet synthesis + verbatim-citation grounding. Override via
+# LLM_NEWS_MODEL (e.g. "claude-sonnet-4-5" or a newer Sonnet).
+_DEFAULT_NEWS_ANTHROPIC = "claude-sonnet-5"
+_ANTHROPIC_NEWS_FALLBACKS = ["claude-3-5-sonnet-latest", "claude-haiku-4-5-20251001"]
 
 # ── Calibrated narration prompts (2026) ──────────────────────────────
 # Kept as module constants so they are easy to tune; each narration passes
@@ -85,6 +90,30 @@ _PROMPTS = {
         "exact numbers from the evidence), then name the strongest dissenting voice. Use only the "
         "numbers provided; never invent statistics."
     ),
+    "news_direction": (
+        "You are the News Desk analyst of a systematic trading desk. You are given a corpus of "
+        "REAL headlines fetched from multiple trading outlets about the researched instrument. "
+        "Your job: research them and draft a market-direction conclusion. Reply with EXACTLY one "
+        "JSON object, no prose, no markdown, with ONLY these keys: "
+        "direction (\"BULL\", \"BEAR\" or \"RANGING\"), strength (0..1), confidence (0..1), "
+        "horizon (\"short\"|\"medium\"|\"long\"), "
+        "rationale (2-3 sentences weighing the bull vs bear narrative), "
+        "key_themes (array of strings naming the dominant drivers), "
+        "risks (array of strings), "
+        "evidence_cited (array of strings — EACH must quote a headline title VERBATIM from the "
+        "provided corpus; never quote a headline that is not in the corpus, never invent one). "
+        "Weigh outlet authority and recency. If the corpus is contradictory or thin, prefer "
+        "RANGING with low strength. This conclusion will be verified against Kronos and a "
+        "RandomForest regime model — so be honest about disagreement."
+    ),
+    "news_explain": (
+        "You are the Chief Quant Officer summarizing the News Desk verdict for a portfolio "
+        "manager. In 2-3 sentences state: the news-drafted direction and its strength, the top "
+        "driving theme, and whether Kronos + the RandomForest regime model CONFIRM or CONTRADICT "
+        "that direction (name the model direction explicitly). Mention the news-vs-model "
+        "divergence as a risk when present. Use only the provided numbers and headline citations; "
+        "never invent facts."
+    ),
 }
 
 _PROMPT_TEMPERATURES = {
@@ -93,6 +122,8 @@ _PROMPT_TEMPERATURES = {
     "opportunity": 0.4,
     "cross_validate": 0.2,
     "market_view": 0.3,
+    "news_direction": 0.2,
+    "news_explain": 0.3,
 }
 
 
@@ -144,17 +175,22 @@ class LLMClient:
         self.api_key = str(ctx.get("llm_api_key") or os.getenv("LLM_API_KEY", "")).strip()
         fast = str(ctx.get("llm_fast_model") or os.getenv("LLM_FAST_MODEL", "")).strip()
         capable = str(ctx.get("llm_capable_model") or os.getenv("LLM_CAPABLE_MODEL", "")).strip()
+        news = str(ctx.get("llm_news_model") or os.getenv("LLM_NEWS_MODEL", "")).strip()
         # Provider-aware defaults: Anthropic never sees an OpenAI model name.
         if self.provider == "anthropic":
             self.fast_model = fast or _DEFAULT_FAST_ANTHROPIC
             self.capable_model = capable or _DEFAULT_CAPABLE_MODEL
             self.fast_chain = _dedupe([self.fast_model] + _ANTHROPIC_FAST_FALLBACKS)
             self.capable_chain = _dedupe([self.capable_model] + _ANTHROPIC_CAPABLE_FALLBACKS)
+            self.news_model = news or _DEFAULT_NEWS_ANTHROPIC
+            self.news_chain = _dedupe([self.news_model] + _ANTHROPIC_NEWS_FALLBACKS)
         else:
             self.fast_model = fast or _DEFAULT_FAST_OPENAI
             self.capable_model = capable or _DEFAULT_CAPABLE_MODEL
             self.fast_chain = [self.fast_model]
             self.capable_chain = _dedupe([self.capable_model] + _OPENAI_CAPABLE_FALLBACKS)
+            self.news_model = news or self.capable_model
+            self.news_chain = _dedupe([self.news_model] + self.capable_chain)
         self.timeout = int(ctx.get("llm_timeout", 30))
         self.max_tokens = int(ctx.get("llm_max_tokens", 500))
         self.available = bool(self.api_key) and self.provider in _ENDPOINTS
@@ -172,6 +208,8 @@ class LLMClient:
             return self.fast_chain
         if model == self.capable_model:
             return self.capable_chain
+        if model == self.news_model:
+            return self.news_chain
         return [model]
 
     def _pick_auto_model(self, discovered, tier):
@@ -203,6 +241,7 @@ class LLMClient:
             "available": self.available,
             "fast_model": self.fast_model,
             "capable_model": self.capable_model,
+            "news_model": getattr(self, "news_model", self.capable_model),
             "last_model": self._last_model,
         }
 
@@ -428,6 +467,66 @@ class LLMNarrator:
         verdict["_fact_check"] = report
         return verdict
 
+    # ── News Desk synthesis (Phase 5) ─────────────────────────────────
+    def analyze_news(self, articles, symbol="GC=F"):
+        """Draft a market-direction verdict from a curated news corpus.
+
+        The news tier (Claude Sonnet by default) receives the VERBATIM
+        articles (title + source + summary) and must return a JSON verdict
+        whose ``evidence_cited`` quotes real headlines. The verdict is passed
+        through ``fact_check_news_verdict``; on any failure (hallucinated
+        headline, bad direction, zero citations) it is dropped and ``None`` is
+        returned so the consensus simply omits the news vote — fail-safe.
+
+        ``articles`` may be dicts (agent report shape) or ``news.Article``.
+        """
+        if not self.active or not articles:
+            return None
+        items = []
+        for a in articles:
+            if hasattr(a, "to_dict"):
+                a = a.to_dict()
+            items.append({k: (a or {}).get(k) for k in
+                          ("source", "title", "published_at", "summary", "url")})
+        system = _PROMPTS["news_direction"]
+        user = json.dumps({"symbol": symbol, "articles": items}, default=str)
+        text = self.client.complete(system, user, model=self.client.news_model,
+                                    temperature=_PROMPT_TEMPERATURES["news_direction"])
+        verdict = _parse_json_verdict(text)
+        if not verdict:
+            return None
+        report = fact_check_news_verdict(verdict, items)
+        if not report["passed"]:
+            return None
+        verdict["_fact_check"] = report
+        return verdict
+
+    def explain_news(self, news_analysis):
+        """Natural-language News Desk brief for the dashboard/brief."""
+        fallback = ""
+        if news_analysis:
+            conf = news_analysis.get("confirmation") or {}
+            verdict = news_analysis.get("news_verdict") or {}
+            fallback = (
+                f"News Desk {news_analysis.get('status', 'n/a')} across "
+                f"{news_analysis.get('article_count', 0)} headlines "
+                f"({', '.join(news_analysis.get('outlets', []) or []) or 'no outlets'}): "
+                f"Sonnet verdict {verdict.get('direction', 'RANGING')} at "
+                f"{float(verdict.get('strength', 0) or 0):.0%} strength. "
+                f"Kronos + RF model read: {conf.get('model_direction', 'unavailable')} — "
+                + ("news CONFIRMED by the model brains."
+                   if conf.get("agrees") else
+                   "news DIVERGES from the model brains — treat as a watch-out.")
+            )
+        if not self.active:
+            return fallback
+        system = _PROMPTS["news_explain"]
+        user = json.dumps(news_analysis or {}, default=str)
+        return self._pick(
+            self.client.complete(system, user, model=self.client.news_model,
+                                 temperature=_PROMPT_TEMPERATURES["news_explain"]),
+            fallback)
+
     def explain_market_view(self, market_view, signals=None):
         """Natural-language 'why' for the consensus (attributed reasoning)."""
         if isinstance(market_view, dict):
@@ -503,4 +602,76 @@ def fact_check_verdict(verdict, evidence_bundle):
         "checked": len(cited),
         "flagged": flagged,
         "failed_citations": flagged,
+    }
+
+
+def _clamp01(x):
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return 0.0
+    if v != v:  # NaN
+        return 0.0
+    return max(0.0, min(1.0, v))
+
+
+def _norm_news_text(text):
+    """Normalize a headline for near-verbatim matching (same rules as news.py)."""
+    import re
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9\s]", "", str(text or "").lower())).strip()
+
+
+def fact_check_news_verdict(verdict, articles):
+    """Deterministic verification that a news-direction verdict is GROUNDED.
+
+    A news verdict is only allowed to vote when:
+      1. it cites at least one headline,
+      2. EVERY ``evidence_cited`` entry matches a real corpus headline
+         (normalized containment either direction — the LLM is allowed to
+         quote a title, not paraphrase it),
+      3. ``direction`` is one of BULL / BEAR / RANGING, and
+      4. strength/confidence are clamped into [0, 1].
+
+    On any failure the coordinator drops the vote (``analyze_news`` returns
+    None) so a hallucinated narrative can never enter the consensus.
+
+    ``articles`` may be dicts (with ``title``) or ``news.Article`` objects.
+    """
+    titles = [_norm_news_text(getattr(a, "title", None) or (a or {}).get("title", ""))
+              for a in (articles or [])]
+    bodies = []
+    for a in (articles or []):
+        title = getattr(a, "title", None) or (a or {}).get("title", "")
+        summary = getattr(a, "summary", None) or (a or {}).get("summary", "")
+        bodies.append(_norm_news_text(f"{title} {summary}"))
+
+    cited = verdict.get("evidence_cited") or []
+    flagged = []
+    if not cited:
+        flagged.append("no evidence cited — news verdict is ungrounded")
+    for c in cited:
+        nc = _norm_news_text(c)
+        if not nc:
+            flagged.append(str(c))
+            continue
+        hit_title = any(nc and (nc in t or t in nc) for t in titles)
+        hit_body = any(nc and nc in b for b in bodies) if not hit_title else False
+        if not (hit_title or hit_body):
+            flagged.append(str(c))
+
+    direction = str(verdict.get("direction") or "").upper()
+    if direction not in ("BULL", "BEAR", "RANGING"):
+        flagged.append(f"direction must be BULL/BEAR/RANGING, got {direction!r}")
+
+    verdict["strength"] = _clamp01(verdict.get("strength", 0.5))
+    verdict["confidence"] = _clamp01(verdict.get("confidence", 0.5))
+    verdict["direction"] = direction
+
+    passed = not flagged
+    return {
+        "passed": passed,
+        "checked": len(cited),
+        "flagged": flagged,
+        "failed_citations": flagged,
+        "corpus_size": len(titles),
     }

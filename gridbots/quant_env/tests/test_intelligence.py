@@ -21,12 +21,20 @@ from intelligence.agents.analyst import signal_confidence, QuantAnalystAgent  # 
 from intelligence.agents.prober import MarketProberAgent  # noqa: E402
 from intelligence.agents.scout import DataScoutAgent  # noqa: E402
 from intelligence.agents.strategist import QuantStrategistAgent  # noqa: E402
+from intelligence.agents.news_analyst import NewsResearchAnalystAgent  # noqa: E402
 from intelligence.coordinator import CoordinatorAgent  # noqa: E402
-from intelligence.llm import LLMClient, LLMNarrator  # noqa: E402
+from intelligence.llm import LLMClient, LLMNarrator, fact_check_news_verdict  # noqa: E402
 from intelligence.scheduler import ResearchScheduler  # noqa: E402
 from intelligence.deploy import DeploymentManager  # noqa: E402
 from intelligence import llm as llm_mod  # noqa: E402
 from intelligence import data as data_mod  # noqa: E402
+from intelligence import news as news_mod  # noqa: E402
+from intelligence.news import (  # noqa: E402
+    Article, sample_news, dedupe_articles, rank_articles, fetch_news,
+)
+from intelligence.consensus.sources import (  # noqa: E402
+    collect_news, compute_news_confirmation,
+)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────
@@ -234,7 +242,7 @@ class TestCoordinator:
 
         assert brief["framework"] == "InsightForge for Quant v2.0"
         keys = {m["key"] for m in brief["team"]}
-        assert keys == {"scout", "prober", "analyst", "strategist"}
+        assert keys == {"scout", "prober", "analyst", "strategist", "news"}
         for member in brief["team"]:
             assert member["replaces"]          # every agent names the human role
             assert member["role"]              # every agent names the quant title
@@ -263,6 +271,7 @@ class _FakeLLMClient:
     provider = "openai"
     fast_model = "fake-fast-model"
     capable_model = "fake-capable-model"
+    news_model = "fake-news-model"
 
     def __init__(self, text="FAKE-NARRATIVE"):
         self._text = text
@@ -270,7 +279,8 @@ class _FakeLLMClient:
 
     def status(self):
         return {"provider": self.provider, "available": self.available,
-                "fast_model": self.fast_model, "capable_model": self.capable_model}
+                "fast_model": self.fast_model, "capable_model": self.capable_model,
+                "news_model": self.news_model}
 
     def complete(self, system, user, model=None, max_tokens=None, temperature=0.4):
         self.calls.append((system, user, model))
@@ -1295,4 +1305,297 @@ class TestLiveApplyPersistence:
         assert isinstance(live_apply.EXEC_KILL_CONSENSUS_COLLAPSE, bool)
         assert isinstance(live_apply.EXEC_KILL_REGIME_FLIP, bool)
 
+
+
+
+# ── News Desk (Phase 5) ─────────────────────────────────────────────────
+
+def _fake_articles(n=4, seed=1):
+    """Deterministic injected news corpus (no network)."""
+    return sample_news(["GC=F"], n, seed=seed)
+
+
+def _news_verdict_json(cited_title):
+    return json.dumps({
+        "direction": "BULL", "strength": 0.7, "confidence": 0.6,
+        "horizon": "short", "rationale": "haven flows dominate the corpus",
+        "key_themes": ["safe haven"], "risks": ["dollar strength"],
+        "evidence_cited": [cited_title],
+    })
+
+
+class TestNewsCorpus:
+    def test_sample_news_is_deterministic_and_relevant(self):
+        a = _fake_articles(6, seed=7)
+        b = _fake_articles(6, seed=7)
+        assert len(a) == len(b) == 6
+        assert [x.title for x in a] == [x.title for x in b]
+        # Relevance ranking puts symbol-relevant gold headlines first.
+        assert any("gold" in x.title.lower() for x in a[:2])
+
+    def test_dedupe_drops_normalized_duplicates(self):
+        a = _fake_articles(3)
+        dup = Article(source="Wire", title=a[0].title.upper() + "!")
+        out = dedupe_articles(list(a) + [dup])
+        assert len(out) == 3
+
+    def test_rank_orders_by_relevance_then_recency(self):
+        items = [
+            Article(source="Wire", title="Gold rallies on safe-haven demand",
+                    published_at="2025-01-01T00:00:00Z", tier="wire"),
+            Article(source="Desk", title="Markets quiet ahead of holiday",
+                    published_at="2025-01-02T00:00:00Z", tier="desk"),
+        ]
+        ranked = rank_articles(items, ["GC=F"], 10)
+        assert ranked[0].title.startswith("Gold")
+
+    def test_fetch_fails_safe_without_network(self, monkeypatch):
+        def boom(*a, **k):
+            raise RuntimeError("no network")
+
+        monkeypatch.setattr("requests.get", boom)
+        assert fetch_news(["GC=F"], 5) == []
+        assert news_mod.fetch_news_api(["GC=F"], 5) == []
+
+    def test_fetch_news_api_requires_key(self, monkeypatch):
+        monkeypatch.delenv("NEWS_API_KEY", raising=False)
+        assert news_mod.fetch_news_api(["GC=F"], 5) == []
+
+
+class TestNewsResearchAgent:
+    def test_disabled_reports_disabled(self):
+        agent = NewsResearchAnalystAgent({"news_enabled": False})
+        report = agent.run(None)
+        assert report["status"] == "disabled"
+
+    def test_default_off_never_touches_network(self):
+        agent = NewsResearchAnalystAgent({})
+        report = agent.run(None)
+        assert report["status"] == "disabled"
+
+    def test_offline_fetcher_reports_no_news(self):
+        agent = NewsResearchAnalystAgent({
+            "news_enabled": True,
+            "news_fetcher": lambda symbols=None, max_items=20: []})
+        report = agent.run(None)
+        assert report["status"] == "no_news"
+        assert report["article_count"] == 0
+
+    def test_injected_fetcher_curates_corpus(self):
+        agent = NewsResearchAnalystAgent({
+            "news_enabled": True,
+            "news_fetcher": lambda symbols=None, max_items=20: _fake_articles(5)})
+        report = agent.run(None)
+        assert report["status"] == "fetched"
+        assert report["article_count"] == 5
+        assert report["outlets"] and report["articles"][0]["title"]
+
+    def test_sample_corpus_fallback_is_labeled(self):
+        agent = NewsResearchAnalystAgent({
+            "news_enabled": True, "news_use_sample": True,
+            "news_fetcher": lambda symbols=None, max_items=20: []})
+        report = agent.run(None)
+        assert report["status"] == "fetched"
+        assert report["articles"][0]["source"] == "Sample corpus"
+
+
+
+class TestNewsSignal:
+    def test_from_news_maps_verdict(self):
+        from intelligence.consensus.signals import Signal
+        verdict = {"direction": "BEAR", "strength": 0.8, "confidence": 0.7,
+                   "horizon": "short", "evidence_cited": ["h1"],
+                   "key_themes": ["dollar"]}
+        s = Signal.from_news(verdict)
+        assert s.source == "news" and s.direction == "BEAR"
+        assert s.horizon == "short"
+        assert s.evidence["articles_cited"] == ["h1"]
+
+    def test_from_news_rejects_none(self):
+        from intelligence.consensus.signals import Signal
+        assert Signal.from_news(None) is None
+
+    def test_from_news_clamps_strength(self):
+        from intelligence.consensus.signals import Signal
+        s = Signal.from_news({"direction": "BULL", "strength": 5.0,
+                              "confidence": -1.0, "evidence_cited": ["h"]})
+        assert s.strength == 1.0 and s.confidence == 0.0
+
+
+class TestNewsFactCheck:
+    def test_grounded_verdict_passes(self):
+        arts = _fake_articles(4)
+        items = [a.to_dict() for a in arts]
+        verdict = {"direction": "BULL", "strength": 0.8, "confidence": 0.6,
+                   "evidence_cited": [arts[0].title]}
+        rep = fact_check_news_verdict(verdict, items)
+        assert rep["passed"] is True
+        assert rep["checked"] == 1
+
+    def test_hallucinated_headline_is_flagged(self):
+        arts = _fake_articles(4)
+        items = [a.to_dict() for a in arts]
+        verdict = {"direction": "BULL", "strength": 0.8, "confidence": 0.6,
+                   "evidence_cited": ["BREAKING: Martians buy all the gold"]}
+        rep = fact_check_news_verdict(verdict, items)
+        assert rep["passed"] is False
+        assert rep["flagged"]
+
+    def test_empty_citations_fail(self):
+        arts = _fake_articles(4)
+        items = [a.to_dict() for a in arts]
+        verdict = {"direction": "BULL", "strength": 0.8, "confidence": 0.6}
+        assert fact_check_news_verdict(verdict, items)["passed"] is False
+
+    def test_bad_direction_flagged_and_values_clamped(self):
+        arts = _fake_articles(4)
+        items = [a.to_dict() for a in arts]
+        verdict = {"direction": "LUNAR", "strength": 9.0, "confidence": -1.0,
+                   "evidence_cited": [arts[0].title]}
+        rep = fact_check_news_verdict(verdict, items)
+        assert rep["passed"] is False
+        assert verdict["strength"] == 1.0 and verdict["confidence"] == 0.0
+
+
+class TestNewsLLM:
+    def test_analyze_news_inactive_returns_none(self, monkeypatch):
+        monkeypatch.delenv("LLM_API_KEY", raising=False)
+        monkeypatch.delenv("LLM_PROVIDER", raising=False)
+        narrator = LLMNarrator({})
+        assert narrator.analyze_news(_fake_articles(3)) is None
+
+    def test_analyze_news_uses_news_model_and_grounds(self):
+        cited = _fake_articles(2)[0].title
+        fake = _FakeLLMClient(text=_news_verdict_json(cited))
+        narrator = LLMNarrator({"llm_enabled": True}, client=fake)
+        verdict = narrator.analyze_news(_fake_articles(2))
+        assert verdict and verdict["direction"] == "BULL"
+        assert verdict["_fact_check"]["passed"] is True
+        assert fake.news_model in [c[2] for c in fake.calls]
+
+    def test_analyze_news_drops_hallucinated_verdict(self):
+        fake = _FakeLLMClient(text=_news_verdict_json("This headline never existed"))
+        narrator = LLMNarrator({"llm_enabled": True}, client=fake)
+        assert narrator.analyze_news(_fake_articles(2)) is None
+
+    def test_explain_news_deterministic_fallback(self, monkeypatch):
+        monkeypatch.delenv("LLM_API_KEY", raising=False)
+        monkeypatch.delenv("LLM_PROVIDER", raising=False)
+        narrator = LLMNarrator({})
+        na = {"status": "fetched", "article_count": 5, "outlets": ["Kitco"],
+              "news_verdict": {"direction": "BULL", "strength": 0.6},
+              "confirmation": {"available": True, "agrees": True,
+                               "model_direction": "BULL"}}
+        text = narrator.explain_news(na)
+        assert "CONFIRMED" in text
+
+    def test_explain_news_active_uses_news_model(self):
+        fake = _FakeLLMClient(text="NEWS-BRIEF")
+        narrator = LLMNarrator({"llm_enabled": True}, client=fake)
+        out = narrator.explain_news({"status": "fetched"})
+        assert out == "NEWS-BRIEF"
+        assert fake.news_model in [c[2] for c in fake.calls]
+
+class TestNewsConfirmation:
+    def test_confirms_when_models_agree(self):
+        from intelligence.consensus.signals import Signal
+        news = Signal.from_news({"direction": "BULL", "strength": 0.6,
+                                 "confidence": 0.6, "evidence_cited": ["h"]})
+        kronos = Signal("kronos", "BULL", 0.8, 0.8)
+        rf = Signal("rf_regime", "BULL", 0.7, 0.7)
+        conf = compute_news_confirmation(news, [kronos, rf])
+        assert conf["available"] and conf["agrees"] is True
+        assert conf["model_direction"] == "BULL"
+
+    def test_diverges_when_models_disagree(self):
+        from intelligence.consensus.signals import Signal
+        news = Signal.from_news({"direction": "BEAR", "strength": 0.6,
+                                 "confidence": 0.6, "evidence_cited": ["h"]})
+        kronos = Signal("kronos", "BULL", 0.8, 0.8)
+        rf = Signal("rf_regime", "BULL", 0.7, 0.7)
+        conf = compute_news_confirmation(news, [kronos, rf])
+        assert conf["available"] and conf["agrees"] is False
+        assert "DIVERGES" in conf["semantics"]
+
+    def test_unavailable_without_models(self):
+        from intelligence.consensus.signals import Signal
+        news = Signal.from_news({"direction": "BULL", "strength": 0.6,
+                                 "confidence": 0.6, "evidence_cited": ["h"]})
+        conf = compute_news_confirmation(news, [])
+        assert conf["available"] is False
+
+    def test_collect_news_requires_grounded_verdict(self):
+        assert collect_news({}) is None
+        assert collect_news({"news_verdict": None}) is None
+
+
+class TestNewsConsensus:
+    def test_news_is_low_weight_and_cannot_flip_strong_panel(self):
+        from intelligence.consensus import ConsensusEngine
+        from intelligence.consensus.signals import Signal
+        engine = ConsensusEngine()
+        assert engine.source_weights["news"] < engine.source_weights["kronos"]
+        news = Signal.from_news({"direction": "BULL", "strength": 0.9,
+                                 "confidence": 0.9, "evidence_cited": ["h"]})
+        panel = [Signal("kronos", "BEAR", 1.0, 1.0), Signal("rf_regime", "BEAR", 1.0, 1.0)]
+        view = engine.fuse(panel + [news])
+        assert view.direction == "BEAR"
+        assert "news" in view.sources
+
+    def test_news_raises_effective_n(self):
+        from intelligence.consensus import ConsensusEngine
+        from intelligence.consensus.signals import Signal
+        base = [Signal("kronos", "BULL", 0.8, 0.8), Signal("rf_regime", "BULL", 0.8, 0.8)]
+        news = Signal.from_news({"direction": "BULL", "strength": 0.8,
+                                 "confidence": 0.8, "evidence_cited": ["h"]})
+        without = ConsensusEngine().fuse(base)
+        with_news = ConsensusEngine().fuse(base + [news])
+        assert with_news.effective_n > without.effective_n
+
+    def test_market_view_roundtrips_news_analysis(self, tmp_path):
+        from intelligence.consensus import MarketView
+        from intelligence.ledger import OpportunityLedger
+        path = os.path.join(str(tmp_path), "ledger.json")
+        ledger = OpportunityLedger(path=path)
+        mv = MarketView(direction="BULL")
+        mv.news_analysis = {"status": "fetched", "article_count": 3,
+                            "news_verdict": {"direction": "BULL"},
+                            "confirmation": {"available": True, "agrees": True}}
+        ledger.add_market_view(mv)
+        ledger.save()
+        loaded = OpportunityLedger.load(path)
+        assert loaded.market_views[0]["news_analysis"]["article_count"] == 3
+
+
+class TestNewsInCoordinator:
+    def test_cycle_includes_news_desk(self, tmp_path):
+        project_root = _make_project_root(tmp_path)
+        articles = _fake_articles(4)
+        fake = _FakeLLMClient(text=_news_verdict_json(articles[0].title))
+        narrator = LLMNarrator({"llm_enabled": True}, client=fake)
+        ctx = {"project_root": project_root, "max_bars": 300, "probe_limit": 1,
+               "top_n": 1, "ledger_path": os.path.join(str(tmp_path), "ledger.json"),
+               "news_enabled": True,
+               "news_fetcher": lambda symbols=None, max_items=20: articles}
+        coord = CoordinatorAgent(ctx, narrator=narrator)
+        brief, ledger = coord.run_cycle()
+        na = brief["news_analysis"]
+        assert na["status"] == "fetched"
+        assert na["article_count"] == 4
+        assert na["news_verdict"]["direction"] == "BULL"
+        mv = brief["market_view"]
+        assert any(c["source"] == "news" for c in mv["contributions"])
+        assert "news_narrative" in brief
+        # Persisted view carries the News Desk block too.
+        assert ledger.market_views[-1].get("news_analysis")
+
+    def test_cycle_without_news_is_silent(self, tmp_path):
+        project_root = _make_project_root(tmp_path)
+        ctx = {"project_root": project_root, "max_bars": 300, "probe_limit": 1,
+               "top_n": 1, "ledger_path": os.path.join(str(tmp_path), "ledger.json")}
+        coord = CoordinatorAgent(ctx)
+        brief, _ = coord.run_cycle()
+        assert brief.get("news_analysis") is None
+        assert all(c.get("source") != "news"
+                   for c in (brief.get("market_view") or {}).get("contributions", []))
 

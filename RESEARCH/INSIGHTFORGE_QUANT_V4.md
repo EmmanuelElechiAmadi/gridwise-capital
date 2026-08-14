@@ -167,8 +167,17 @@ gridbots/quant_env/
 ├── dashboard/templates/dashboard.html   SINGLE UI — Weather Radar (floating hover + click-through) · Why-drawer · Kill Drill + scenario sliders · Possibility Cone + horizon/capital controls + hover crosshair
 ├── dashboard/app.py             + /api/intelligence/consensus_history (belief curve + hit-rate scorecard)
 ├── intelligence/research_stats.py  + score_consensus_history (realized-outcome scoring)
-├── config.example.py            CONSENSUS_DIVERSITY_ADJUST · CONSENSUS_SOURCE_CORRELATIONS · DEPLOY_MAX_PBO
-└── tests/                       75 intelligence + 14 research_stats + 20 analysis (incl. drill scenario-override tests)
+├── news.py                         NEW — News Desk corpus: RSS/NewsAPI fetchers (fail-safe), deterministic sample corpus, dedupe + relevance ranking
+├── agents/news_analyst.py          NEW — NewsResearchAnalystAgent (5th team member)
+├── llm.py                          + analyze_news/explain_news (Claude Sonnet tier) + fact_check_news_verdict (verbatim-citation guard)
+├── consensus/engine.py             + "news" source weight 0.35 + independence correlations (ρ≈0.05–0.10)
+├── consensus/sources.py            + collect_news + compute_news_confirmation (Kronos + RF verification)
+├── consensus/market_view.py        + news_analysis block
+├── coordinator.py                  + News Desk wiring (Sonnet verdict -> fused news signal -> confirmation)
+├── dashboard/app.py                + /api/intelligence/news
+├── dashboard/templates/dashboard.html   + 📰 News Desk block in the Agent Team tab (verdict + grounded citations + confirmation badge)
+├── config.example.py               RESEARCH_NEWS_* · LLM_NEWS_MODEL · NEWS_API_KEY
+└── tests/                       75 intelligence + 14 research_stats + 20 analysis (incl. drill scenario-override tests) + 31 news-desk tests
 ```
 
 ## 8. How to Use
@@ -182,10 +191,45 @@ cd gridbots/quant_env && python3 -c \
    print(json.dumps(run_benchmark_report(project_root='..'), indent=2)[:2000])"
 ```
 
+## 8.1 The News Desk (Phase 5 — the desk reads the tape)
+
+The consensus engine was born with one asymmetry: every brain read the same
+price bars. v5 adds the one source that does **not**: the News Desk.
+
+**Pipeline.** `NewsResearchAnalystAgent` (a 5th team member, replacing a
+"Macro / News Research Analyst") curates trading headlines from multiple
+outlets (MarketWatch, CNBC, Yahoo Finance, Kitco, ForexLive, FXStreet RSS +
+optional NewsAPI.org) — deduped on normalized titles, ranked by symbol
+relevance and recency. **Claude Sonnet** (`LLM_NEWS_MODEL`, default
+`claude-sonnet-5`) then drafts a market-direction verdict with
+`evidence_cited` that must quote real headlines **verbatim** — the
+`fact_check_news_verdict` hallucination guard drops any verdict citing a
+fabricated headline. Finally, the verdict is **verified against Kronos + the
+RandomForest regime model**: `compute_news_confirmation` reports CONFIRMED vs
+DIVERGES, and the `news` vote (weight 0.35, ρ≈0.05–0.10 vs price sources) is
+fused into the shared MarketView.
+
+**Why it is a genuine diversification win, not decoration.** The v4 VIF
+correction punishes redundant brains and rewards independent ones. News reads
+text, not bars, so it is the panel's most independent source — adding it
+*raises* `effective_n` and `diversity_penalty` while contributing a modest,
+honestly-weighted vote. A news direction that agrees with Kronos+RF is
+confirmed; one that diverges is surfaced as a watch-out (mean-reversion setup
+or a regime break the models have not yet seen) rather than silently ignored.
+
+**Honesty controls (same ethos as the rest of the desk):**
+- Offline / no key / dead feeds ⇒ `status: "no_news"` — never a blocker.
+- `NEWS_USE_SAMPLE=true` exercises the desk with a clearly-labelled
+  deterministic offline corpus (never mistaken for live headlines).
+- The benchmark (`run_benchmark_report` → `news_desk` section) publishes the
+  confirmation share and the grounding pass-rate once enough cycles exist.
+
 ## 9. Ethics, Risk & Compliance
 
 - The kill-switch drill and possibility cone are **simulations**; they place no orders and the UI says so explicitly.
 - The empirical chapter publishes negative results (DSR 0.23, RF hit-rate 52%) — a deliberate, honest alternative to the industry pattern of publishing only surviving backtests.
 - The PBO gate is optional precisely so that small corpora are not blocked by an unmeasurable statistic; when measurable, it is enforced like every other gate.
+- The News Desk is **reading news, not trading it**: its verdict is a low-weight vote that must clear the same fusion, the same hard quality gates and the same human approval gate as every other source. Headlines are timestamped at fetch and the corpus is never used to backfill history, so the desk cannot leak the future into a backtest.
 
 > Past performance is not indicative of future results. No agent deploys capital without the human approval gate. The Phase-4 numbers above were produced by this repository's own code and data; they are published to be falsified, not to be sold.
+

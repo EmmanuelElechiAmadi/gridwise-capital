@@ -144,18 +144,32 @@ class Config:
     RESEARCH_AUTO_APPROVE_CYCLES = int(os.getenv("RESEARCH_AUTO_APPROVE_CYCLES", "0"))
     # Enable the optional LLM narrative layer (requires an API key below)
     RESEARCH_LLM_ENABLED = os.getenv("RESEARCH_LLM_ENABLED", "false").lower() == "true"
+    # News Desk: enable the News Research Analyst in the agent team (default on;
+    # the fetcher is fail-safe — offline simply means "no news this cycle").
+    RESEARCH_NEWS_ENABLED = os.getenv("RESEARCH_NEWS_ENABLED", "true").lower() == "true"
+    # Max curated headlines handed to Claude Sonnet per cycle.
+    RESEARCH_NEWS_MAX_ARTICLES = int(os.getenv("RESEARCH_NEWS_MAX_ARTICLES", "20"))
+    # Air-gapped / demo mode: use the deterministic OFFLINE sample corpus
+    # instead of live RSS (clearly labelled "Sample corpus", never live news).
+    RESEARCH_NEWS_USE_SAMPLE = os.getenv("RESEARCH_NEWS_USE_SAMPLE", "false").lower() == "true"
 
     # ── LLM narrative layer (optional, fail-safe) ─────────────────────
     # Provider: "openai" or "anthropic".  Leave empty to disable.
     LLM_PROVIDER = os.getenv("LLM_PROVIDER", "")
     LLM_API_KEY = os.getenv("LLM_API_KEY", "")
-    # Latest tiers (2026): Haiku 4.5 = fast summaries, Opus 5 = deep synthesis.
-    # The client falls back Opus 4.8 -> Sonnet 5 -> 3.5-gen automatically, and
-    # auto-discovers working models from /v1/models if even those fail.
+    # Latest tiers (2026): Haiku 4.5 = fast summaries, Opus 5 = deep synthesis,
+    # Sonnet 5 = the NEWS DESK tier (best cost/capability for multi-outlet
+    # synthesis + verbatim-citation grounding).  The client falls back
+    # Opus 4.8 -> Sonnet 5 -> 3.5-gen automatically, and auto-discovers
+    # working models from /v1/models if even those fail.
     LLM_FAST_MODEL = os.getenv("LLM_FAST_MODEL", "claude-haiku-4-5")           # summaries
     LLM_CAPABLE_MODEL = os.getenv("LLM_CAPABLE_MODEL", "claude-opus-5")        # deep synthesis
+    LLM_NEWS_MODEL = os.getenv("LLM_NEWS_MODEL", "claude-sonnet-5")            # news desk
     LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "500"))
     LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "30"))
+    # NewsAPI.org key (optional) — enables the richer NewsAPI fetcher in
+    # addition to the default public RSS outlets.
+    NEWS_API_KEY = os.getenv("NEWS_API_KEY", "")
 
     # ── Consensus engine (Phase 1 — common conclusion across brains) ──
     # Direction decided when |consensus value| exceeds this.
@@ -164,7 +178,9 @@ class Config:
     # corrected weights (weight / VIF) so two correlated brains cannot
     # double-count the same information.  The pairwise source correlations
     # are JSON: {"backtest,trend_filter": 0.4, ...} — keys are case-
-    # insensitive and symmetric; unknown pairs fall back to 0.15.
+    # insensitive and symmetric; unknown pairs fall back to 0.15.  The News
+    # Desk is the panel's most independent brain (~0.05 vs price sources),
+    # so it genuinely raises the effective sample size.
     CONSENSUS_DIVERSITY_ADJUST = os.getenv("CONSENSUS_DIVERSITY_ADJUST", "true").lower() == "true"
     CONSENSUS_SOURCE_CORRELATIONS = os.getenv("CONSENSUS_SOURCE_CORRELATIONS", "")
 

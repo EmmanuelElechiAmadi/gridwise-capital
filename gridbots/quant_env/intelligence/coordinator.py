@@ -95,15 +95,20 @@ class CoordinatorAgent(BaseAgent):
             - RF regime model output
             - Backtest/walk-forward probes from the ledger
             - Deterministic trend filter
+            - News Desk corpus + Claude Sonnet verdict (Phase 5)
             - LLM structured verdict (Phase 2, when enabled)
+
+        The News Desk verdict is VERIFIED against the Kronos + RF model brains
+        via ``compute_news_confirmation`` before the fusion reports it.
         """
         try:
             from .consensus import ConsensusEngine, sources as consensus_sources
             engine = ConsensusEngine()
+            symbol = str(self.ctx.get("consensus_symbol") or "GC=F")
             signals = consensus_sources.collect_all_signals(
                 ctx=self.ctx, ledger=ledger,
                 project_root=self.ctx.get("project_root"),
-                symbol=str(self.ctx.get("consensus_symbol") or "GC=F"))
+                symbol=symbol)
             # LLM cross-validation verdict contributes a signal too.
             evidence_bundle = {
                 "signals": [s.to_dict() for s in signals],
@@ -119,12 +124,39 @@ class CoordinatorAgent(BaseAgent):
                 s = Signal.from_llm_verdict(llm_verdict)
                 if s:
                     signals.append(s)
+
+            # Phase 5 — News Desk: the News Research Analyst's curated corpus
+            # gets a Claude Sonnet direction draft grounded in verbatim
+            # headlines; the verdict becomes a "news" signal that Kronos + RF
+            # then confirm or contradict.
+            news_report = (results.get("news") or {}) or {}
+            news_articles = news_report.get("articles") or []
+            news_verdict = None
+            if news_articles:
+                news_verdict = self.narrator.analyze_news(news_articles, symbol=symbol)
+                news_report["news_verdict"] = news_verdict
+            news_sig = consensus_sources.collect_news(news_report, symbol=symbol)
+            if news_sig:
+                signals.append(news_sig)
+
             view = engine.fuse(
-                signals, symbol=str(self.ctx.get("consensus_symbol") or "GC=F"),
+                signals, symbol=symbol,
                 horizon="medium", cycle_id=self._brief_cycle_id)
             view.llm_verdict = llm_verdict
             view.llm_fact_check = (llm_verdict or {}).get("_fact_check") \
                 if llm_verdict else None
+            if news_articles:
+                view.news_analysis = {
+                    "status": news_report.get("status"),
+                    "article_count": news_report.get("article_count", len(news_articles)),
+                    "outlets": news_report.get("outlets", []),
+                    "news_verdict": news_verdict,
+                    "confirmation": consensus_sources.compute_news_confirmation(
+                        news_sig, signals),
+                }
+                self.log(
+                    f"News Desk: {len(news_articles)} headlines -> "
+                    f"{news_verdict and news_verdict.get('direction') or 'no grounded verdict'}")
             self.log(f"Consensus: {view.summary()}")
             return view
         except Exception as e:
@@ -156,6 +188,7 @@ class CoordinatorAgent(BaseAgent):
             "instrument_count": len(self.ledger.instruments),
             "top_opportunities": [o.to_dict() for o in self.ledger.top_opportunities(3)],
             "market_view": market_view.to_dict() if market_view else None,
+            "news_analysis": market_view.news_analysis if market_view else None,
         }
 
     # ── Narrative layer (CQO commentary) ──────────────────────────────
@@ -176,6 +209,11 @@ class CoordinatorAgent(BaseAgent):
             signals = (mv.get("contributions") or [])[:2]
             brief["market_view_narrative"] = \
                 self.narrator.explain_market_view(mv, signals)
+
+        # News Desk brief (Phase 5): Sonnet verdict + Kronos/RF confirmation.
+        news_analysis = brief.get("news_analysis")
+        if news_analysis:
+            brief["news_narrative"] = self.narrator.explain_news(news_analysis)
 
         for theme in brief.get("themes", [])[: self.narrator.max_items]:
             theme["narrative"] = self.narrator.narrate_theme(theme)

@@ -143,6 +143,77 @@ def collect_trend_filter(ctx, project_root=_DEFAULT_PROJECT_ROOT, symbol="GC=F")
         return None
 
 
+# ── News Desk (Phase 5) ────────────────────────────────────────────────
+def collect_news(report, symbol="GC=F"):
+    """Build a Signal from the News Research Analyst's report.
+
+    The report carries the curated article corpus; the coordinator attaches a
+    ``news_verdict`` (Claude Sonnet, already fact-checked).  No verdict -> no
+    signal (fail-safe: news never forces a vote).
+    """
+    if not report:
+        return None
+    verdict = report.get("news_verdict")
+    if not verdict:
+        return None
+    try:
+        return Signal.from_news(verdict, symbol=symbol)
+    except Exception:
+        return None
+
+
+# The model brains that VERIFY the news read: price-derived, independent of
+# the text corpus.  A news conclusion that agrees with them is confirmed; one
+# that disagrees is a watch-out (mean-reversion setup OR regime break).
+_MODEL_SOURCES = ("kronos", "rf_regime")
+
+
+def compute_news_confirmation(news_signal, signals):
+    """Sign-agreement between the News Desk vote and the model brains.
+
+    The model read is the strength*confidence-weighted blend of the Kronos and
+    RF-regime votes (thresholded at ±0.1).  Returns a dict with ``agrees`` /
+    ``news_direction`` / ``model_direction``, or an ``available=False`` block
+    when the news vote or the model brains are absent.
+    """
+    if news_signal is None:
+        return {"available": False, "agrees": None, "news_direction": None,
+                "model_direction": None, "model_value": None,
+                "model_sources": [], "semantics": "no news verdict this cycle"}
+    models = [s for s in signals if s is not None and s.source in _MODEL_SOURCES]
+    if not models:
+        return {"available": False, "agrees": None,
+                "news_direction": news_signal.direction,
+                "model_direction": None, "model_value": None,
+                "model_sources": [],
+                "semantics": "no Kronos/RF model read available to verify the news"}
+    dir_v = {"BULL": 1.0, "BEAR": -1.0, "RANGING": 0.0}
+    acc = 0.0
+    w_total = 0.0
+    for s in models:
+        w = s.strength * s.confidence
+        acc += dir_v.get(s.direction, 0.0) * w
+        w_total += w
+    model_value = acc / w_total if w_total > 0 else 0.0
+    model_dir = ("BULL" if model_value > 0.1
+                 else "BEAR" if model_value < -0.1 else "RANGING")
+    news_dir = news_signal.direction
+    agrees = bool(news_dir == model_dir)
+    return {
+        "available": True,
+        "agrees": agrees,
+        "news_direction": news_dir,
+        "model_direction": model_dir,
+        "model_value": round(model_value, 4),
+        "model_sources": [s.source for s in models],
+        "semantics": (
+            "news vote CONFIRMED by the Kronos + RF model blend"
+            if agrees else
+            "news vote DIVERGES from the model brains — treat as a watch-out "
+            "(mean-reversion setup or a regime break the models have not seen)"),
+    }
+
+
 # ── Master collector ───────────────────────────────────────────────────
 def collect_all_signals(ctx=None, ledger=None, project_root=_DEFAULT_PROJECT_ROOT,
                         symbol="GC=F"):

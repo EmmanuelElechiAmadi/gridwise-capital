@@ -1954,6 +1954,9 @@ def _run_intelligence_cycle():
         "probe_limit": 2,
         "top_n": 3,
         "llm_enabled": getattr(Config, "RESEARCH_LLM_ENABLED", False),
+        "news_enabled": getattr(Config, "RESEARCH_NEWS_ENABLED", True),
+        "news_max_articles": int(getattr(Config, "RESEARCH_NEWS_MAX_ARTICLES", "20")),
+        "news_use_sample": getattr(Config, "RESEARCH_NEWS_USE_SAMPLE", False),
     }).run_cycle()
     return brief
 
@@ -2001,6 +2004,41 @@ def api_intelligence_last_brief():
         with open(path) as f:
             brief = _json.load(f)
         return jsonify({"status": "ok", "brief": brief})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/intelligence/news')
+def api_intelligence_news():
+    """Latest News Desk analysis from the last consensus MarketView.
+
+    Returns the curated-corpus stats, the Claude Sonnet direction verdict, the
+    Kronos + RF confirmation and the persisted news narrative — or
+    ``status: "empty"`` when no cycle has produced one yet.
+    """
+    try:
+        from quant_env.intelligence.ledger import OpportunityLedger, OUTPUT_DIR
+        import json as _json
+        ledger = OpportunityLedger.load()
+        views = list(ledger.market_views or [])
+        latest = views[-1] if views else None
+        na = (latest or {}).get("news_analysis")
+        if not na:
+            return jsonify({"status": "empty"})
+        news_narrative = None
+        brief_path = os.path.join(OUTPUT_DIR, "research_brief.json")
+        if os.path.exists(brief_path):
+            try:
+                with open(brief_path) as f:
+                    news_narrative = _json.load(f).get("news_narrative")
+            except Exception:
+                pass
+        return jsonify({
+            "status": "ok",
+            "news_analysis": na,
+            "news_narrative": news_narrative,
+            "market_view_generated_at": latest.get("generated_at"),
+        })
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
 

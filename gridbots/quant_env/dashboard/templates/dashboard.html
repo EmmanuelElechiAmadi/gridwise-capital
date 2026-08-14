@@ -1635,6 +1635,16 @@
                 <div id="advisorBody"></div>
             </div>
 
+            <!-- Phase 5: News Desk — trading headlines → Sonnet verdict → Kronos/RF check -->
+            <div class="con-block">
+                <div class="con-header">
+                    <div class="intel-section-label" style="margin:0;">📰 News Desk — headlines → Claude Sonnet verdict → verified against Kronos + RF</div>
+                    <button class="btn btn-ghost btn-sm" onclick="renderNewsDesk(true)">↻ Refresh</button>
+                </div>
+                <div id="newsBody"><div class="con-none">News Desk idle — run a research cycle to fetch the day's trading headlines.</div></div>
+                <div id="newsNarrative" style="margin-top:8px;"></div>
+            </div>
+
             <!-- v4: Possibility cone (Monte-Carlo forward risk) -->
             <div class="con-block">
                 <div class="con-header">
@@ -3083,11 +3093,85 @@ async function loadMarketView() {
             _conHistory = (d.history || []).map(function (h) { return Number(h.direction_value || 0); });
             if (d.market_view) renderMarketView(d.market_view);
             else if (body) body.innerHTML = '<div class="con-none">No consensus market view yet — run a research cycle so Kronos / RF / backtests can vote.</div>';
+            renderNewsDesk();   // Phase 5: News Desk rides along with the consensus refresh
         } else if (body) {
             body.innerHTML = '<div class="con-none">Engine error loading consensus.</div>';
         }
     } catch (e) {
         if (body) body.innerHTML = '<div class="con-none">Engine offline — cannot load consensus.</div>';
+    }
+}
+
+// ── Phase 5: News Desk — headlines → Claude Sonnet verdict → Kronos/RF check ──
+async function renderNewsDesk() {
+    const body = document.getElementById('newsBody');
+    const narr = document.getElementById('newsNarrative');
+    if (!body) return;
+    try {
+        const r = await fetch('/api/intelligence/news');
+        const d = await r.json();
+        if (d.status !== 'ok') {
+            body.innerHTML = '<div class="con-none">No News Desk analysis yet — run a research cycle: the desk fetches trading headlines, Claude Sonnet drafts the direction, Kronos + RF verify it.</div>';
+            if (narr) narr.innerHTML = '';
+            return;
+        }
+        const na = d.news_analysis || {};
+        const verdict = na.news_verdict || {};
+        const conf = na.confirmation || {};
+        const dirCol = _dirColor(verdict.direction);
+        const confCol = conf.agrees ? '#00e676' : (conf.available ? '#ff5252' : 'var(--text-3)');
+        const confLabel = !conf.available ? 'no model read available to verify'
+            : (conf.agrees ? 'CONFIRMED by Kronos + RF' : 'DIVERGES from Kronos + RF');
+        let html = '<div class="drill-block">';
+        html += '<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">';
+        html += '<div style="display:flex;flex-direction:column;gap:2px;">' +
+            '<span style="font-size:0.55rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;">News direction</span>' +
+            '<b style="font-size:1.05rem;color:' + dirCol + ';font-family:JetBrains Mono,monospace;">' + _esc(verdict.direction || '—') + '</b></div>';
+        html += '<div style="display:flex;flex-direction:column;gap:2px;">' +
+            '<span style="font-size:0.55rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;">Strength</span>' +
+            '<b style="font-size:0.95rem;color:var(--text-1);font-family:JetBrains Mono,monospace;">' + Math.round((verdict.strength || 0) * 100) + '%</b></div>';
+        html += '<div style="display:flex;flex-direction:column;gap:2px;">' +
+            '<span style="font-size:0.55rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;">Headlines</span>' +
+            '<b style="font-size:0.95rem;color:var(--text-1);font-family:JetBrains Mono,monospace;">' + (na.article_count || 0) + '</b></div>';
+        html += '<div style="display:flex;flex-direction:column;gap:2px;">' +
+            '<span style="font-size:0.55rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;">Outlets</span>' +
+            '<b style="font-size:0.95rem;color:var(--text-1);font-family:JetBrains Mono,monospace;">' + _esc((na.outlets || []).join(', ') || '—') + '</b></div>';
+        html += '<div style="display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--border);padding-left:14px;">' +
+            '<span style="font-size:0.55rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;">Kronos + RF verify</span>' +
+            '<b style="font-size:0.9rem;color:' + confCol + ';font-family:JetBrains Mono,monospace;">' + (conf.model_direction || '—') + ' · ' + confLabel + '</b></div>';
+        html += '</div>';
+        if ((verdict.key_themes || []).length) {
+            html += '<div style="margin-bottom:6px;font-size:0.62rem;color:var(--text-2);"><b style="color:var(--text-1);">Drivers:</b> ' +
+                _esc((verdict.key_themes || []).join(' · ')) + '</div>';
+        }
+        if (verdict.rationale) {
+            html += '<div style="margin-bottom:6px;font-size:0.62rem;color:var(--text-2);"><b style="color:var(--text-1);">Rationale:</b> ' + _esc(verdict.rationale) + '</div>';
+        }
+        if (conf.semantics) {
+            html += '<div style="margin-bottom:6px;font-size:0.62rem;color:' + confCol + ';">' + _esc(conf.semantics) + '</div>';
+        }
+        const cited = verdict.evidence_cited || [];
+        if (cited.length) {
+            html += '<div style="margin-top:8px;">';
+            html += '<div class="intel-section-label" style="margin:0 0 4px;">Grounded on (verbatim headlines)</div>';
+            html += '<div style="display:flex;flex-direction:column;gap:3px;">' + cited.map(function (c) {
+                return '<div style="font-size:0.6rem;color:var(--text-2);padding:3px 8px;background:rgba(0,230,118,0.05);border-left:2px solid rgba(0,230,118,0.4);border-radius:0 4px 4px 0;">“' + _esc(c) + '”</div>';
+            }).join('') + '</div></div>';
+        }
+        const fc = verdict._fact_check || {};
+        if (fc.flagged && fc.flagged.length) {
+            html += '<div style="margin-top:6px;font-size:0.58rem;color:#ff8aa0;">Grounding flags: ' + _esc(fc.flagged.join('; ')) + '</div>';
+        }
+        html += '</div>';
+        body.innerHTML = html;
+        if (narr) {
+            narr.innerHTML = d.news_narrative
+                ? '<div style="font-size:0.62rem;color:var(--text-2);padding:6px 10px;background:rgba(124,77,255,0.06);border-left:2px solid rgba(124,77,255,0.5);border-radius:0 4px 4px 0;">📰 ' + _esc(d.news_narrative) + '</div>'
+                : '';
+        }
+    } catch (e) {
+        body.innerHTML = '<div class="con-none">Engine offline — cannot load the News Desk.</div>';
+        if (narr) narr.innerHTML = '';
     }
 }
 
@@ -3284,6 +3368,7 @@ function _sourceModule(source) {
         'backtest': 'intelligence/consensus/sources.py — collect_backtest + Signal.from_backtest',
         'trend_filter': 'intelligence/consensus/sources.py — collect_trend_filter',
         'llm': 'intelligence/llm.py — cross_validate / fact_check_verdict',
+        'news': 'intelligence/news.py + agents/news_analyst.py + llm.py analyze_news (Claude Sonnet, verbatim-grounded)',
     };
     return map[source] || 'intelligence/consensus/sources.py';
 }

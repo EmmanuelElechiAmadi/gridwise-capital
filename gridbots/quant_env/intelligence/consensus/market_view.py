@@ -16,6 +16,11 @@ v4 additions (source-correlation penalty):
     effective_n: float                      independent votes (Kish effective size)
     max_vif: float                          worst per-source variance inflation
     diversity_penalty: 0..1                 effective_n / n_sources
+
+Phase 5 addition (News Desk):
+
+    news_analysis: dict | None             curated headline corpus + Claude Sonnet
+                                           verdict + Kronos/RF confirmation
 """
 
 import uuid
@@ -35,7 +40,7 @@ class MarketView:
                  horizon="medium", symbol="GC=F", sources=None,
                  generated_at=None, cycle_id=None,
                  raw_agreement_index=None, effective_n=None,
-                 max_vif=1.0, diversity_penalty=1.0):
+                 max_vif=1.0, diversity_penalty=1.0, news_analysis=None):
         self.id = uuid.uuid4().hex[:12]
         self.direction = str(direction or "RANGING").upper()
         self.direction_value = float(direction_value)
@@ -59,6 +64,8 @@ class MarketView:
         self.effective_n = effective_n
         self.max_vif = max_vif
         self.diversity_penalty = max(0.0, min(1.0, float(diversity_penalty)))
+        # Phase 5: News Desk block (attached by the coordinator after fusion).
+        self.news_analysis = news_analysis
 
     def to_dict(self):
         d = {
@@ -81,6 +88,7 @@ class MarketView:
             "effective_n": self.effective_n,
             "max_vif": round(self.max_vif, 4),
             "diversity_penalty": round(self.diversity_penalty, 4),
+            "news_analysis": self.news_analysis,
         }
         return d
 

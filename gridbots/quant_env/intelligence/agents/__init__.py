@@ -5,5 +5,7 @@ from .scout import DataScoutAgent
 from .prober import MarketProberAgent
 from .analyst import QuantAnalystAgent
 from .strategist import QuantStrategistAgent
+from .news_analyst import NewsResearchAnalystAgent
 
-TEAM = [DataScoutAgent, MarketProberAgent, QuantAnalystAgent, QuantStrategistAgent]
+TEAM = [DataScoutAgent, MarketProberAgent, QuantAnalystAgent, QuantStrategistAgent,
+        NewsResearchAnalystAgent]

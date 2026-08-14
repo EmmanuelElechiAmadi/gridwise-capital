@@ -32,12 +32,15 @@ from .market_view import MarketView
 _DIR_VALUE = {"BULL": 1.0, "RANGING": 0.0, "BEAR": -1.0}
 
 # Source-type base weights (Kronos + backtests are the strongest evidence).
+# The News Desk (Phase 5) is deliberately modest: real sentiment, but noisy
+# and often already priced in — it adds diversity, never dominance.
 DEFAULT_SOURCE_WEIGHTS = {
     "kronos": 1.0,
     "backtest": 1.0,
     "rf_regime": 0.6,
     "trend_filter": 0.4,
     "llm": 0.5,
+    "news": 0.35,
 }
 
 # Direction decided when |value| exceeds this.
@@ -46,20 +49,27 @@ DIRECTION_THRESHOLD = float(os.getenv("CONSENSUS_DIRECTION_THRESHOLD", "0.2"))
 # ── v4: source-correlation penalty ─────────────────────────────────────
 # Prior pairwise correlation between source *types*.  Sources that share the
 # same bars / features (backtest ↔ trend_filter ↔ rf_regime) are deliberately
-# correlated; independent brains (Kronos, the LLM cross-validator) stay near
-# 0.10.  The matrix is symmetric, values in [0, 1], and can be overridden
-# wholesale via CONSENSUS_SOURCE_CORRELATIONS (JSON with "a,b" keys).
+# correlated; independent brains (Kronos, the LLM cross-validator, the News
+# Desk) stay near 0.10.  The matrix is symmetric, values in [0, 1], and can be
+# overridden wholesale via CONSENSUS_SOURCE_CORRELATIONS (JSON with "a,b" keys).
+# News is the most independent brain in the panel (it reads TEXT, not bars) —
+# keep it at ~0.05-0.10 so it genuinely RAISES the effective sample size.
 DEFAULT_SOURCE_CORRELATIONS = {
     ("kronos", "rf_regime"): 0.15,
     ("kronos", "backtest"): 0.10,
     ("kronos", "trend_filter"): 0.30,
     ("kronos", "llm"): 0.10,
+    ("kronos", "news"): 0.05,
     ("rf_regime", "backtest"): 0.50,
     ("rf_regime", "trend_filter"): 0.45,
     ("rf_regime", "llm"): 0.20,
+    ("rf_regime", "news"): 0.05,
     ("backtest", "trend_filter"): 0.40,
     ("backtest", "llm"): 0.15,
+    ("backtest", "news"): 0.05,
     ("trend_filter", "llm"): 0.25,
+    ("trend_filter", "news"): 0.10,
+    ("llm", "news"): 0.15,
 }
 
 # Unknown source pairs fall back to this correlation.

@@ -165,6 +165,36 @@ class Signal:
         )
 
     @classmethod
+    def from_news(cls, verdict, symbol="GC=F"):
+        """Adapt the News Desk's Claude Sonnet verdict into a Signal.
+
+        The verdict is the output of ``LLMNarrator.analyze_news`` — already
+        passed through ``fact_check_news_verdict`` (verbatim headline
+        citations). News is an explicitly SHORT-horizon, low-weight source:
+        sentiment is real but noisy and often already priced in.
+        """
+        if not verdict or not isinstance(verdict, dict):
+            return None
+        direction = str(verdict.get("direction") or "RANGING").upper()
+        cited = list(verdict.get("evidence_cited") or [])
+        return cls(
+            source="news", direction=direction,
+            strength=clip01(verdict.get("strength", 0.5)),
+            confidence=clip01(verdict.get("confidence", 0.5)),
+            horizon=str(verdict.get("horizon", "short")),
+            symbol=symbol,
+            evidence={
+                "articles_cited": cited,
+                "key_themes": list(verdict.get("key_themes") or []),
+                "risks": list(verdict.get("risks") or []),
+                "rationale": verdict.get("rationale", ""),
+                "fact_check": verdict.get("_fact_check"),
+            },
+            note="News Desk verdict (Claude Sonnet over trading headlines), "
+                 "verified against Kronos + RF in the consensus",
+        )
+
+    @classmethod
     def from_trend_filter(cls, trend, strength=0.5, symbol="GC=F"):
         """Adapt the deterministic trend filter into a Signal."""
         if not trend:
