@@ -259,6 +259,36 @@ class TestKronosPredictorHorizonTrim:
         assert features["regime_label"] in ("BULL", "BEAR", "RANGING")
 
 
+class TestKronosSpotAnchoring:
+    """Live signal paths must be spot-denominated (XAU/USD), not futures."""
+
+    def test_is_gold_symbol_only_matches_gold(self):
+        from ml.kronos.spot import is_gold_symbol
+        assert is_gold_symbol("GC=F") is True
+        assert is_gold_symbol("XAUUSD.r") is True
+        assert is_gold_symbol("XAUUSD=F") is True
+        assert is_gold_symbol("SI=F") is False
+        assert is_gold_symbol("CL=F") is False
+
+    def test_reanchor_to_spot_shifts_ohlcv(self):
+        from ml.kronos.spot import reanchor_to_spot
+        df = _make_ohlcv(50)
+        df["close"].iloc[-1] = 4391.5
+        out = reanchor_to_spot(df, spot_price=4333.33)
+        # Last close == the spot reference after the shift.
+        assert round(float(out["close"].iloc[-1]), 2) == 4333.33
+        # The shift is a uniform basis offset (all levels move together).
+        basis = 4391.5 - 4333.33
+        assert abs(float(out["high"].iloc[-1]) - (float(df["high"].iloc[-1]) - basis)) < 1e-6
+
+    def test_reanchor_fails_safe_without_spot(self, monkeypatch):
+        from ml.kronos import spot as spot_mod
+        from ml.kronos.spot import reanchor_to_spot
+        monkeypatch.setattr(spot_mod, "fetch_live_spot", lambda *a, **k: None)
+        df = _make_ohlcv(30)
+        assert reanchor_to_spot(df) is df  # untouched when spot unavailable
+
+
 class TestKronosBreakoutEnhancerFallback:
     """Broker symbols (XAUUSD.r) don't exist on Yahoo — the enhancer must fall
     back through YAHOO_SYMBOL / gold aliases / cached gold history."""
@@ -288,6 +318,10 @@ class TestKronosBreakoutEnhancerFallback:
             Ticker = _EmptyTicker
 
         monkeypatch.setitem(_sys.modules, "yfinance", _FakeYF())
+        # Neutralise the spot re-anchor (it would otherwise do a live network
+        # fetch and shift the frame) — this test only exercises the chain.
+        from ml.kronos import spot as spot_mod
+        monkeypatch.setattr(spot_mod, "fetch_live_spot", lambda *a, **k: None)
 
         cached = _make_ohlcv(300)
         enhancer = KronosBreakoutEnhancer(_Cfg(), _Log())

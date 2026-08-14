@@ -395,6 +395,10 @@ class KronosBreakoutEnhancer:
                         self.logger.info(
                             f"KronosBreakoutEnhancer: using {sym} as the Yahoo alias "
                             f"for {self._symbol}")
+                    # GC=F is FUTURES — re-anchor to the traded XAU/USD spot
+                    # so forecast levels / breakout maths are spot-denominated.
+                    from .spot import reanchor_to_spot
+                    df = reanchor_to_spot(df)
                     return df
             except Exception as e:
                 self.logger.warning(
@@ -403,6 +407,8 @@ class KronosBreakoutEnhancer:
         # Last resort: the engine's cached gold history (gold_data.csv).
         cached = self._load_cached_gold()
         if cached is not None:
+            from .spot import reanchor_to_spot
+            cached = reanchor_to_spot(cached)
             self.logger.info(
                 "KronosBreakoutEnhancer: using cached gold history (gold_data.csv)")
             return cached

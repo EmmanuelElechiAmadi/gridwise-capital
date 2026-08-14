@@ -375,6 +375,46 @@ def _fetch_live_spot(max_age=45.0):
         print(f"[Kronos] spot fetch failed: {e}")
     _spot_cache = {'ts': now, 'data': data}
     return data
+
+
+def _anchor_forecast_to_spot(k, futures_last=None):
+    """Shift a futures-derived forecast dict to live XAU/USD spot (in place).
+
+    Handles BOTH dashboard-computed forecasts (carry ``last_price``) and
+    bot-supplied forecasts (only carry ``price_min/max_forecast`` — their
+    futures reference is taken from the recent bars).  Returns ``k``.
+    """
+    if not k or k.get('spot_price'):
+        return k
+    try:
+        spot = _fetch_live_spot()
+        if not spot:
+            return k
+        if futures_last is None:
+            futures_last = k.get('last_price')
+        if futures_last is None:
+            bars = _load_recent_bars()
+            if bars is not None and len(bars):
+                futures_last = float(bars['close'].iloc[-1])
+        if not futures_last:
+            return k
+        basis = futures_last - spot['price']
+        if not k.get('last_price'):
+            k['last_price'] = spot['price']
+        for key in ('price_min_forecast', 'price_max_forecast'):
+            val = k.get(key)
+            if val is not None:
+                try:
+                    k[key] = round(float(val) - basis, 2)
+                except (TypeError, ValueError):
+                    pass
+        k['spot_price'] = spot['price']
+        k['futures_last'] = round(float(futures_last), 2)
+        k['basis'] = round(basis, 2)
+        k['price_source'] = spot['source']
+    except Exception as e:
+        print(f"[Kronos] spot anchoring failed: {e}")
+    return k
 _kronos_model = None
 
 
@@ -657,24 +697,7 @@ def _compute_kronos_forecast(force=False):
     # The bot trades XAUUSD.r spot, so the forecast levels and the breakout
     # must be spot-denominated — shift the futures-derived levels by the basis.
     if result is not None:
-        try:
-            spot = _fetch_live_spot()
-            if spot and result.get('last_price'):
-                basis = result['last_price'] - spot['price']
-                futures_last = result['last_price']
-                result['last_price'] = spot['price']
-                if result.get('price_min_forecast'):
-                    result['price_min_forecast'] = round(
-                        result['price_min_forecast'] - basis, 2)
-                if result.get('price_max_forecast'):
-                    result['price_max_forecast'] = round(
-                        result['price_max_forecast'] - basis, 2)
-                result['spot_price'] = spot['price']
-                result['futures_last'] = round(futures_last, 2)
-                result['basis'] = round(basis, 2)
-                result['price_source'] = spot['source']
-        except Exception as e:
-            print(f"[Kronos] spot anchoring failed: {e}")
+        _anchor_forecast_to_spot(result)
 
     _kronos_cache = {'ts': now, 'data': result}
     return result
@@ -798,35 +821,18 @@ def _attach_forecast_data(status_dict):
     # means "no forecast" — recompute a real one in that case.
     if status_dict.get('kronos'):
         k = status_dict.get('kronos')
+        # Bot-supplied forecasts are futures-based and lack last_price —
+        # anchor them to live XAU/USD spot so display + breakout levels are
+        # denominated in the traded instrument (and the Price tile updates).
+        _anchor_forecast_to_spot(k)
     else:
         k = _compute_kronos_forecast()
         status_dict['kronos'] = k
         status_dict['kronos_breakout'] = _compute_breakout_forecast(k)
-    # When the bot's own adapter supplied the forecast it is futures-based
-    # (GC=F) — anchor it to LIVE XAU/USD spot too, so levels match the traded
-    # instrument and the Price tile never freezes on a dead bridge tick.
-    if k and k.get('last_price') and not k.get('spot_price'):
-        try:
-            spot = _fetch_live_spot()
-            if spot:
-                basis = k['last_price'] - spot['price']
-                futures_last = k['last_price']
-                k['last_price'] = spot['price']
-                if k.get('price_min_forecast'):
-                    k['price_min_forecast'] = round(k['price_min_forecast'] - basis, 2)
-                if k.get('price_max_forecast'):
-                    k['price_max_forecast'] = round(k['price_max_forecast'] - basis, 2)
-                k['spot_price'] = spot['price']
-                k['futures_last'] = round(futures_last, 2)
-                k['basis'] = round(basis, 2)
-                k['price_source'] = spot['source']
-        except Exception:
-            pass
     # Recompute the breakout from the spot-anchored forecast so Entry/SL/TP
     # are denominated in the traded instrument, not the futures basis.
     if k and k.get('spot_price'):
         status_dict['kronos_breakout'] = _compute_breakout_forecast(k)
-    if k and k.get('spot_price'):
         # The bridge tick freezes the moment MT5 stops streaming, leaving a
         # stale quote on the dashboard.  Prefer the LIVE XAU/USD spot the
         # forecast was anchored to — it is authoritative and at most 45s old.

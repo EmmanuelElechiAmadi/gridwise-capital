@@ -328,6 +328,12 @@ class KronosRegimeAdapter:
                     return None
             if "volume" not in df.columns:
                 df["volume"] = 0
+            # GC=F is FUTURES — re-anchor to the traded XAU/USD spot so the
+            # forecast's absolute levels are spot-denominated.  Only gold
+            # symbols qualify (the XAU basis is meaningless for SI/CL).
+            from .spot import is_gold_symbol, reanchor_to_spot
+            if is_gold_symbol(symbol):
+                df = reanchor_to_spot(df)
             return df
         except Exception as e:
             self.logger.error(f"Kronos adapter: yfinance error for {symbol}: {e}")
